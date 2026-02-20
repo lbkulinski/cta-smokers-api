@@ -4,3 +4,9 @@ spring:
 app:
   aws:
     region: ${AWS_REGION}
+    dynamodb:
+      tables:
+        smoking-reports: ${APP_AWS_DYNAMODB_TABLES_SMOKING_REPORTS}
+    cta:
+      reports:
+        page-size: ${APP_AWS_CTA_REPORTS_PAGE_SIZE:25}
