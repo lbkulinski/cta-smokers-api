@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: cta-smokers-api
+app:
+  aws:
+    region: ${AWS_REGION}
