@@ -1,6 +1,7 @@
 package com.ctasmokers.smoking.service;
 
-import com.ctasmokers.smoking.dto.FindReportsResponse;
+import com.ctasmokers.smoking.dto.SmokingReportsResponse;
+import com.ctasmokers.smoking.dto.SmokingReportResponse;
 import com.ctasmokers.smoking.dto.SubmitReportRequest;
 import com.ctasmokers.smoking.dto.SubmitReportResponse;
 import com.ctasmokers.smoking.model.SmokingReport;
@@ -11,9 +12,12 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -27,6 +31,7 @@ import java.util.UUID;
 public final class SmokingReportService {
     private static final ZoneId CHICAGO_ZONE_ID = ZoneId.of("America/Chicago");
     private static final String REPORT_ID_FORMAT = "%d#%s";
+    private static final String LOCATION_HEADER_FORMAT = "/api/cta/smoking/reports/{date}/{reportId}";
 
     private final SmokingReportRepository smokingReportRepository;
 
@@ -52,7 +57,7 @@ public final class SmokingReportService {
         this.expireAfterHours = expireAfterHours;
     }
 
-    public SubmitReportResponse submitReport(SubmitReportRequest request) {
+    public ResponseEntity<SubmitReportResponse> submitReport(SubmitReportRequest request) {
         Objects.requireNonNull(request);
 
         TrainLine line;
@@ -90,33 +95,48 @@ public final class SmokingReportService {
 
         this.smokingReportRepository.save(report);
 
-        return new SubmitReportResponse(
-            report.getDate(),
-            report.getReportId(),
-            report.getReportedAt(),
-            report.getExpiresAt(),
-            report.getLine(),
-            report.getDestination(),
-            report.getNextStop(),
-            report.getCarNumber(),
-            report.getRunNumber()
-        );
+        URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
+                                                  .path(LOCATION_HEADER_FORMAT)
+                                                  .buildAndExpand(date, reportId)
+                                                  .encode()
+                                                  .toUri();
+
+        SubmitReportResponse response = SubmitReportResponse.from(report);
+
+        return ResponseEntity.created(location)
+                             .body(response);
     }
 
-    public FindReportsResponse findReportsByDate(LocalDate date, @Nullable String lastReportId) {
+    public ResponseEntity<SmokingReportsResponse> getReportsByDate(LocalDate date, @Nullable String nextCursor) {
         Objects.requireNonNull(date);
 
-        List<SmokingReport> reports = this.smokingReportRepository.findPageByDate(date, this.pageSize, lastReportId);
+        List<SmokingReport> reports = this.smokingReportRepository.findPageByDate(date, this.pageSize, nextCursor);
+
+        List<SmokingReportResponse> reportResponses = reports.stream()
+                                                             .map(SmokingReportResponse::from)
+                                                             .toList();
 
         String newLastReportId;
 
         if (reports.isEmpty()) {
             newLastReportId = null;
         } else {
-            newLastReportId = reports.getLast()
-                                     .getReportId();
+            newLastReportId = reportResponses.getLast()
+                                             .reportId();
         }
 
-        return new FindReportsResponse(reports, newLastReportId);
+        SmokingReportsResponse response = new SmokingReportsResponse(reportResponses, newLastReportId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    public ResponseEntity<SmokingReportResponse> getReportById(LocalDate date, String reportId) {
+        Objects.requireNonNull(date);
+        Objects.requireNonNull(reportId);
+
+        return this.smokingReportRepository.findById(date, reportId)
+                                           .map(SmokingReportResponse::from)
+                                           .map(ResponseEntity::ok)
+                                           .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 }

@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 @Repository
 @NullMarked
@@ -46,7 +47,7 @@ public final class SmokingReportRepository {
     public List<SmokingReport> findPageByDate(
         LocalDate date,
         int pageSize,
-        @Nullable String lastReportId
+        @Nullable String nextCursor
     ) {
         Objects.requireNonNull(date);
 
@@ -60,13 +61,13 @@ public final class SmokingReportRepository {
 
         Map<String, AttributeValue> exclusiveStartKey = null;
 
-        if (lastReportId != null) {
+        if (nextCursor != null) {
             exclusiveStartKey = Map.of(
                 DATE_KEY, AttributeValue.builder()
                                       .s(dateString)
                                       .build(),
                 REPORT_ID_KEY, AttributeValue.builder()
-                                          .s(lastReportId)
+                                          .s(nextCursor)
                                           .build()
             );
         }
@@ -82,5 +83,19 @@ public final class SmokingReportRepository {
                                   .items()
                                   .stream()
                                   .toList();
+    }
+
+    public Optional<SmokingReport> findById(LocalDate date, String reportId) {
+        Objects.requireNonNull(date);
+        Objects.requireNonNull(reportId);
+
+        Key key = Key.builder()
+                     .partitionValue(date.toString())
+                     .sortValue(reportId)
+                     .build();
+
+        SmokingReport report = this.smokingReports.getItem(key);
+
+        return Optional.ofNullable(report);
     }
 }

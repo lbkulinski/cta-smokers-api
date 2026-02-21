@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 @NullMarked
-public record SubmitReportResponse(
+public record SmokingReportResponse(
     LocalDate date,
 
     String reportId,
@@ -30,20 +30,21 @@ public record SubmitReportResponse(
     @Nullable
     String runNumber
 ) {
-    public SubmitReportResponse {
+    public SmokingReportResponse {
         Objects.requireNonNull(date);
         Objects.requireNonNull(reportId);
         Objects.requireNonNull(reportedAt);
+        Objects.requireNonNull(expiresAt);
         Objects.requireNonNull(line);
         Objects.requireNonNull(destination);
         Objects.requireNonNull(nextStop);
         Objects.requireNonNull(carNumber);
     }
 
-    public static SubmitReportResponse from(SmokingReport report) {
+    public static SmokingReportResponse from(SmokingReport report) {
         Objects.requireNonNull(report);
 
-        return new SubmitReportResponse(
+        return new SmokingReportResponse(
             report.getDate(),
             report.getReportId(),
             report.getReportedAt(),

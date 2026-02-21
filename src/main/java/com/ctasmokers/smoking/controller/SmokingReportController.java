@@ -1,6 +1,7 @@
 package com.ctasmokers.smoking.controller;
 
-import com.ctasmokers.smoking.dto.FindReportsResponse;
+import com.ctasmokers.smoking.dto.SmokingReportResponse;
+import com.ctasmokers.smoking.dto.SmokingReportsResponse;
 import com.ctasmokers.smoking.dto.SubmitReportRequest;
 import com.ctasmokers.smoking.dto.SubmitReportResponse;
 import com.ctasmokers.smoking.service.SmokingReportService;
@@ -8,6 +9,7 @@ import jakarta.validation.Valid;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,12 +32,23 @@ public final class SmokingReportController {
     }
 
     @PostMapping
-    public SubmitReportResponse submitReport(@Valid @RequestBody SubmitReportRequest request) {
+    public ResponseEntity<SubmitReportResponse> submitReport(@Valid @RequestBody SubmitReportRequest request) {
         return this.smokingReportService.submitReport(request);
     }
 
     @GetMapping("/{date}")
-    public FindReportsResponse getReports(@PathVariable LocalDate date, @Nullable @RequestParam String lastReportId) {
-        return this.smokingReportService.findReportsByDate(date, lastReportId);
+    public ResponseEntity<SmokingReportsResponse> getReportsByDate(
+        @PathVariable LocalDate date,
+        @Nullable @RequestParam String nextCursor
+    ) {
+        return this.smokingReportService.getReportsByDate(date, nextCursor);
+    }
+
+    @GetMapping("/{date}/{reportId}")
+    public ResponseEntity<SmokingReportResponse> getReportById(
+        @PathVariable LocalDate date,
+        @PathVariable String reportId
+    ) {
+        return this.smokingReportService.getReportById(date, reportId);
     }
 }
