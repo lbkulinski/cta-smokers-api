@@ -16,6 +16,7 @@ import java.security.MessageDigest;
 
 @Component
 public final class OriginVerifyFilter extends OncePerRequestFilter {
+    private static final String API_PATH_PREFIX = "/api";
     private static final String ORIGIN_VERIFY_HEADER = "X-Origin-Verify";
 
     private final byte[] expectedOriginVerify;
@@ -34,6 +35,14 @@ public final class OriginVerifyFilter extends OncePerRequestFilter {
         @NonNull HttpServletResponse response,
         @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+        String requestUri = request.getRequestURI();
+
+        if (!requestUri.startsWith(API_PATH_PREFIX)) {
+            filterChain.doFilter(request, response);
+
+            return;
+        }
+
         String originVerify = request.getHeader(ORIGIN_VERIFY_HEADER);
 
         if (originVerify == null) {
