@@ -110,22 +110,28 @@ public final class SmokingReportService {
     public ResponseEntity<SmokingReportsResponse> getReportsByDate(LocalDate date, @Nullable String nextCursor) {
         Objects.requireNonNull(date);
 
-        List<SmokingReport> reports = this.smokingReportRepository.findPageByDate(date, this.pageSize, nextCursor);
+        SmokingReportRepository.SmokingReportPage page = this.smokingReportRepository.findPageByDate(
+            date,
+            this.pageSize,
+            nextCursor
+        );
 
-        List<SmokingReportResponse> reportResponses = reports.stream()
-                                                             .map(SmokingReportResponse::from)
-                                                             .toList();
+        List<SmokingReportResponse> reportResponses = page.reports()
+                                                          .stream()
+                                                          .map(SmokingReportResponse::from)
+                                                          .toList();
 
-        String newLastReportId;
+        String newCursor;
 
-        if (reports.isEmpty()) {
-            newLastReportId = null;
+        if (reportResponses.isEmpty() || (page.lastEvaluatedKey() == null)) {
+            newCursor = null;
         } else {
-            newLastReportId = reportResponses.getLast()
-                                             .reportId();
+            newCursor = page.lastEvaluatedKey()
+                            .get(SmokingReportRepository.REPORT_ID_KEY)
+                            .s();
         }
 
-        SmokingReportsResponse response = new SmokingReportsResponse(reportResponses, newLastReportId);
+        SmokingReportsResponse response = new SmokingReportsResponse(reportResponses, newCursor);
 
         return ResponseEntity.ok(response);
     }

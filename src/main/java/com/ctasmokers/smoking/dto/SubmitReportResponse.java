@@ -34,6 +34,7 @@ public record SubmitReportResponse(
         Objects.requireNonNull(date);
         Objects.requireNonNull(reportId);
         Objects.requireNonNull(reportedAt);
+        Objects.requireNonNull(expiresAt);
         Objects.requireNonNull(line);
         Objects.requireNonNull(destination);
         Objects.requireNonNull(nextStop);

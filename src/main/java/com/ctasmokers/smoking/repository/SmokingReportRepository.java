@@ -10,6 +10,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -23,8 +24,8 @@ import java.util.Optional;
 @Repository
 @NullMarked
 public final class SmokingReportRepository {
-    private static final String DATE_KEY = "date";
-    private static final String REPORT_ID_KEY = "reportId";
+    public static final String DATE_KEY = "date";
+    public static final String REPORT_ID_KEY = "reportId";
 
     private final DynamoDbTable<SmokingReport> smokingReports;
 
@@ -44,7 +45,20 @@ public final class SmokingReportRepository {
         this.smokingReports.putItem(report);
     }
 
-    public List<SmokingReport> findPageByDate(
+    public record SmokingReportPage(
+        List<SmokingReport> reports,
+        @Nullable Map<String, AttributeValue> lastEvaluatedKey
+    ) {
+        public SmokingReportPage {
+            Objects.requireNonNull(reports);
+
+            reports.forEach(Objects::requireNonNull);
+
+            reports = List.copyOf(reports);
+        }
+    }
+
+    public SmokingReportPage findPageByDate(
         LocalDate date,
         int pageSize,
         @Nullable String nextCursor
@@ -79,10 +93,18 @@ public final class SmokingReportRepository {
                                                            .scanIndexForward(false)
                                                            .build();
 
-        return this.smokingReports.query(request)
-                                  .items()
-                                  .stream()
-                                  .toList();
+        Page<SmokingReport> page = this.smokingReports.query(request)
+                                                      .stream().findFirst()
+                                                      .orElse(null);
+
+        if (page == null) {
+            return new SmokingReportPage(List.of(), null);
+        }
+
+        return new SmokingReportPage(
+            page.items(),
+            page.lastEvaluatedKey()
+        );
     }
 
     public Optional<SmokingReport> findById(LocalDate date, String reportId) {
