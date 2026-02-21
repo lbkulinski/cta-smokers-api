@@ -10,3 +10,4 @@ app:
     cta:
       reports:
         page-size: ${APP_AWS_CTA_REPORTS_PAGE_SIZE:25}
+        expire-after-hours: ${APP_AWS_CTA_REPORTS_EXPIRE_AFTER_HOURS:12}

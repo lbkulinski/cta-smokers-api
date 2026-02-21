@@ -22,6 +22,9 @@ import java.util.Objects;
 @Repository
 @NullMarked
 public final class SmokingReportRepository {
+    private static final String DATE_KEY = "date";
+    private static final String REPORT_ID_KEY = "reportId";
+
     private final DynamoDbTable<SmokingReport> smokingReports;
 
     @Autowired
@@ -59,10 +62,10 @@ public final class SmokingReportRepository {
 
         if (lastReportId != null) {
             exclusiveStartKey = Map.of(
-                "date", AttributeValue.builder()
+                DATE_KEY, AttributeValue.builder()
                                       .s(dateString)
                                       .build(),
-                "reportId", AttributeValue.builder()
+                REPORT_ID_KEY, AttributeValue.builder()
                                           .s(lastReportId)
                                           .build()
             );

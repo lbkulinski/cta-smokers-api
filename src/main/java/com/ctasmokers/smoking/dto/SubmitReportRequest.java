@@ -6,7 +6,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Objects;
 
 @NullMarked
-public record SaveReportResponse(
+public record SubmitReportRequest(
     String line,
 
     String destination,
@@ -18,7 +18,7 @@ public record SaveReportResponse(
     @Nullable
     String runNumber
 ) {
-    public SaveReportResponse {
+    public SubmitReportRequest {
         Objects.requireNonNull(line);
         Objects.requireNonNull(destination);
         Objects.requireNonNull(nextStop);
