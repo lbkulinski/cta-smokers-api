@@ -17,5 +17,7 @@ public record SmokingReportsResponse(
         Objects.requireNonNull(reports);
 
         reports.forEach(Objects::requireNonNull);
+
+        reports = List.copyOf(reports);
     }
 }

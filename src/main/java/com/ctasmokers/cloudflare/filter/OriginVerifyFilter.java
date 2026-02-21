@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Objects;
+import java.security.MessageDigest;
 
 @Component
 public final class OriginVerifyFilter extends OncePerRequestFilter {
@@ -32,11 +32,20 @@ public final class OriginVerifyFilter extends OncePerRequestFilter {
         @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         String originVerify = request.getHeader(ORIGIN_VERIFY_HEADER);
-        String expectedOriginVerify = this.awsSecretsClient.getAppSecret()
-                                                           .cloudflare()
-                                                           .originVerify();
 
-        if (!Objects.equals(originVerify, expectedOriginVerify)) {
+        if (originVerify == null) {
+            response.sendError(HttpStatus.FORBIDDEN.value());
+
+            return;
+        }
+
+        byte[] originVerifyBytes = originVerify.getBytes();
+        byte[] expectedOriginVerifyBytes = this.awsSecretsClient.getAppSecret()
+                                                                .cloudflare()
+                                                                .originVerify()
+                                                                .getBytes();
+
+        if (!MessageDigest.isEqual(originVerifyBytes, expectedOriginVerifyBytes)) {
             response.sendError(HttpStatus.FORBIDDEN.value());
 
             return;

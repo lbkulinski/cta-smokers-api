@@ -14,8 +14,9 @@ permissions:
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
+  ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME }}
   ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
-  APP_AWS_SECRETS_MANAGER_SECRET_ID: ${{ vars.APP_AWS_SECRETS_MANAGER_SECRET_ID }}
+  APP_AWS_SECRETS_MANAGER_ID: ${{ vars.APP_AWS_SECRETS_MANAGER_SECRET_ID }}
   APP_AWS_DYNAMODB_TABLES_SMOKING_REPORTS: ${{ vars.APP_AWS_DYNAMODB_TABLES_SMOKING_REPORTS }}
 
 jobs:
@@ -50,7 +51,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4.3.1
         with:
-          role-to-assume: arn:aws:iam::038462756529:role/cta-smokers-api-github-actions-role
+          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ env.AWS_REGION }}
 

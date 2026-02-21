@@ -123,7 +123,7 @@ public final class SmokingReportService {
 
         String newCursor;
 
-        if (reportResponses.isEmpty() || (page.lastEvaluatedKey() == null)) {
+        if (page.lastEvaluatedKey() == null) {
             newCursor = null;
         } else {
             newCursor = page.lastEvaluatedKey()

@@ -10,7 +10,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -93,18 +92,14 @@ public final class SmokingReportRepository {
                                                            .scanIndexForward(false)
                                                            .build();
 
-        Page<SmokingReport> page = this.smokingReports.query(request)
-                                                      .stream().findFirst()
-                                                      .orElse(null);
-
-        if (page == null) {
-            return new SmokingReportPage(List.of(), null);
-        }
-
-        return new SmokingReportPage(
-            page.items(),
-            page.lastEvaluatedKey()
-        );
+        return this.smokingReports.query(request)
+                                  .stream()
+                                  .findFirst()
+                                  .map(page -> new SmokingReportPage(
+                                      page.items(),
+                                      page.lastEvaluatedKey()
+                                  ))
+                                  .orElseGet(() -> new SmokingReportPage(List.of(), null));
     }
 
     public Optional<SmokingReport> findById(LocalDate date, String reportId) {
