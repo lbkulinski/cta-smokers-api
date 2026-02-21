@@ -16,7 +16,6 @@ reports:
 
 -   Submit reports with line, car number, run number, and direction
 -   Retrieve recent reports by date
--   Aggregated counts by line and destination
 -   ISO-8601 timestamps and predictable JSON schema
 -   Designed for dashboards, mobile apps, and data analysis
 
@@ -27,21 +26,25 @@ reports:
     https://api.ctasmokers.com
 
 > All responses are JSON.\
-> No authentication required for read endpoints.
+> No authentication required for read endpoints.\
 > Write endpoints are rate-limited to prevent abuse.
 
 ------------------------------------------------------------------------
 
 ## 📄 OpenAPI Specification
 
+The full OpenAPI spec is available for developers who want to generate clients or explore endpoints interactively.
+
 **Endpoints:**
 
--   `GET /v3/api-docs` --- OpenAPI 3.1 JSON
+* `GET /v3/api-docs` — JSON format (OpenAPI 3.1)
+
+You can view or import it directly in tools like [Swagger Editor](https://editor.swagger.io/) or [Postman](https://www.postman.com/).
 
 Example:
 
 ``` bash
-curl -s https://api.ctasmokers.com/v3/api-docs | jq '.info'
+curl -s https://api.ctasmokers.com/v3/api-docs | jq '.'
 ```
 
 ------------------------------------------------------------------------
@@ -57,30 +60,30 @@ curl -X POST https://api.ctasmokers.com/api/cta/smoking/reports   -H "Content-Ty
     "nextStop": "Fullerton",
     "carNumber": "2435",
     "runNumber": "902"
-  }'
+}'
 ```
 
 ### Fetch today's reports
 
 ``` bash
-curl -s https://api.ctasmokers.com/api/cta/smoking/reports/2026-02-21   | jq '[.[] | {line, destination, carNumber, reportedAt}]'
+curl -s https://api.ctasmokers.com/api/cta/smoking/reports/2026-02-21   | jq '[.reports[] | {line, destination, carNumber, reportedAt}]'
 ```
 
 ------------------------------------------------------------------------
 
 ## 📚 Endpoints
 
-### Reports
+### Smoking Reports
 
--   `POST /api/cta/smoking/reports ` --- Submit a new smoking report.
--   `GET /api/cta/smoking/reports/{date}` --- List reports by date.
--   `GET /api/cta/smoking/reports/{date}/{reportId}` --- Retrieve a specific report.
+-   `POST /api/cta/smoking/reports ` — Submit a new smoking report.
+-   `GET /api/cta/smoking/reports/{date}` — List reports by date.
+-   `GET /api/cta/smoking/reports/{date}/{reportId}` — Retrieve a specific report.
 
 ------------------------------------------------------------------------
 
 ## 🗂 Data Model
 
-### Report
+### Smoking Report
 
 ``` json
 {
@@ -99,12 +102,12 @@ curl -s https://api.ctasmokers.com/api/cta/smoking/reports/2026-02-21   | jq '[.
 
 ## ⚙️ Conventions
 
--   **Timestamps** → ISO-8601 UTC (`Instant.toString()`)
--   **Dates** → `yyyy-MM-dd`
--   **Report IDs** → `epochMillis#UUID`
--   **Expiration** → Reports may include a TTL (`expiresAt`) for
+-   **Timestamps**: ISO-8601 UTC (`Instant.toString()`)
+-   **Dates**: `yyyy-MM-dd`
+-   **Report IDs**: `epochMillis#UUID`
+-   **Expiration**: Reports may include a TTL (`expiresAt`) for
     automatic cleanup
--   **Line** → Standard CTA identifiers (`RED`, `BLUE`, `BROWN`,
+-   **Line**: Standard CTA identifiers (`RED`, `BLUE`, `BROWN`,
     etc.)
 
 ------------------------------------------------------------------------
