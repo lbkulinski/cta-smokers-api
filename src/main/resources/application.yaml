@@ -4,6 +4,8 @@ spring:
 app:
   aws:
     region: ${AWS_REGION}
+    secrets-manager:
+      id: ${APP_AWS_SECRETS_MANAGER_ID}
     dynamodb:
       tables:
         smoking-reports: ${APP_AWS_DYNAMODB_TABLES_SMOKING_REPORTS}

@@ -1,5 +1,6 @@
 package com.ctasmokers.smoking.service;
 
+import com.ctasmokers.smoking.dto.FindReportsResponse;
 import com.ctasmokers.smoking.dto.SubmitReportRequest;
 import com.ctasmokers.smoking.dto.SubmitReportResponse;
 import com.ctasmokers.smoking.model.SmokingReport;
@@ -102,11 +103,20 @@ public final class SmokingReportService {
         );
     }
 
-    public List<SmokingReport> findReportsByDate(LocalDate date, @Nullable String lastReportId) {
+    public FindReportsResponse findReportsByDate(LocalDate date, @Nullable String lastReportId) {
         Objects.requireNonNull(date);
 
         List<SmokingReport> reports = this.smokingReportRepository.findPageByDate(date, this.pageSize, lastReportId);
 
-        return List.copyOf(reports);
+        String newLastReportId;
+
+        if (reports.isEmpty()) {
+            newLastReportId = null;
+        } else {
+            newLastReportId = reports.getLast()
+                                     .getReportId();
+        }
+
+        return new FindReportsResponse(reports, newLastReportId);
     }
 }

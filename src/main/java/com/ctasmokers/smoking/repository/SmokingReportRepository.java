@@ -75,6 +75,7 @@ public final class SmokingReportRepository {
                                                            .queryConditional(queryConditional)
                                                            .limit(pageSize)
                                                            .exclusiveStartKey(exclusiveStartKey)
+                                                           .scanIndexForward(false)
                                                            .build();
 
         return this.smokingReports.query(request)

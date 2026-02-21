@@ -1,5 +1,8 @@
 package com.ctasmokers.smoking.model;
 
+import org.jspecify.annotations.NullMarked;
+
+@NullMarked
 public enum TrainLine {
     RED,
 
