@@ -48,8 +48,8 @@ public final class SmokingReportService {
         @Value("${app.aws.cta.reports.page-size}") int pageSize,
         @Value("${app.aws.cta.reports.expire-after-hours}") int expireAfterHours
     ) {
-        if (pageSize <= 0) {
-            throw new IllegalArgumentException("pageSize must be a positive integer");
+        if ((pageSize <= 0) || (pageSize > 100)) {
+            throw new IllegalArgumentException("pageSize must be a positive integer between 1 and 100");
         }
 
         if (expireAfterHours <= 0) {
@@ -99,7 +99,7 @@ public final class SmokingReportService {
 
         this.smokingReportRepository.save(report);
 
-        URI location = ServletUriComponentsBuilder.fromCurrentContextPath()
+        URI location = ServletUriComponentsBuilder.fromCurrentRequestUri()
                                                   .path(LOCATION_HEADER_FORMAT)
                                                   .buildAndExpand(date, reportId)
                                                   .encode()

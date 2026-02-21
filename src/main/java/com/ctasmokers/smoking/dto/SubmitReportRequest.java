@@ -21,7 +21,6 @@ public record SubmitReportRequest(
     String carNumber,
 
     @Nullable
-    @NotBlank
     String runNumber
 ) {
     public SubmitReportRequest {
