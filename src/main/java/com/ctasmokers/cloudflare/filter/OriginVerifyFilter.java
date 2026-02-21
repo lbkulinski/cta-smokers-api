@@ -18,11 +18,14 @@ import java.security.MessageDigest;
 public final class OriginVerifyFilter extends OncePerRequestFilter {
     private static final String ORIGIN_VERIFY_HEADER = "X-Origin-Verify";
 
-    private final AwsSecretsClient awsSecretsClient;
+    private final byte[] expectedOriginVerify;
 
     @Autowired
     public OriginVerifyFilter(AwsSecretsClient awsSecretsClient) {
-        this.awsSecretsClient = awsSecretsClient;
+        this.expectedOriginVerify = awsSecretsClient.getAppSecret()
+                                                    .cloudflare()
+                                                    .originVerify()
+                                                    .getBytes();
     }
 
     @Override
@@ -40,12 +43,8 @@ public final class OriginVerifyFilter extends OncePerRequestFilter {
         }
 
         byte[] originVerifyBytes = originVerify.getBytes();
-        byte[] expectedOriginVerifyBytes = this.awsSecretsClient.getAppSecret()
-                                                                .cloudflare()
-                                                                .originVerify()
-                                                                .getBytes();
 
-        if (!MessageDigest.isEqual(originVerifyBytes, expectedOriginVerifyBytes)) {
+        if (!MessageDigest.isEqual(originVerifyBytes, this.expectedOriginVerify)) {
             response.sendError(HttpStatus.FORBIDDEN.value());
 
             return;
