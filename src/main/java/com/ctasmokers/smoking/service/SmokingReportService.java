@@ -30,7 +30,11 @@ import java.util.UUID;
 @NullMarked
 public final class SmokingReportService {
     private static final ZoneId CHICAGO_ZONE_ID = ZoneId.of("America/Chicago");
-    private static final String REPORT_ID_FORMAT = "%d#%s";
+    private static final String REPORT_ID_DELIMITER = "#";
+    private static final String REPORT_ID_FORMAT = "%d%s%s";
+    private static final int REPORT_ID_PARTS_COUNT = 2;
+    private static final int REPORT_ID_TIMESTAMP_INDEX = 0;
+    private static final int REPORT_ID_UUID_INDEX = 1;
     private static final String LOCATION_HEADER_FORMAT = "/api/cta/smoking/reports/{date}/{reportId}";
 
     private final SmokingReportRepository smokingReportRepository;
@@ -77,7 +81,7 @@ public final class SmokingReportService {
         String uuid = UUID.randomUUID()
                           .toString();
 
-        String reportId = REPORT_ID_FORMAT.formatted(epochMillis, uuid);
+        String reportId = REPORT_ID_FORMAT.formatted(epochMillis, REPORT_ID_DELIMITER, uuid);
         long expiresAt = now.plus(this.expireAfterHours, ChronoUnit.HOURS)
                             .getEpochSecond();
 
@@ -110,6 +114,12 @@ public final class SmokingReportService {
     public ResponseEntity<SmokingReportsResponse> getReportsByDate(LocalDate date, @Nullable String nextCursor) {
         Objects.requireNonNull(date);
 
+        if (nextCursor != null) {
+            if (this.isInvalidReportId(nextCursor)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            }
+        }
+
         SmokingReportRepository.SmokingReportPage page = this.smokingReportRepository.findPageByDate(
             date,
             this.pageSize,
@@ -140,9 +150,35 @@ public final class SmokingReportService {
         Objects.requireNonNull(date);
         Objects.requireNonNull(reportId);
 
+        if (this.isInvalidReportId(reportId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
         return this.smokingReportRepository.findById(date, reportId)
                                            .map(SmokingReportResponse::from)
                                            .map(ResponseEntity::ok)
                                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
+    private boolean isInvalidReportId(String reportId) {
+        String[] parts = reportId.split(REPORT_ID_DELIMITER);
+
+        if (parts.length != REPORT_ID_PARTS_COUNT) {
+            return true;
+        }
+
+        try {
+            Long.parseLong(parts[REPORT_ID_TIMESTAMP_INDEX]);
+        } catch (NumberFormatException e) {
+            return true;
+        }
+
+        try {
+            UUID.fromString(parts[REPORT_ID_UUID_INDEX]);
+        } catch (IllegalArgumentException e) {
+            return true;
+        }
+
+        return false;
     }
 }
