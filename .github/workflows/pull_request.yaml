@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  id-token: write
+  contents: write
+
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME }}
