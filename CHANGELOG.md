@@ -7,10 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-02-22
+
+### Changed
+
+- Allowed `/actuator/health` endpoint to bypass the request filter
+
 ## 1.0.0 - 2026-02-22
 
 ### Added
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta4j-api/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/lbkulinski/cta-smokers-api/compare/v1.0.0...v1.0.1
