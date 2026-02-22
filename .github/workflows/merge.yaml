@@ -1,0 +1,27 @@
+name: CTA Smokers API - Build & Test
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  APP_AWS_SECRETS_MANAGER_ID: ${{ vars.APP_AWS_SECRETS_MANAGER_SECRET_ID }}
+  APP_AWS_DYNAMODB_TABLES_SMOKING_REPORTS: ${{ vars.APP_AWS_DYNAMODB_TABLES_SMOKING_REPORTS }}
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '25'
+
+      - name: Build with Maven
+        run: mvn -B clean package

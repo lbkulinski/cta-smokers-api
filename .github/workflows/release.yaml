@@ -1,0 +1,96 @@
+name: CTA Smokers API - Release & Deploy to AWS
+
+on:
+  push:
+    tags: [ "v*" ]
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write
+  contents: write
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ROLE_TO_ASSUME: ${{ vars.AWS_ROLE_TO_ASSUME }}
+  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+  APP_AWS_SECRETS_MANAGER_ID: ${{ vars.APP_AWS_SECRETS_MANAGER_SECRET_ID }}
+  APP_AWS_DYNAMODB_TABLES_SMOKING_REPORTS: ${{ vars.APP_AWS_DYNAMODB_TABLES_SMOKING_REPORTS }}
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: '25'
+
+      - name: Read project version from pom.xml
+        id: ver
+        run: |
+          VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:3.5.0:exec)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set JAR_FILE
+        run: echo "JAR_FILE=target/cta-smokers-api-${{ steps.ver.outputs.version }}.jar" >> "$GITHUB_ENV"
+
+      - name: Build with Maven
+        run: mvn -B clean package
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4.3.1
+        with:
+          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.ref_name }}
+        run: |
+          docker build \
+            --build-arg JAR_FILE="$JAR_FILE" \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Extract release notes from CHANGELOG.md
+        id: notes
+        run: |
+          VER="${{ steps.ver.outputs.version }}"
+          awk -v ver="$VER" 'BEGIN { regex="^##[[:space:]]+\\[?" ver "\\]?(\\s*-.*)?$" } $0 ~ regex {flag=1; next} flag && /^##[[:space:]]/ {flag=0} flag' CHANGELOG.md > RELEASE_NOTES.md || true
+          if [ ! -s RELEASE_NOTES.md ]; then
+            echo "No changelog section found for ${VER}." > RELEASE_NOTES.md
+          fi
+          echo "path=RELEASE_NOTES.md" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release using CHANGELOG section
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: cta-smokers-api ${{ github.ref_name }}
+          body_path: ${{ steps.notes.outputs.path }}
+          overwrite_files: true
+          files: |
+            ${{ env.JAR_FILE }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
