@@ -66,7 +66,7 @@ curl -X POST https://api.ctasmokers.com/api/cta/smoking/reports -H "Content-Type
 ### Fetch today's reports
 
 ``` bash
-curl -s https://api.ctasmokers.com/api/cta/smoking/reports/2026-02-21 | jq '[.reports[] | {line, destination, carNumber, reportedAt}]'
+curl -s https://api.ctasmokers.com/api/cta/smoking/reports/$(date +%F) | jq '[.reports[] | {line, destination, carNumber, reportedAt}]'
 ```
 
 ------------------------------------------------------------------------

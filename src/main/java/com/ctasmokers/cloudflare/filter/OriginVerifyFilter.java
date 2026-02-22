@@ -12,11 +12,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 @Component
 public final class OriginVerifyFilter extends OncePerRequestFilter {
-    private static final String API_PATH_PREFIX = "/api";
+    private static final String CF_CONNECTING_IP_HEADER = "CF-Connecting-IP";
     private static final String ORIGIN_VERIFY_HEADER = "X-Origin-Verify";
 
     private final byte[] expectedOriginVerify;
@@ -26,7 +27,7 @@ public final class OriginVerifyFilter extends OncePerRequestFilter {
         this.expectedOriginVerify = awsSecretsClient.getAppSecret()
                                                     .cloudflare()
                                                     .originVerify()
-                                                    .getBytes();
+                                                    .getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
@@ -35,10 +36,10 @@ public final class OriginVerifyFilter extends OncePerRequestFilter {
         @NonNull HttpServletResponse response,
         @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        String requestUri = request.getRequestURI();
+        String cfConnectingIp = request.getHeader(CF_CONNECTING_IP_HEADER);
 
-        if (!requestUri.startsWith(API_PATH_PREFIX)) {
-            filterChain.doFilter(request, response);
+        if (cfConnectingIp == null || cfConnectingIp.isBlank()) {
+            response.sendError(HttpStatus.FORBIDDEN.value());
 
             return;
         }
@@ -51,7 +52,7 @@ public final class OriginVerifyFilter extends OncePerRequestFilter {
             return;
         }
 
-        byte[] originVerifyBytes = originVerify.getBytes();
+        byte[] originVerifyBytes = originVerify.getBytes(StandardCharsets.UTF_8);
 
         if (!MessageDigest.isEqual(originVerifyBytes, this.expectedOriginVerify)) {
             response.sendError(HttpStatus.FORBIDDEN.value());

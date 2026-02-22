@@ -29,6 +29,8 @@ import java.util.UUID;
 @Service
 @NullMarked
 public final class SmokingReportService {
+    private static final int MIN_PAGE_SIZE = 1;
+    private static final int MAX_PAGE_SIZE = 100;
     private static final ZoneId CHICAGO_ZONE_ID = ZoneId.of("America/Chicago");
     private static final String REPORT_ID_DELIMITER = "#";
     private static final String REPORT_ID_FORMAT = "%d%s%s";
@@ -48,8 +50,10 @@ public final class SmokingReportService {
         @Value("${app.aws.cta.reports.page-size}") int pageSize,
         @Value("${app.aws.cta.reports.expire-after-hours}") int expireAfterHours
     ) {
-        if ((pageSize <= 0) || (pageSize > 100)) {
-            throw new IllegalArgumentException("pageSize must be a positive integer between 1 and 100");
+        if ((pageSize < MIN_PAGE_SIZE) || (pageSize > MAX_PAGE_SIZE)) {
+            throw new IllegalArgumentException(
+                "pageSize must be a positive integer between %d and %d".formatted(MIN_PAGE_SIZE, MAX_PAGE_SIZE)
+            );
         }
 
         if (expireAfterHours <= 0) {

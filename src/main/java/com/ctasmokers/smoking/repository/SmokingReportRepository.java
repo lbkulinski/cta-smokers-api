@@ -23,6 +23,8 @@ import java.util.Optional;
 @Repository
 @NullMarked
 public final class SmokingReportRepository {
+    private static final int MIN_PAGE_SIZE = 1;
+    private static final int MAX_PAGE_SIZE = 100;
     public static final String DATE_KEY = "date";
     public static final String REPORT_ID_KEY = "reportId";
 
@@ -63,6 +65,12 @@ public final class SmokingReportRepository {
         @Nullable String nextCursor
     ) {
         Objects.requireNonNull(date);
+
+        if ((pageSize < MIN_PAGE_SIZE) || (pageSize > MAX_PAGE_SIZE)) {
+            throw new IllegalArgumentException(
+                "pageSize must be a positive integer between %d and %d".formatted(MIN_PAGE_SIZE, MAX_PAGE_SIZE)
+            );
+        }
 
         String dateString = date.toString();
 
