@@ -9,7 +9,8 @@ app:
     dynamodb:
       tables:
         smoking-reports: cta-smoking-reports
-    cta:
-      reports:
-        page-size: 25
-        expire-after-hours: 12
+  cta:
+    reports:
+      base-url: https://api.ctasmokers.com
+      page-size: 25
+      expire-after-hours: 12

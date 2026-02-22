@@ -9,7 +9,8 @@ app:
     dynamodb:
       tables:
         smoking-reports: ${APP_AWS_DYNAMODB_TABLES_SMOKING_REPORTS}
-    cta:
-      reports:
-        page-size: ${APP_AWS_CTA_REPORTS_PAGE_SIZE:25}
-        expire-after-hours: ${APP_AWS_CTA_REPORTS_EXPIRE_AFTER_HOURS:12}
+  cta:
+    reports:
+      base-url: ${APP_CTA_REPORTS_BASE_URL}
+      page-size: ${APP_AWS_CTA_REPORTS_PAGE_SIZE:25}
+      expire-after-hours: ${APP_AWS_CTA_REPORTS_EXPIRE_AFTER_HOURS:12}

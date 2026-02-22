@@ -136,6 +136,16 @@ All data is user-submitted and provided as-is.
 
 ------------------------------------------------------------------------
 
+## 🛠️ Planned Improvements
+
+* Add **test coverage**
+* Expand to support additional **report types** (e.g., loud music, cleanliness)
+* Improve **data caching** and **error granularity**
+
+Have an idea or feature request? Open an issue — contributions are welcome!
+
+------------------------------------------------------------------------
+
 ## 🧾 License
 
 Licensed under the Apache License 2.0.\

@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.validator.routines.InetAddressValidator;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,7 +39,14 @@ public final class OriginVerifyFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         String cfConnectingIp = request.getHeader(CF_CONNECTING_IP_HEADER);
 
-        if (cfConnectingIp == null || cfConnectingIp.isBlank()) {
+        if ((cfConnectingIp == null) || cfConnectingIp.isBlank()) {
+            response.sendError(HttpStatus.FORBIDDEN.value());
+
+            return;
+        }
+
+        if (!InetAddressValidator.getInstance()
+                                 .isValid(cfConnectingIp)) {
             response.sendError(HttpStatus.FORBIDDEN.value());
 
             return;

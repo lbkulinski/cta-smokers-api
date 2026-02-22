@@ -37,18 +37,20 @@ public final class SmokingReportService {
     private static final int REPORT_ID_PARTS_COUNT = 2;
     private static final int REPORT_ID_TIMESTAMP_INDEX = 0;
     private static final int REPORT_ID_UUID_INDEX = 1;
-    private static final String LOCATION_HEADER_FORMAT = "/api/cta/smoking/reports/{date}/{reportId}";
+    private static final String LOCATION_HEADER_FORMAT = "%s/api/cta/smoking/reports/{date}/{reportId}";
 
     private final SmokingReportRepository smokingReportRepository;
 
+    private final String baseUrl;
     private final int pageSize;
     private final long expireAfterHours;
 
     @Autowired
     public SmokingReportService(
         SmokingReportRepository smokingReportRepository,
-        @Value("${app.aws.cta.reports.page-size}") int pageSize,
-        @Value("${app.aws.cta.reports.expire-after-hours}") int expireAfterHours
+        @Value("${app.cta.reports.base-url}") String baseUrl,
+        @Value("${app.cta.reports.page-size}") int pageSize,
+        @Value("${app.cta.reports.expire-after-hours}") int expireAfterHours
     ) {
         if ((pageSize < MIN_PAGE_SIZE) || (pageSize > MAX_PAGE_SIZE)) {
             throw new IllegalArgumentException(
@@ -61,6 +63,7 @@ public final class SmokingReportService {
         }
 
         this.smokingReportRepository = smokingReportRepository;
+        this.baseUrl = baseUrl;
         this.pageSize = pageSize;
         this.expireAfterHours = expireAfterHours;
     }
@@ -103,8 +106,7 @@ public final class SmokingReportService {
 
         this.smokingReportRepository.save(report);
 
-        URI location = ServletUriComponentsBuilder.fromCurrentRequestUri()
-                                                  .path(LOCATION_HEADER_FORMAT)
+        URI location = ServletUriComponentsBuilder.fromPath(LOCATION_HEADER_FORMAT.formatted(this.baseUrl))
                                                   .buildAndExpand(date, reportId)
                                                   .encode()
                                                   .toUri();
