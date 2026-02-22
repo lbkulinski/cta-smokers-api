@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: cta-smokers-api
+app:
+  aws:
+    region: us-east-2
+    secrets-manager:
+      id: test/cta-smokers
+    dynamodb:
+      tables:
+        smoking-reports: cta-smoking-reports
+    cta:
+      reports:
+        page-size: 25
+        expire-after-hours: 12
