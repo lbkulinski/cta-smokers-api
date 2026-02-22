@@ -14,10 +14,10 @@ CTA trains. Built to help riders make informed decisions in real time.
 The API provides structured access to community-submitted smoking
 reports:
 
--   Submit reports with line, car number, run number, and direction
--   Retrieve recent reports by date
--   ISO-8601 timestamps and predictable JSON schema
--   Designed for dashboards, mobile apps, and data analysis
+- Submit reports with line, car number, run number, and direction
+- Retrieve recent reports by date
+- ISO-8601 timestamps and predictable JSON schema
+- Designed for dashboards, mobile apps, and data analysis
 
 ------------------------------------------------------------------------
 
@@ -75,9 +75,9 @@ curl -s https://api.ctasmokers.com/api/cta/smoking/reports/2026-02-21 | jq '[.re
 
 ### Smoking Reports
 
--   `POST /api/cta/smoking/reports ` — Submit a new smoking report.
--   `GET /api/cta/smoking/reports/{date}` — List reports by date.
--   `GET /api/cta/smoking/reports/{date}/{reportId}` — Retrieve a specific report.
+- `POST /api/cta/smoking/reports ` — Submit a new smoking report.
+- `GET /api/cta/smoking/reports/{date}` — List reports by date.
+- `GET /api/cta/smoking/reports/{date}/{reportId}` — Retrieve a specific report.
 
 ------------------------------------------------------------------------
 
@@ -102,32 +102,30 @@ curl -s https://api.ctasmokers.com/api/cta/smoking/reports/2026-02-21 | jq '[.re
 
 ## ⚙️ Conventions
 
--   **Timestamps**: ISO-8601 UTC (`Instant.toString()`)
--   **Dates**: `yyyy-MM-dd`
--   **Report IDs**: `epochMillis#UUID`
--   **Expiration**: Reports may include a TTL (`expiresAt`) for
-    automatic cleanup
--   **Line**: Standard CTA identifiers (`RED`, `BLUE`, `BROWN`,
-    etc.)
+- **Timestamps**: ISO-8601 UTC (`Instant.toString()`)
+- **Dates**: `yyyy-MM-dd`
+- **Report IDs**: `epochMillis#UUID`
+- **Expiration**: Reports may include a TTL (`expiresAt`) for  automatic cleanup
+- **Line**: Standard CTA identifiers (`RED`, `BLUE`, `BROWN`, etc.)
 
 ------------------------------------------------------------------------
 
 ## 🧠 Design Goals
 
--   **Public transparency**
--   **Community-powered**
--   **Low friction**
--   **Developer friendly**
--   **Lightweight infrastructure**
+- **Public transparency**
+- **Community-powered**
+- **Low friction**
+- **Developer friendly**
+- **Lightweight infrastructure**
 
 ------------------------------------------------------------------------
 
 ## 🔒 Moderation & Integrity
 
--   Basic validation on all submissions
--   Server-generated timestamps
--   Rate limiting to prevent spam
--   No personally identifiable information stored
+- Basic validation on all submissions
+- Server-generated timestamps
+- Rate limiting to prevent spam
+- No personally identifiable information stored
 
 ------------------------------------------------------------------------
 
