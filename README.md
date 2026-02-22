@@ -54,7 +54,7 @@ curl -s https://api.ctasmokers.com/v3/api-docs | jq '.'
 ### Submit a smoking report
 
 ``` bash
-curl -X POST https://api.ctasmokers.com/api/cta/smoking/reports   -H "Content-Type: application/json"   -d '{
+curl -X POST https://api.ctasmokers.com/api/cta/smoking/reports -H "Content-Type: application/json" -d '{
     "line": "RED",
     "destination": "HOWARD",
     "nextStop": "Fullerton",
@@ -66,7 +66,7 @@ curl -X POST https://api.ctasmokers.com/api/cta/smoking/reports   -H "Content-Ty
 ### Fetch today's reports
 
 ``` bash
-curl -s https://api.ctasmokers.com/api/cta/smoking/reports/2026-02-21   | jq '[.reports[] | {line, destination, carNumber, reportedAt}]'
+curl -s https://api.ctasmokers.com/api/cta/smoking/reports/2026-02-21 | jq '[.reports[] | {line, destination, carNumber, reportedAt}]'
 ```
 
 ------------------------------------------------------------------------
