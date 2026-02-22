@@ -15,9 +15,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Objects;
 
 @Component
 public final class OriginVerifyFilter extends OncePerRequestFilter {
+    private static final String HEALTH_CHECK_PATH = "/actuator/health";
     private static final String CF_CONNECTING_IP_HEADER = "CF-Connecting-IP";
     private static final String ORIGIN_VERIFY_HEADER = "X-Origin-Verify";
 
@@ -37,6 +39,14 @@ public final class OriginVerifyFilter extends OncePerRequestFilter {
         @NonNull HttpServletResponse response,
         @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+        String requestPath = request.getRequestURI();
+
+        if (Objects.equals(requestPath, HEALTH_CHECK_PATH)) {
+            filterChain.doFilter(request, response);
+
+            return;
+        }
+
         String cfConnectingIp = request.getHeader(CF_CONNECTING_IP_HEADER);
 
         if ((cfConnectingIp == null) || cfConnectingIp.isBlank()) {
