@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-02-22
+
+### Changed
+
+- Changed API path from `/api/cta/smoking/reports` to `/api/cta/reports/smoking`
+
+### Fixed
+
+- OpenAPI spec now correctly specifies that the POST endpoint returns a 201 status code on success instead of 200.
+
 ## [1.0.1] - 2026-02-22
 
 ### Changed
@@ -19,5 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/lbkulinski/cta-smokers-api/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/lbkulinski/cta-smokers-api/compare/v1.0.0...v1.0.1

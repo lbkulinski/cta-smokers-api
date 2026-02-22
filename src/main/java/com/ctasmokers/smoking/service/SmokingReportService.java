@@ -37,7 +37,7 @@ public final class SmokingReportService {
     private static final int REPORT_ID_PARTS_COUNT = 2;
     private static final int REPORT_ID_TIMESTAMP_INDEX = 0;
     private static final int REPORT_ID_UUID_INDEX = 1;
-    private static final String LOCATION_HEADER_FORMAT = "%s/api/cta/smoking/reports/{date}/{reportId}";
+    private static final String LOCATION_HEADER_FORMAT = "%s/api/cta/reports/smoking/{date}/{reportId}";
 
     private final SmokingReportRepository smokingReportRepository;
 

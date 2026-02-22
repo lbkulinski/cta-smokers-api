@@ -54,7 +54,7 @@ curl -s https://api.ctasmokers.com/v3/api-docs | jq '.'
 ### Submit a smoking report
 
 ``` bash
-curl -X POST https://api.ctasmokers.com/api/cta/smoking/reports -H "Content-Type: application/json" -d '{
+curl -X POST https://api.ctasmokers.com/api/cta/reports/smoking -H "Content-Type: application/json" -d '{
     "line": "RED",
     "destination": "HOWARD",
     "nextStop": "Fullerton",
@@ -66,7 +66,7 @@ curl -X POST https://api.ctasmokers.com/api/cta/smoking/reports -H "Content-Type
 ### Fetch today's reports
 
 ``` bash
-curl -s https://api.ctasmokers.com/api/cta/smoking/reports/$(date +%F) | jq '[.reports[] | {line, destination, carNumber, reportedAt}]'
+curl -s https://api.ctasmokers.com/api/cta/reports/smoking/$(date +%F) | jq '[.reports[] | {line, destination, carNumber, reportedAt}]'
 ```
 
 ------------------------------------------------------------------------
@@ -75,9 +75,9 @@ curl -s https://api.ctasmokers.com/api/cta/smoking/reports/$(date +%F) | jq '[.r
 
 ### Smoking Reports
 
-- `POST /api/cta/smoking/reports ` — Submit a new smoking report.
-- `GET /api/cta/smoking/reports/{date}` — List reports by date.
-- `GET /api/cta/smoking/reports/{date}/{reportId}` — Retrieve a specific report.
+- `POST /api/cta/reports/smoking ` — Submit a new smoking report.
+- `GET /api/cta/reports/smoking/{date}` — List reports by date.
+- `GET /api/cta/reports/smoking/{date}/{reportId}` — Retrieve a specific report.
 
 ------------------------------------------------------------------------
 
