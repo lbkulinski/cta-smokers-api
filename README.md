@@ -75,7 +75,7 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/$(date +%F) | jq '[.r
 
 ### Smoking Reports
 
-- `POST /api/cta/reports/smoking ` — Submit a new smoking report.
+- `POST /api/cta/reports/smoking` — Submit a new smoking report.
 - `GET /api/cta/reports/smoking/{date}` — List reports by date.
 - `GET /api/cta/reports/smoking/{date}/{reportId}` — Retrieve a specific report.
 
