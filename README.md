@@ -59,7 +59,7 @@ curl -X POST https://api.ctasmokers.com/api/cta/smoking/reports   -H "Content-Ty
     "destination": "HOWARD",
     "nextStop": "Fullerton",
     "carNumber": "2435",
-    "runNumber": "902"
+    "runNumber": "902" // Optional, but helps identify the train and track patterns over time
 }'
 ```
 
