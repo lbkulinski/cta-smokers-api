@@ -5,6 +5,7 @@ import com.ctasmokers.smoking.dto.SmokingReportsResponse;
 import com.ctasmokers.smoking.dto.SubmitReportRequest;
 import com.ctasmokers.smoking.dto.SubmitReportResponse;
 import com.ctasmokers.smoking.service.SmokingReportService;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/api/cta/smoking/reports")
+@RequestMapping("/api/cta/reports/smoking")
 @NullMarked
 public final class SmokingReportController {
     private final SmokingReportService smokingReportService;
@@ -32,6 +33,7 @@ public final class SmokingReportController {
     }
 
     @PostMapping
+    @ApiResponse(responseCode = "201", description = "Report created successfully")
     public ResponseEntity<SubmitReportResponse> submitReport(@Valid @RequestBody SubmitReportRequest request) {
         return this.smokingReportService.submitReport(request);
     }
