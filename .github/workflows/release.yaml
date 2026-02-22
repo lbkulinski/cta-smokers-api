@@ -46,7 +46,7 @@ jobs:
         run: echo "JAR_FILE=target/cta-smokers-api-${{ steps.ver.outputs.version }}.jar" >> "$GITHUB_ENV"
 
       - name: Build with Maven
-        run: mvn -B -DskipTests=true clean package
+        run: mvn -B clean package
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4.3.1
