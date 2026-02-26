@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated report IDs to use an underscore (`_`) instead of a hash symbol (`#`) to separate the timestamp and UUID to
+avoid issues with URL encoding when retrieving specific reports by ID.
 - Updated `line` field to require a valid CTA line name instead of freeform text to allow for better data consistency.
 - Updated `destination` and `nextStop` fields to require numeric stations IDs instead of freeform text to allow for
 better data consistency. The new fields are named `destinationId` and `nextStation` respectively.
