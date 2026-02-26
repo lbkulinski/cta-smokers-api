@@ -1,20 +1,23 @@
 package com.ctasmokers.smoking.dto;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-@NullMarked
 public record SubmitReportRequest(
+    @NotNull
     @Pattern(regexp = LINE_REGEX, message = LINE_MESSAGE)
     String line,
 
+    @NotNull
     @Pattern(regexp = ID_REGEX, message = ID_MESSAGE)
     String destinationId,
 
+    @NotNull
     @Pattern(regexp = ID_REGEX, message = ID_MESSAGE)
     String nextStationId,
 
+    @NotNull
     @Pattern(regexp = ID_REGEX, message = ID_MESSAGE)
     String carNumber,
 

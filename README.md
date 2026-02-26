@@ -56,8 +56,8 @@ curl -s https://api.ctasmokers.com/v3/api-docs | jq '.'
 ``` bash
 curl -X POST https://api.ctasmokers.com/api/cta/reports/smoking -H "Content-Type: application/json" -d '{
     "line": "RED",
-    "destination": "HOWARD",
-    "nextStop": "Fullerton",
+    "destinationId": "40900",
+    "nextStationId": "41220",
     "carNumber": "2435",
     "runNumber": "902" // Optional, but helps identify the train and track patterns over time
 }'
@@ -66,7 +66,7 @@ curl -X POST https://api.ctasmokers.com/api/cta/reports/smoking -H "Content-Type
 ### Fetch today's reports
 
 ``` bash
-curl -s https://api.ctasmokers.com/api/cta/reports/smoking/$(date +%F) | jq '[.reports[] | {line, destination, carNumber, reportedAt}]'
+curl -s https://api.ctasmokers.com/api/cta/reports/smoking/$(date +%F) | jq '[.reports[] | {line, destinationId, carNumber, reportedAt}]'
 ```
 
 ------------------------------------------------------------------------
@@ -91,8 +91,8 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/$(date +%F) | jq '[.r
   "reportedAt": "2026-02-21T21:43:22.399660Z",
   "date": "2026-02-21",
   "line": "RED",
-  "destination": "HOWARD",
-  "nextStop": "Fullerton",
+  "destinationId": "40900",
+  "nextStationId": "41220",
   "carNumber": "2435",
   "runNumber": "902" // Optional, but helps identify the train and track patterns over time
 }
