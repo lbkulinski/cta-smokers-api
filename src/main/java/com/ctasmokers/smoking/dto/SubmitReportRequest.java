@@ -1,32 +1,34 @@
 package com.ctasmokers.smoking.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import org.jspecify.annotations.NullMarked;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
-
-@NullMarked
 public record SubmitReportRequest(
-    @NotBlank
+    @NotNull
+    @Pattern(regexp = LINE_REGEX, message = LINE_MESSAGE)
     String line,
 
-    @NotBlank
-    String destination,
+    @NotNull
+    @Pattern(regexp = ID_REGEX, message = ID_MESSAGE)
+    String destinationId,
 
-    @NotBlank
-    String nextStop,
+    @NotNull
+    @Pattern(regexp = ID_REGEX, message = ID_MESSAGE)
+    String nextStationId,
 
-    @NotBlank
+    @NotNull
+    @Pattern(regexp = ID_REGEX, message = ID_MESSAGE)
     String carNumber,
 
     @Nullable
+    @Pattern(regexp = ID_REGEX, message = ID_MESSAGE)
     String runNumber
 ) {
-    public SubmitReportRequest {
-        Objects.requireNonNull(line);
-        Objects.requireNonNull(destination);
-        Objects.requireNonNull(nextStop);
-        Objects.requireNonNull(carNumber);
-    }
+    private static final String LINE_REGEX = "^(RED|BLUE|GREEN|BROWN|PURPLE|PINK|ORANGE|YELLOW)$";
+    private static final String LINE_MESSAGE = """
+    Must be one of: RED, BLUE, GREEN, BROWN, PURPLE, PINK, ORANGE, YELLOW""";
+
+    private static final String ID_REGEX = "^[0-9]{1,10}$";
+    private static final String ID_MESSAGE = "Must be a number with 1 to 10 digits";
 }

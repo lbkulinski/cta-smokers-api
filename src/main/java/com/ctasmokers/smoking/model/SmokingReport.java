@@ -29,9 +29,9 @@ public class SmokingReport {
 
     TrainLine line;
 
-    String destination;
+    String destinationId;
 
-    String nextStop;
+    String nextStationId;
 
     String carNumber;
 

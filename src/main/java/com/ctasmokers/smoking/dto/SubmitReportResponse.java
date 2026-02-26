@@ -21,9 +21,9 @@ public record SubmitReportResponse(
 
     TrainLine line,
 
-    String destination,
+    String destinationId,
 
-    String nextStop,
+    String nextStationId,
 
     String carNumber,
 
@@ -36,8 +36,8 @@ public record SubmitReportResponse(
         Objects.requireNonNull(reportedAt);
         Objects.requireNonNull(expiresAt);
         Objects.requireNonNull(line);
-        Objects.requireNonNull(destination);
-        Objects.requireNonNull(nextStop);
+        Objects.requireNonNull(destinationId);
+        Objects.requireNonNull(nextStationId);
         Objects.requireNonNull(carNumber);
     }
 
@@ -50,8 +50,8 @@ public record SubmitReportResponse(
             report.getReportedAt(),
             Instant.ofEpochSecond(report.getExpiresAt()),
             report.getLine(),
-            report.getDestination(),
-            report.getNextStop(),
+            report.getDestinationId(),
+            report.getNextStationId(),
             report.getCarNumber(),
             report.getRunNumber()
         );
