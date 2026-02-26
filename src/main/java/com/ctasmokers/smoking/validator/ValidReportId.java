@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ValidReportId {
-    String message() default "Invalid report ID";
+    String message() default "Invalid report ID format. Expected format: {timestamp}_{uuid}";
 
     Class<?>[] groups() default {};
 
