@@ -1,32 +1,27 @@
 package com.ctasmokers.smoking.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
-
 @NullMarked
 public record SubmitReportRequest(
-    @NotBlank
+    @Pattern(regexp = LINE_REGEX)
     String line,
 
-    @NotBlank
-    String destination,
+    @Pattern(regexp = ID_REGEX)
+    String destinationId,
 
-    @NotBlank
-    String nextStop,
+    @Pattern(regexp = ID_REGEX)
+    String nextStationId,
 
-    @NotBlank
+    @Pattern(regexp = ID_REGEX)
     String carNumber,
 
     @Nullable
+    @Pattern(regexp = ID_REGEX)
     String runNumber
 ) {
-    public SubmitReportRequest {
-        Objects.requireNonNull(line);
-        Objects.requireNonNull(destination);
-        Objects.requireNonNull(nextStop);
-        Objects.requireNonNull(carNumber);
-    }
+    private static final String LINE_REGEX = "RED|BLUE|GREEN|BROWN|PURPLE|PINK|ORANGE|YELLOW";
+    private static final String ID_REGEX = "[0-9]{1,10}";
 }

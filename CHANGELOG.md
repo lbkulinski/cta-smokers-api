@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.1] - 2026-02-24
+## [3.0.0] - 2026-02-26
+
+### Changed
+
+- Updated destination and nextStop fields to be numeric IDs instead of freeform text to allow for better data consistency.
 
 ### Added
 
@@ -36,7 +40,7 @@ development origins.
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v2.0.1...HEAD
-[2.0.1]: https://github.com/lbkulinski/cta-smokers-api/compare/v2.0.0...v2.0.1
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/lbkulinski/cta-smokers-api/compare/v1.0.0...v1.0.1

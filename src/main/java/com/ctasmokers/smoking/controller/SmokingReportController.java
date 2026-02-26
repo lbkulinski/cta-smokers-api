@@ -5,6 +5,7 @@ import com.ctasmokers.smoking.dto.SmokingReportsResponse;
 import com.ctasmokers.smoking.dto.SubmitReportRequest;
 import com.ctasmokers.smoking.dto.SubmitReportResponse;
 import com.ctasmokers.smoking.service.SmokingReportService;
+import com.ctasmokers.smoking.validator.ValidReportId;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NullMarked;
@@ -41,7 +42,7 @@ public final class SmokingReportController {
     @GetMapping("/{date}")
     public ResponseEntity<SmokingReportsResponse> getReportsByDate(
         @PathVariable LocalDate date,
-        @Nullable @RequestParam String nextCursor
+        @Nullable @ValidReportId @RequestParam String nextCursor
     ) {
         return this.smokingReportService.getReportsByDate(date, nextCursor);
     }
@@ -49,7 +50,7 @@ public final class SmokingReportController {
     @GetMapping("/{date}/{reportId}")
     public ResponseEntity<SmokingReportResponse> getReportById(
         @PathVariable LocalDate date,
-        @PathVariable String reportId
+        @PathVariable @ValidReportId String reportId
     ) {
         return this.smokingReportService.getReportById(date, reportId);
     }
