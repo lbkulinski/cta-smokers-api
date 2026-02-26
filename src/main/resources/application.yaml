@@ -13,6 +13,7 @@ app:
     allowed-origins:
       - https://ctasmokers.com
       - https://www.ctasmokers.com
+      - https://cta-smokers-front-end.lagers-rancor-0o.workers.dev
     allowed-methods:
       - GET
       - POST
