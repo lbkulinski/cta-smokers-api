@@ -39,14 +39,14 @@ public final class SmokingReportService {
 
     private final String baseUrl;
     private final int pageSize;
-    private final long expireAfterHours;
+    private final long expireAfterMinutes;
 
     @Autowired
     public SmokingReportService(
         SmokingReportRepository smokingReportRepository,
         @Value("${app.cta.reports.base-url}") String baseUrl,
         @Value("${app.cta.reports.page-size}") int pageSize,
-        @Value("${app.cta.reports.expire-after-hours}") int expireAfterHours
+        @Value("${app.cta.reports.expire-after-minutes}") int expireAfterMinutes
     ) {
         if ((pageSize < MIN_PAGE_SIZE) || (pageSize > MAX_PAGE_SIZE)) {
             throw new IllegalArgumentException(
@@ -54,14 +54,14 @@ public final class SmokingReportService {
             );
         }
 
-        if (expireAfterHours <= 0) {
-            throw new IllegalArgumentException("expireAfterHours must be a positive integer");
+        if (expireAfterMinutes <= 0) {
+            throw new IllegalArgumentException("expireAfterMinutes must be a positive integer");
         }
 
         this.smokingReportRepository = smokingReportRepository;
         this.baseUrl = baseUrl;
         this.pageSize = pageSize;
-        this.expireAfterHours = expireAfterHours;
+        this.expireAfterMinutes = expireAfterMinutes;
     }
 
     public ResponseEntity<SubmitReportResponse> submitReport(SubmitReportRequest request) {
@@ -85,7 +85,7 @@ public final class SmokingReportService {
                           .toString();
 
         String reportId = REPORT_ID_FORMAT.formatted(epochMillis, uuid);
-        long expiresAt = now.plus(this.expireAfterHours, ChronoUnit.HOURS)
+        long expiresAt = now.plus(this.expireAfterMinutes, ChronoUnit.MINUTES)
                             .getEpochSecond();
 
         SmokingReport report = SmokingReport.builder()

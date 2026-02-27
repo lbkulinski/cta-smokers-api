@@ -2,6 +2,7 @@ spring:
   application:
     name: cta-smokers-api
 app:
+  version: ${project.version}
   aws:
     region: us-east-2
     secrets-manager:
@@ -9,6 +10,8 @@ app:
     dynamodb:
       tables:
         smoking-reports: cta-smoking-reports
+  rollbar:
+    environment: test
   cors:
     allowed-origins:
       - https://ctasmokers.com
@@ -30,4 +33,4 @@ app:
     reports:
       base-url: https://api.ctasmokers.com
       page-size: 25
-      expire-after-hours: 12
+      expire-after-minutes: 30
