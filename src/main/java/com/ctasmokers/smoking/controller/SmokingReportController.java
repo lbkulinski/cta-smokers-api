@@ -8,7 +8,6 @@ import com.ctasmokers.smoking.service.SmokingReportService;
 import com.ctasmokers.smoking.validator.ValidReportId;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,6 @@ import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/cta/reports/smoking")
-@NullMarked
 public final class SmokingReportController {
     private final SmokingReportService smokingReportService;
 
