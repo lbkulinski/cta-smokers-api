@@ -29,7 +29,10 @@ public class RollbarConfig {
 
     @Bean
     public Rollbar rollbar() {
-        String accessToken = this.awsSecretsClient.getAppSecret().rollbar().accessToken();
+        String accessToken = this.awsSecretsClient.getAppSecret()
+                                                  .rollbar()
+                                                  .accessToken();
+
 
         Config config = ConfigBuilder.withAccessToken(accessToken)
                                      .environment(this.environment)

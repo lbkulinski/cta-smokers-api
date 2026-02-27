@@ -1,8 +1,11 @@
 spring:
   application:
     name: cta-smokers-api
+#  mvc:
+#    problemdetails:
+#      enabled: true
 app:
-  version: ${project.version}
+  version: @project.version@
   aws:
     region: ${AWS_REGION}
     secrets-manager:

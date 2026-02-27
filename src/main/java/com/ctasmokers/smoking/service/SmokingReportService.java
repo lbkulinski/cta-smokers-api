@@ -67,13 +67,7 @@ public final class SmokingReportService {
     public ResponseEntity<SubmitReportResponse> submitReport(SubmitReportRequest request) {
         Objects.requireNonNull(request);
 
-        TrainLine line;
-
-        try {
-            line = TrainLine.valueOf(request.line());
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
+        TrainLine line = TrainLine.valueOf(request.line());
 
         Instant now = Instant.now();
 
