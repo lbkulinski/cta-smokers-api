@@ -109,6 +109,7 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/$(date +%F) | jq '[.r
 - **Line**: Standard CTA identifiers (`RED`, `BLUE`, `BROWN`, etc.)
 - **Destination/Next Station IDs**: CTA's numeric codes for stations,
 found [here](https://data.cityofchicago.org/resource/8pix-ypme.json)
+  - The smoking report API makes use of the `map_id` field
 
 ------------------------------------------------------------------------
 
