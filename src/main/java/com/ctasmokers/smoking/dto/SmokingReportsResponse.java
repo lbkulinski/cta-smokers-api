@@ -16,7 +16,8 @@ public record SmokingReportsResponse(
     @Nullable
     @Schema(
         description = "Cursor for fetching the next page of results, or null if there are no more results",
-        example = "1771710202399_7a8dcb0d-aea9-4c37-89d6-fc79fe3ba77f"
+        example = "1771710202399_7a8dcb0d-aea9-4c37-89d6-fc79fe3ba77f",
+        nullable = true
     )
     String nextCursor
 ) {
