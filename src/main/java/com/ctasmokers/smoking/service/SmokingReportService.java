@@ -3,7 +3,7 @@ package com.ctasmokers.smoking.service;
 import com.ctasmokers.smoking.dto.SmokingReportsResponse;
 import com.ctasmokers.smoking.dto.SmokingReportResponse;
 import com.ctasmokers.smoking.dto.SubmitReportRequest;
-import com.ctasmokers.smoking.dto.SubmitReportResponse;
+import com.ctasmokers.smoking.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.model.SmokingReport;
 import com.ctasmokers.smoking.model.TrainLine;
 import com.ctasmokers.smoking.repository.SmokingReportRepository;
@@ -11,10 +11,8 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -39,14 +37,14 @@ public final class SmokingReportService {
 
     private final String baseUrl;
     private final int pageSize;
-    private final long expireAfterHours;
+    private final long expireAfterMinutes;
 
     @Autowired
     public SmokingReportService(
         SmokingReportRepository smokingReportRepository,
         @Value("${app.cta.reports.base-url}") String baseUrl,
         @Value("${app.cta.reports.page-size}") int pageSize,
-        @Value("${app.cta.reports.expire-after-hours}") int expireAfterHours
+        @Value("${app.cta.reports.expire-after-minutes}") int expireAfterMinutes
     ) {
         if ((pageSize < MIN_PAGE_SIZE) || (pageSize > MAX_PAGE_SIZE)) {
             throw new IllegalArgumentException(
@@ -54,26 +52,20 @@ public final class SmokingReportService {
             );
         }
 
-        if (expireAfterHours <= 0) {
-            throw new IllegalArgumentException("expireAfterHours must be a positive integer");
+        if (expireAfterMinutes <= 0) {
+            throw new IllegalArgumentException("expireAfterMinutes must be a positive integer");
         }
 
         this.smokingReportRepository = smokingReportRepository;
         this.baseUrl = baseUrl;
         this.pageSize = pageSize;
-        this.expireAfterHours = expireAfterHours;
+        this.expireAfterMinutes = expireAfterMinutes;
     }
 
-    public ResponseEntity<SubmitReportResponse> submitReport(SubmitReportRequest request) {
+    public ResponseEntity<SmokingReportResponse> submitReport(SubmitReportRequest request) {
         Objects.requireNonNull(request);
 
-        TrainLine line;
-
-        try {
-            line = TrainLine.valueOf(request.line());
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
-        }
+        TrainLine line = TrainLine.valueOf(request.line());
 
         Instant now = Instant.now();
 
@@ -85,7 +77,7 @@ public final class SmokingReportService {
                           .toString();
 
         String reportId = REPORT_ID_FORMAT.formatted(epochMillis, uuid);
-        long expiresAt = now.plus(this.expireAfterHours, ChronoUnit.HOURS)
+        long expiresAt = now.plus(this.expireAfterMinutes, ChronoUnit.MINUTES)
                             .getEpochSecond();
 
         SmokingReport report = SmokingReport.builder()
@@ -107,7 +99,7 @@ public final class SmokingReportService {
                                                   .encode()
                                                   .toUri();
 
-        SubmitReportResponse response = SubmitReportResponse.from(report);
+        SmokingReportResponse response = SmokingReportResponse.from(report);
 
         return ResponseEntity.created(location)
                              .body(response);
@@ -149,6 +141,6 @@ public final class SmokingReportService {
         return this.smokingReportRepository.findById(date, reportId)
                                            .map(SmokingReportResponse::from)
                                            .map(ResponseEntity::ok)
-                                           .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                                           .orElseThrow(() -> new SmokingReportNotFoundException(date, reportId));
     }
 }

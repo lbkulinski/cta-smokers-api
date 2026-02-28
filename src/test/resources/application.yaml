@@ -9,6 +9,8 @@ app:
     dynamodb:
       tables:
         smoking-reports: cta-smoking-reports
+  rollbar:
+    environment: test
   cors:
     allowed-origins:
       - https://ctasmokers.com
@@ -30,4 +32,17 @@ app:
     reports:
       base-url: https://api.ctasmokers.com
       page-size: 25
-      expire-after-hours: 12
+      expire-after-minutes: 30
+  openapi:
+    info:
+      title: CTA Smokers API
+      description: API for submitting and retrieving smoking reports on CTA trains.
+    contact:
+      name: Logan Kulinski
+      email: admin@ctasmokers.com
+    license:
+      name: Apache License 2.0
+      url: https://www.apache.org/licenses/LICENSE-2.0
+    server:
+      url: https://api.ctasmokers.com
+      description: Production

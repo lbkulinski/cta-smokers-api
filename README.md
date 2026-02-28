@@ -88,7 +88,8 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/$(date +%F) | jq '[.r
 ``` json
 {
   "reportId": "1771710202399_7a8dcb0d-aea9-4c37-89d6-fc79fe3ba77f",
-  "reportedAt": "2026-02-21T21:43:22.399660Z",
+  "reportedAt": "2026-02-21T21:00:22.399660Z",
+  "expiresAt": "2026-02-21T21:30:22.399660Z",
   "date": "2026-02-21",
   "line": "RED",
   "destinationId": "40900",

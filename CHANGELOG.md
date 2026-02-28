@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.2] - 2026-02-27
+
+### Changed
+
+- API errors now use the `ProblemDetail` format with appropriate HTTP status codes for better client error handling and
+debugging.
+- Updated OpenAPI spec to reflect the new error response format and status codes, along with additional descriptions
+for each endpoint and field to improve documentation clarity.
+- Reports now expire after 30 minutes
+
+### Added
+
+- `expiresAt` field is now correctly shown in the README data model
+- Added support for Rollbar logging when exceptions occur in the API
+
+
+## [3.0.1] - 2026-02-26
+
+### Added
+
+- Added https://cta-smokers-front-end.lagers-rancor-0o.workers.dev as an allowed origin in the CORS configuration to
+allow requests from the deployed front-end application.
+
 ## [3.0.0] - 2026-02-26
 
 ### Changed
@@ -47,7 +70,9 @@ consistency.
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.2...HEAD
+[3.0.2]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.1...v3.0.2
+[3.0.1]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v2.0.0...v3.0.0
 [2.0.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/lbkulinski/cta-smokers-api/compare/v1.0.0...v1.0.1
