@@ -22,7 +22,6 @@ public class OpenAPIProperties {
     public static class Info {
         String title;
         String description;
-        String version;
     }
 
     @Data

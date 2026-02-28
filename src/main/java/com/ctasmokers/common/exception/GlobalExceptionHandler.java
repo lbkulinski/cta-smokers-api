@@ -1,5 +1,6 @@
 package com.ctasmokers.common.exception;
 
+import com.ctasmokers.smoking.exception.SmokingReportNotFoundException;
 import com.rollbar.notifier.Rollbar;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -28,6 +29,9 @@ public final class GlobalExceptionHandler {
     private static final String NOT_FOUND_DETAIL = "The requested resource was not found.";
     private static final String NOT_FOUND_TITLE = "Not Found";
 
+    private static final String TYPE_MISMATCH_DETAIL_TEMPLATE = "Invalid value '%s' for parameter '%s'";
+    private static final String TYPE_MISMATCH_TITLE = "Bad Request";
+
     private static final String VALIDATION_ERROR_DETAIL = "One or more validation errors occurred.";
     private static final String VALIDATION_ERROR_TITLE = "Validation Error";
     private static final String VALIDATION_ERRORS_PROPERTY = "errors";
@@ -45,7 +49,7 @@ public final class GlobalExceptionHandler {
     @ExceptionHandler({
         NoResourceFoundException.class,
         NoHandlerFoundException.class,
-        MethodArgumentTypeMismatchException.class
+        SmokingReportNotFoundException.class
     })
     public ResponseEntity<ProblemDetail> handleNotFoundException(HttpServletRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, NOT_FOUND_DETAIL);
@@ -57,6 +61,27 @@ public final class GlobalExceptionHandler {
 
         return ResponseEntity.of(problem)
                              .build();
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ProblemDetail> handleTypeMismatchException(
+        MethodArgumentTypeMismatchException exception,
+        HttpServletRequest request
+    ) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+            HttpStatus.BAD_REQUEST,
+            TYPE_MISMATCH_DETAIL_TEMPLATE.formatted(
+                exception.getValue(),
+                exception.getName()
+            )
+        );
+
+        URI instance = URI.create(request.getRequestURI());
+
+        problem.setTitle(TYPE_MISMATCH_TITLE);
+        problem.setInstance(instance);
+
+        return ResponseEntity.of(problem).build();
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

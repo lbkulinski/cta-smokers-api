@@ -3,6 +3,7 @@ package com.ctasmokers.smoking.service;
 import com.ctasmokers.smoking.dto.SmokingReportsResponse;
 import com.ctasmokers.smoking.dto.SmokingReportResponse;
 import com.ctasmokers.smoking.dto.SubmitReportRequest;
+import com.ctasmokers.smoking.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.model.SmokingReport;
 import com.ctasmokers.smoking.model.TrainLine;
 import com.ctasmokers.smoking.repository.SmokingReportRepository;
@@ -10,10 +11,8 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -142,6 +141,6 @@ public final class SmokingReportService {
         return this.smokingReportRepository.findById(date, reportId)
                                            .map(SmokingReportResponse::from)
                                            .map(ResponseEntity::ok)
-                                           .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+                                           .orElseThrow(() -> new SmokingReportNotFoundException(date, reportId));
     }
 }

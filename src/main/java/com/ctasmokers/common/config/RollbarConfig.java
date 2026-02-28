@@ -6,25 +6,26 @@ import com.rollbar.notifier.config.Config;
 import com.rollbar.notifier.config.ConfigBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RollbarConfig {
     private final AwsSecretsClient awsSecretsClient;
+    private final BuildProperties buildProperties;
 
     private final String environment;
-    private final String codeVersion;
 
     @Autowired
     public RollbarConfig(
         AwsSecretsClient awsSecretsClient,
-        @Value("${app.rollbar.environment}") String environment,
-        @Value("${app.version}") String codeVersion
+        BuildProperties buildProperties,
+        @Value("${app.rollbar.environment}") String environment
     ) {
         this.awsSecretsClient = awsSecretsClient;
+        this.buildProperties = buildProperties;
         this.environment = environment;
-        this.codeVersion = codeVersion;
     }
 
     @Bean
@@ -32,11 +33,12 @@ public class RollbarConfig {
         String accessToken = this.awsSecretsClient.getAppSecret()
                                                   .rollbar()
                                                   .accessToken();
+        String codeVersion = this.buildProperties.getVersion();
 
 
         Config config = ConfigBuilder.withAccessToken(accessToken)
                                      .environment(this.environment)
-                                     .codeVersion(this.codeVersion)
+                                     .codeVersion(codeVersion)
                                      .build();
 
         return Rollbar.init(config);

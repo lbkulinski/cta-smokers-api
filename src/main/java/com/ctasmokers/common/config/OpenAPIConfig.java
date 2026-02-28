@@ -7,6 +7,7 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,10 +16,15 @@ import java.util.List;
 @Configuration
 public class OpenAPIConfig {
     private final OpenAPIProperties openAPIProperties;
+    private final BuildProperties buildProperties;
 
     @Autowired
-    public OpenAPIConfig(OpenAPIProperties openAPIProperties) {
+    public OpenAPIConfig(
+        OpenAPIProperties openAPIProperties,
+        BuildProperties buildProperties
+    ) {
         this.openAPIProperties = openAPIProperties;
+        this.buildProperties = buildProperties;
     }
 
     @Bean
@@ -40,8 +46,7 @@ public class OpenAPIConfig {
                                          .getTitle())
             .description(this.openAPIProperties.getInfo()
                                                .getDescription())
-            .version(this.openAPIProperties.getInfo()
-                                           .getVersion())
+            .version(this.buildProperties.getVersion())
             .contact(contact)
             .license(apacheLicense);
 

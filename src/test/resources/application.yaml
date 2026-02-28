@@ -2,7 +2,6 @@ spring:
   application:
     name: cta-smokers-api
 app:
-  version: test
   aws:
     region: us-east-2
     secrets-manager:
@@ -38,7 +37,6 @@ app:
     info:
       title: CTA Smokers API
       description: API for submitting and retrieving smoking reports on CTA trains.
-      version: test
     contact:
       name: Logan Kulinski
       email: admin@ctasmokers.com
