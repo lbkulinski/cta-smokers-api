@@ -22,7 +22,8 @@ class ApplicationTests {
 
             Mockito.when(client.getAppSecret())
                    .thenReturn(new Secret(
-                       new Secret.CloudflareSecret("test-origin-verify")
+                       new Secret.CloudflareSecret("test-origin-verify"),
+                       new Secret.RollbarSecret("test-rollbar-access-token")
                    ));
 
             return client;
