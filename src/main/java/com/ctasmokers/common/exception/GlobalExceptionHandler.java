@@ -12,6 +12,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.net.URI;
@@ -40,7 +42,11 @@ public final class GlobalExceptionHandler {
         this.rollbar = rollbar;
     }
 
-    @ExceptionHandler(NoResourceFoundException.class)
+    @ExceptionHandler({
+        NoResourceFoundException.class,
+        NoHandlerFoundException.class,
+        MethodArgumentTypeMismatchException.class
+    })
     public ResponseEntity<ProblemDetail> handleNotFoundException(HttpServletRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, NOT_FOUND_DETAIL);
 

@@ -3,7 +3,6 @@ package com.ctasmokers.smoking.service;
 import com.ctasmokers.smoking.dto.SmokingReportsResponse;
 import com.ctasmokers.smoking.dto.SmokingReportResponse;
 import com.ctasmokers.smoking.dto.SubmitReportRequest;
-import com.ctasmokers.smoking.dto.SubmitReportResponse;
 import com.ctasmokers.smoking.model.SmokingReport;
 import com.ctasmokers.smoking.model.TrainLine;
 import com.ctasmokers.smoking.repository.SmokingReportRepository;
@@ -64,7 +63,7 @@ public final class SmokingReportService {
         this.expireAfterMinutes = expireAfterMinutes;
     }
 
-    public ResponseEntity<SubmitReportResponse> submitReport(SubmitReportRequest request) {
+    public ResponseEntity<SmokingReportResponse> submitReport(SubmitReportRequest request) {
         Objects.requireNonNull(request);
 
         TrainLine line = TrainLine.valueOf(request.line());
@@ -101,7 +100,7 @@ public final class SmokingReportService {
                                                   .encode()
                                                   .toUri();
 
-        SubmitReportResponse response = SubmitReportResponse.from(report);
+        SmokingReportResponse response = SmokingReportResponse.from(report);
 
         return ResponseEntity.created(location)
                              .body(response);

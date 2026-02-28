@@ -1,9 +1,6 @@
 spring:
   application:
     name: cta-smokers-api
-#  mvc:
-#    problemdetails:
-#      enabled: true
 app:
   version: @project.version@
   aws:
@@ -36,3 +33,17 @@ app:
       base-url: ${APP_CTA_REPORTS_BASE_URL}
       page-size: ${APP_AWS_CTA_REPORTS_PAGE_SIZE:25}
       expire-after-minutes: ${APP_AWS_CTA_REPORTS_EXPIRE_AFTER_MINUTES:30}
+  openapi:
+    info:
+      title: CTA Smokers API
+      description: API for submitting and retrieving smoking reports on CTA trains.
+      version: @project.version@
+    contact:
+      name: Logan Kulinski
+      email: admin@ctasmokers.com
+    license:
+      name: Apache License 2.0
+      url: https://www.apache.org/licenses/LICENSE-2.0
+    server:
+      url: https://api.ctasmokers.com
+      description: Production
