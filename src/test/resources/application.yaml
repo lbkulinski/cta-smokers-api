@@ -2,7 +2,7 @@ spring:
   application:
     name: cta-smokers-api
 app:
-  version: ${project.version}
+  version: @project.version@
   aws:
     region: us-east-2
     secrets-manager:
@@ -34,3 +34,17 @@ app:
       base-url: https://api.ctasmokers.com
       page-size: 25
       expire-after-minutes: 30
+  openapi:
+    info:
+      title: CTA Smokers API
+      description: API for submitting and retrieving smoking reports on CTA trains.
+      version: @project.version@
+    contact:
+      name: Logan Kulinski
+      email: admin@ctasmokers.com
+    license:
+      name: Apache License 2.0
+      url: https://www.apache.org/licenses/LICENSE-2.0
+    server:
+      url: https://api.ctasmokers.com
+      description: Production
