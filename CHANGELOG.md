@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.2] - 2026-02-27
+
+### Changed
+
+- API errors now use the `ProblemDetail` format with appropriate HTTP status codes for better client error handling and
+debugging.
+- Updated OpenAPI spec to reflect the new error response format and status codes, along with additional descriptions
+for each endpoint and field to improve documentation clarity.
+- Reports now expire after 30 minutes
+
+### Added
+
+- `expiresAt` field is now correctly shown in the README data model
+- Added support for Rollbar logging when exceptions occur in the API
+
+
 ## [3.0.1] - 2026-02-26
 
 ### Added
