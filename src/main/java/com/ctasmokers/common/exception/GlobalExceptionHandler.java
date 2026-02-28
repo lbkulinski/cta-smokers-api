@@ -81,7 +81,8 @@ public final class GlobalExceptionHandler {
         problem.setTitle(TYPE_MISMATCH_TITLE);
         problem.setInstance(instance);
 
-        return ResponseEntity.of(problem).build();
+        return ResponseEntity.of(problem)
+                             .build();
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
