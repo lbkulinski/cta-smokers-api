@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.3] - 2026-03-03
+
+### Changed
+
+- Cleaned up `GlobalExceptionHandler` by extending `ResponseEntityExceptionHandler` to leverage Spring's built-in
+exception handling capabilities and reduce boilerplate code.
+- Bump `software.amazon.awssdk:bom` from `2.41.34` to `2.42.4`
+
 ## [3.0.2] - 2026-02-27
 
 ### Changed
@@ -70,7 +78,8 @@ consistency.
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.2...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.3...HEAD
+[3.0.3]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v2.0.0...v3.0.0
