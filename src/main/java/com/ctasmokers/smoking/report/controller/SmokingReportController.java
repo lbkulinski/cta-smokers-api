@@ -1,10 +1,10 @@
-package com.ctasmokers.smoking.controller;
+package com.ctasmokers.smoking.report.controller;
 
-import com.ctasmokers.smoking.dto.SmokingReportResponse;
-import com.ctasmokers.smoking.dto.SmokingReportsResponse;
-import com.ctasmokers.smoking.dto.SubmitReportRequest;
-import com.ctasmokers.smoking.service.SmokingReportService;
-import com.ctasmokers.smoking.validator.ValidReportId;
+import com.ctasmokers.smoking.report.dto.SmokingReportResponse;
+import com.ctasmokers.smoking.report.dto.SmokingReportsResponse;
+import com.ctasmokers.smoking.report.dto.SubmitReportRequest;
+import com.ctasmokers.smoking.report.service.SmokingReportService;
+import com.ctasmokers.smoking.report.validator.ValidReportId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

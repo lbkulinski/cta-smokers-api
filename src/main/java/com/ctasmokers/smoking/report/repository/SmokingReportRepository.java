@@ -1,6 +1,6 @@
-package com.ctasmokers.smoking.repository;
+package com.ctasmokers.smoking.report.repository;
 
-import com.ctasmokers.smoking.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.SmokingReport;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;

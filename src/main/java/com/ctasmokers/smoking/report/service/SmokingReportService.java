@@ -1,12 +1,12 @@
-package com.ctasmokers.smoking.service;
+package com.ctasmokers.smoking.report.service;
 
-import com.ctasmokers.smoking.dto.SmokingReportsResponse;
-import com.ctasmokers.smoking.dto.SmokingReportResponse;
-import com.ctasmokers.smoking.dto.SubmitReportRequest;
-import com.ctasmokers.smoking.exception.SmokingReportNotFoundException;
-import com.ctasmokers.smoking.model.SmokingReport;
-import com.ctasmokers.smoking.model.TrainLine;
-import com.ctasmokers.smoking.repository.SmokingReportRepository;
+import com.ctasmokers.smoking.report.dto.SmokingReportsResponse;
+import com.ctasmokers.smoking.report.dto.SmokingReportResponse;
+import com.ctasmokers.smoking.report.dto.SubmitReportRequest;
+import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
+import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.TrainLine;
+import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package com.ctasmokers.smoking.model;
+package com.ctasmokers.smoking.report.model;
 
 import org.jspecify.annotations.NullMarked;
 

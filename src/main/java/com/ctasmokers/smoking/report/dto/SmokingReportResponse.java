@@ -1,7 +1,7 @@
-package com.ctasmokers.smoking.dto;
+package com.ctasmokers.smoking.report.dto;
 
-import com.ctasmokers.smoking.model.SmokingReport;
-import com.ctasmokers.smoking.model.TrainLine;
+import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.TrainLine;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;

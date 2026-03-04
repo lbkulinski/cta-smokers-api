@@ -1,4 +1,4 @@
-package com.ctasmokers.smoking.validator;
+package com.ctasmokers.smoking.report.validator;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

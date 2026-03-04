@@ -1,4 +1,4 @@
-package com.ctasmokers.smoking.exception;
+package com.ctasmokers.smoking.report.exception;
 
 import java.time.LocalDate;
 

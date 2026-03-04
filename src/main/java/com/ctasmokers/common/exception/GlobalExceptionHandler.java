@@ -1,6 +1,6 @@
 package com.ctasmokers.common.exception;
 
-import com.ctasmokers.smoking.exception.SmokingReportNotFoundException;
+import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.rollbar.notifier.Rollbar;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;

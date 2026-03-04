@@ -1,4 +1,4 @@
-package com.ctasmokers.smoking.dto;
+package com.ctasmokers.smoking.report.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
