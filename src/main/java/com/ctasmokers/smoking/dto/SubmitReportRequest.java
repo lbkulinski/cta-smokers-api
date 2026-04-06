@@ -40,8 +40,8 @@ public record SubmitReportRequest(
     private static final String ID_MESSAGE = "Must be a numeric string with 1 to 10 digits";
 
     private static final String CAR_NUMBER_REGEX = "^[0-9]{4}$";
-    private static final String CAR_NUMBER_MESSAGE = "Must be a number with exactly 4 digits";
+    private static final String CAR_NUMBER_MESSAGE = "Must be a numeric string with exactly 4 digits";
 
     private static final String RUN_NUMBER_REGEX = "^[0-9]{3}$";
-    private static final String RUN_NUMBER_MESSAGE = "Must be a number with exactly 3 digits";
+    private static final String RUN_NUMBER_MESSAGE = "Must be a numeric string with exactly 3 digits";
 }
