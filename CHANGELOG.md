@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `carNumber` now requires exactly 4 digits instead of 1 to 10 digits.
 - `runNumber` now requires exactly 3 digits instead of 1 to 10 digits.
+- Bump `org.springframework.boot:spring-boot-starter-parent` from `4.0.3` to `4.0.5`
+- Bump `org.springdoc:springdoc-openapi-starter-webmvc-ui` from `3.0.1` to `3.0.2`
+- Bump `com.amazonaws.secretsmanager:aws-secretsmanager-caching-java` from `2.1.1` to `2.2.0`
+- Bump `com.rollbar:rollbar-java` from `2.1.0` to `2.2.0`
+- Bump `software.amazon.awssdk:bom` from `2.42.4` to `2.42.23`
 
 ## [3.0.3] - 2026-03-03
 
