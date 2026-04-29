@@ -28,7 +28,7 @@ public final class SmokingReportRepository {
     public static final String DATE_KEY = "date";
     public static final String REPORT_ID_KEY = "reportId";
 
-    private final DynamoDbTable<@Nullable SmokingReport> smokingReports;
+    private final DynamoDbTable<SmokingReport> smokingReports;
 
     @Autowired
     public SmokingReportRepository(
