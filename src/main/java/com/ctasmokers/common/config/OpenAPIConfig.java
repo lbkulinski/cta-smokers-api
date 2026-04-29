@@ -29,32 +29,33 @@ public class OpenAPIConfig {
 
     @Bean
     public OpenAPI openAPI() {
+        OpenAPIProperties.Contact contactProperties = this.openAPIProperties.contact();
+
         Contact contact = new Contact()
-            .name(this.openAPIProperties.getContact()
-                                        .getName())
-            .email(this.openAPIProperties.getContact()
-                                         .getEmail());
+            .name(contactProperties.name())
+            .email(contactProperties.email());
+
+        OpenAPIProperties.License licenseProperties = this.openAPIProperties.license();
 
         License apacheLicense = new License()
-            .name(this.openAPIProperties.getLicense()
-                                        .getName())
-            .url(this.openAPIProperties.getLicense()
-                                       .getUrl());
+            .name(licenseProperties.name())
+            .url(licenseProperties.url());
+
+        OpenAPIProperties.Info infoProperties = this.openAPIProperties.info();
+        String version = this.buildProperties.getVersion();
 
         Info apiInfo = new Info()
-            .title(this.openAPIProperties.getInfo()
-                                         .getTitle())
-            .description(this.openAPIProperties.getInfo()
-                                               .getDescription())
-            .version(this.buildProperties.getVersion())
+            .title(infoProperties.title())
+            .description(infoProperties.description())
+            .version(version)
             .contact(contact)
             .license(apacheLicense);
 
+        OpenAPIProperties.Server serverProperties = this.openAPIProperties.server();
+
         Server productionServer = new Server()
-            .url(this.openAPIProperties.getServer()
-                                        .getUrl())
-            .description(this.openAPIProperties.getServer()
-                                               .getDescription());
+            .url(serverProperties.url())
+            .description(serverProperties.description());
 
         return new OpenAPI().info(apiInfo)
                             .servers(List.of(productionServer));

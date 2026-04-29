@@ -46,7 +46,7 @@ public final class SmokingReportService {
         @Value("${app.cta.reports.page-size}") int pageSize,
         @Value("${app.cta.reports.expire-after-minutes}") int expireAfterMinutes
     ) {
-        if ((pageSize < MIN_PAGE_SIZE) || (pageSize > MAX_PAGE_SIZE)) {
+        if (pageSize < MIN_PAGE_SIZE || pageSize > MAX_PAGE_SIZE) {
             throw new IllegalArgumentException(
                 "pageSize must be a positive integer between %d and %d".formatted(MIN_PAGE_SIZE, MAX_PAGE_SIZE)
             );

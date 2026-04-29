@@ -1,44 +1,33 @@
 package com.ctasmokers.common.config.properties;
 
-import lombok.Data;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
-@Data
-@NullMarked
-@Configuration
 @ConfigurationProperties("app.openapi")
-public class OpenAPIProperties {
-    Info info;
+@NullMarked
+public record OpenAPIProperties(
+    Info info,
+    Contact contact,
+    License license,
+    Server server
+) {
+    public record Info(
+        String title,
+        String description
+    ) {}
 
-    Contact contact;
+    public record Contact(
+        String name,
+        String email
+    ) {}
 
-    License license;
+    public record License(
+        String name,
+        String url
+    ) {}
 
-    Server server;
-
-    @Data
-    public static class Info {
-        String title;
-        String description;
-    }
-
-    @Data
-    public static class Contact {
-        String name;
-        String email;
-    }
-
-    @Data
-    public static class License {
-        String name;
-        String url;
-    }
-
-    @Data
-    public static class Server {
-        String url;
-        String description;
-    }
+    public record Server(
+        String url,
+        String description
+    ) {}
 }

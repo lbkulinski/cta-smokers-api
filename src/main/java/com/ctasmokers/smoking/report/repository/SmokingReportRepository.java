@@ -28,7 +28,7 @@ public final class SmokingReportRepository {
     public static final String DATE_KEY = "date";
     public static final String REPORT_ID_KEY = "reportId";
 
-    private final DynamoDbTable<SmokingReport> smokingReports;
+    private final DynamoDbTable<@Nullable SmokingReport> smokingReports;
 
     @Autowired
     public SmokingReportRepository(
@@ -53,8 +53,6 @@ public final class SmokingReportRepository {
         public SmokingReportPage {
             Objects.requireNonNull(reports);
 
-            reports.forEach(Objects::requireNonNull);
-
             reports = List.copyOf(reports);
         }
     }
@@ -66,7 +64,7 @@ public final class SmokingReportRepository {
     ) {
         Objects.requireNonNull(date);
 
-        if ((pageSize < MIN_PAGE_SIZE) || (pageSize > MAX_PAGE_SIZE)) {
+        if (pageSize < MIN_PAGE_SIZE || pageSize > MAX_PAGE_SIZE) {
             throw new IllegalArgumentException(
                 "pageSize must be a positive integer between %d and %d".formatted(MIN_PAGE_SIZE, MAX_PAGE_SIZE)
             );
