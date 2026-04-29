@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-04-06
+
+### Changed
+
+- `carNumber` now requires exactly 4 digits instead of 1 to 10 digits.
+- `runNumber` now requires exactly 3 digits instead of 1 to 10 digits.
+- Bump `org.springframework.boot:spring-boot-starter-parent` from `4.0.3` to `4.0.5`
+- Bump `org.springdoc:springdoc-openapi-starter-webmvc-ui` from `3.0.1` to `3.0.2`
+- Bump `com.amazonaws.secretsmanager:aws-secretsmanager-caching-java` from `2.1.1` to `2.2.0`
+- Bump `com.rollbar:rollbar-java` from `2.1.0` to `2.2.0`
+- Bump `software.amazon.awssdk:bom` from `2.42.4` to `2.42.23`
+
 ## [3.0.3] - 2026-03-03
 
 ### Changed
@@ -78,7 +90,8 @@ consistency.
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.3...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.3...v3.1.0
 [3.0.3]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.0...v3.0.1
