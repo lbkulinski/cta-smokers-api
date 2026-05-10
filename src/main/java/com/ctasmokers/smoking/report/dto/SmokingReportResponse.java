@@ -10,8 +10,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Objects;
 
-@NullMarked
 @Schema(description = "Response body for a smoking report")
+@NullMarked
 public record SmokingReportResponse(
     @Schema(description = "Date of the report", example = "2026-02-21")
     LocalDate date,

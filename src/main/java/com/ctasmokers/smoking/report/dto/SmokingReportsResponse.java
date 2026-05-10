@@ -7,8 +7,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-@NullMarked
 @Schema(description = "Response body for a list of smoking reports")
+@NullMarked
 public record SmokingReportsResponse(
     @Schema(description = "List of smoking reports")
     List<SmokingReportResponse> reports,

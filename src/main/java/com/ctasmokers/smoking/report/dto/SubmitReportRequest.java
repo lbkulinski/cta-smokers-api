@@ -3,9 +3,11 @@ package com.ctasmokers.smoking.report.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Request body for submitting a new smoking report")
+@NullMarked
 public record SubmitReportRequest(
     @NotNull
     @Pattern(regexp = LINE_REGEX, message = LINE_MESSAGE)

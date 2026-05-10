@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -30,9 +31,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.time.LocalDate;
 
-@Tag(name = "Smoking Reports", description = "Submit and retrieve smoking reports on CTA trains")
 @RestController
 @RequestMapping("/api/cta/reports/smoking")
+@Tag(name = "Smoking Reports", description = "Submit and retrieve smoking reports on CTA trains")
+@NullMarked
 public final class SmokingReportController {
     private static final String LOCATION_HEADER_FORMAT = "%s/api/cta/reports/smoking/{date}/{reportId}";
 

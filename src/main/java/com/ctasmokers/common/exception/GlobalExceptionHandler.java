@@ -4,6 +4,7 @@ import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFound
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.rollbar.notifier.Rollbar;
 import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import java.net.URI;
 
 @RestControllerAdvice
+@NullMarked
 public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
