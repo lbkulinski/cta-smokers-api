@@ -1,4 +1,4 @@
-package com.ctasmokers.cloudflare.filter;
+package com.ctasmokers.cloudflare;
 
 import com.ctasmokers.aws.client.AwsSecretsClient;
 import jakarta.servlet.FilterChain;

@@ -1,4 +1,4 @@
-package com.ctasmokers.smoking.common.converter;
+package com.ctasmokers.smoking.common;
 
 import com.ctasmokers.smoking.common.model.YearWeek;
 import org.jspecify.annotations.NullMarked;

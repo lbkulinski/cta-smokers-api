@@ -11,6 +11,8 @@ Spring Boot REST API for crowdsourced smoking reports on Chicago CTA trains. Bac
 - **Repositories** — DynamoDB access via the Enhanced Client (`DynamoDbEnhancedClient`)
 - **`@ConfigurationProperties` records** — one record per config namespace, validated with JSR-303
 
+Package layout: feature (`smoking.report`, `smoking.aggregate`) then layer (`controller`, `service`, `repository`, `dto`, `model`, `exception`). Shared types live in `smoking.common`.
+
 ## Annotation Ordering
 
 Always apply annotations in this order: **Spring → OpenAPI/other → JSpecify**
