@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -77,10 +77,10 @@ public final class SmokingReportController {
     public ResponseEntity<SmokingReportResponse> submitReport(@Valid @RequestBody SubmitReportRequest request) {
         SmokingReportResponse response = this.smokingReportService.submitReport(request);
 
-        URI location = ServletUriComponentsBuilder.fromPath(LOCATION_HEADER_FORMAT.formatted(this.baseUrl))
-                                                  .buildAndExpand(response.date(), response.reportId())
-                                                  .encode()
-                                                  .toUri();
+        URI location = UriComponentsBuilder.fromUriString(LOCATION_HEADER_FORMAT.formatted(this.baseUrl))
+                                           .buildAndExpand(response.date(), response.reportId())
+                                           .encode()
+                                           .toUri();
 
         return ResponseEntity.created(location)
                              .body(response);

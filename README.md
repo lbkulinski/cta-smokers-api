@@ -79,6 +79,14 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/$(date +%F) | jq '[.r
 - `GET /api/cta/reports/smoking/{date}` — List reports by date.
 - `GET /api/cta/reports/smoking/{date}/{reportId}` — Retrieve a specific report.
 
+### Smoking Report Aggregates
+
+- `GET /api/cta/reports/smoking/aggregates/{line}/day/{date}` — Daily report count (e.g. `2026-05-10`).
+- `GET /api/cta/reports/smoking/aggregates/{line}/week/{yearWeek}` — Weekly report count (e.g. `2026-W13`).
+- `GET /api/cta/reports/smoking/aggregates/{line}/month/{yearMonth}` — Monthly report count (e.g. `2026-03`).
+- `GET /api/cta/reports/smoking/aggregates/{line}/year/{year}` — Yearly report count (e.g. `2026`).
+- `GET /api/cta/reports/smoking/aggregates/{line}/all-time` — All-time report count.
+
 ------------------------------------------------------------------------
 
 ## 🗂 Data Model
@@ -96,6 +104,14 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/$(date +%F) | jq '[.r
   "nextStationId": "41220",
   "carNumber": "2435",
   "runNumber": "902" // Optional, but helps identify the train and track patterns over time
+}
+```
+
+### Smoking Report Aggregate
+
+``` json
+{
+  "reportCount": 42
 }
 ```
 
@@ -142,7 +158,6 @@ All data is user-submitted and provided as-is.
 
 ## 🛠️ Planned Improvements
 
-* Add **test coverage**
 * Expand to support additional **report types** (e.g., loud music, cleanliness)
 * Improve **data caching** and **error granularity**
 
