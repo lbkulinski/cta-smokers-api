@@ -109,7 +109,7 @@ public final class SmokingReportAggregateController {
     })
     public ResponseEntity<SmokingReportAggregateResponse> getWeekAggregate(
         @PathVariable TrainLine line,
-        @PathVariable YearWeek yearWeek
+        @PathVariable @Schema(type = "string", example = "2026-W13") YearWeek yearWeek
     ) {
         SmokingReportAggregateResponse response = this.smokingReportAggregateService.getWeekAggregate(line, yearWeek);
 
@@ -149,7 +149,7 @@ public final class SmokingReportAggregateController {
     })
     public ResponseEntity<SmokingReportAggregateResponse> getMonthAggregate(
         @PathVariable TrainLine line,
-        @PathVariable YearMonth yearMonth
+        @PathVariable @Schema(type = "string", example = "2026-03") YearMonth yearMonth
     ) {
         SmokingReportAggregateResponse response = this.smokingReportAggregateService.getMonthAggregate(line, yearMonth);
 
@@ -189,7 +189,7 @@ public final class SmokingReportAggregateController {
     })
     public ResponseEntity<SmokingReportAggregateResponse> getYearAggregate(
         @PathVariable TrainLine line,
-        @PathVariable Year year
+        @PathVariable @Schema(type = "string", example = "2026") Year year
     ) {
         SmokingReportAggregateResponse response = this.smokingReportAggregateService.getYearAggregate(line, year);
 

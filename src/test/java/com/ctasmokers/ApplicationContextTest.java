@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 
 @SpringBootTest
-@Import(ApplicationTests.TestConfig.class)
-class ApplicationTests {
+@Import(ApplicationContextTest.TestConfig.class)
+class ApplicationContextTest {
     @TestConfiguration
     static class TestConfig {
         @Bean
