@@ -111,7 +111,7 @@ public final class SmokingReportController {
     })
     public ResponseEntity<SmokingReportsResponse> getReportsByDate(
         @PathVariable LocalDate date,
-        @Nullable @ValidReportId @RequestParam String nextCursor
+        @Nullable @ValidReportId @RequestParam(required = false) String nextCursor
     ) {
         SmokingReportsResponse response = this.smokingReportService.getReportsByDate(date, nextCursor);
 
