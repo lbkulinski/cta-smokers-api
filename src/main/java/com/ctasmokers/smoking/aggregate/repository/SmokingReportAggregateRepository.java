@@ -23,7 +23,7 @@ import java.util.Optional;
 public final class SmokingReportAggregateRepository {
     private static final String PK_TEMPLATE = "LINE#%s";
     private static final String SK_DAY_TEMPLATE = "DAY#%s";
-    private static final String SK_WEEK_TEMPLATE = "WEEK#%d-W%02d";
+    private static final String SK_WEEK_TEMPLATE = "WEEK#%s";
     private static final String SK_MONTH_TEMPLATE = "MONTH#%s";
     private static final String SK_YEAR_TEMPLATE = "YEAR#%s";
     private static final String SK_ALL_TIME = "ALL_TIME";
@@ -62,7 +62,7 @@ public final class SmokingReportAggregateRepository {
         Objects.requireNonNull(yearWeek, "yearWeek must not be null");
 
         String pk = PK_TEMPLATE.formatted(line);
-        String sk = SK_WEEK_TEMPLATE.formatted(yearWeek.year(), yearWeek.week());
+        String sk = SK_WEEK_TEMPLATE.formatted(yearWeek);
 
         Key key = Key.builder()
                      .partitionValue(pk)

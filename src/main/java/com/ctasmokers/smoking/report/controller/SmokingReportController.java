@@ -1,5 +1,6 @@
 package com.ctasmokers.smoking.report.controller;
 
+import com.ctasmokers.smoking.report.config.CtaReportProperties;
 import com.ctasmokers.smoking.report.dto.SmokingReportResponse;
 import com.ctasmokers.smoking.report.dto.SmokingReportsResponse;
 import com.ctasmokers.smoking.report.dto.SubmitReportRequest;
@@ -24,18 +25,28 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.time.LocalDate;
 
 @Tag(name = "Smoking Reports", description = "Submit and retrieve smoking reports on CTA trains")
 @RestController
 @RequestMapping("/api/cta/reports/smoking")
 public final class SmokingReportController {
+    private static final String LOCATION_HEADER_FORMAT = "%s/api/cta/reports/smoking/{date}/{reportId}";
+
     private final SmokingReportService smokingReportService;
 
+    private final String baseUrl;
+
     @Autowired
-    public SmokingReportController(SmokingReportService smokingReportService) {
+    public SmokingReportController(
+        SmokingReportService smokingReportService,
+        CtaReportProperties reportProperties
+    ) {
         this.smokingReportService = smokingReportService;
+        this.baseUrl = reportProperties.baseUrl();
     }
 
     @PostMapping
@@ -62,7 +73,15 @@ public final class SmokingReportController {
         )
     })
     public ResponseEntity<SmokingReportResponse> submitReport(@Valid @RequestBody SubmitReportRequest request) {
-        return this.smokingReportService.submitReport(request);
+        SmokingReportResponse response = this.smokingReportService.submitReport(request);
+
+        URI location = ServletUriComponentsBuilder.fromPath(LOCATION_HEADER_FORMAT.formatted(this.baseUrl))
+                                                  .buildAndExpand(response.date(), response.reportId())
+                                                  .encode()
+                                                  .toUri();
+
+        return ResponseEntity.created(location)
+                             .body(response);
     }
 
     @GetMapping("/{date}")
@@ -92,7 +111,9 @@ public final class SmokingReportController {
         @PathVariable LocalDate date,
         @Nullable @ValidReportId @RequestParam String nextCursor
     ) {
-        return this.smokingReportService.getReportsByDate(date, nextCursor);
+        SmokingReportsResponse response = this.smokingReportService.getReportsByDate(date, nextCursor);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{date}/{reportId}")
@@ -130,6 +151,8 @@ public final class SmokingReportController {
         @PathVariable LocalDate date,
         @PathVariable @ValidReportId String reportId
     ) {
-        return this.smokingReportService.getReportById(date, reportId);
+        SmokingReportResponse response = this.smokingReportService.getReportById(date, reportId);
+
+        return ResponseEntity.ok(response);
     }
 }

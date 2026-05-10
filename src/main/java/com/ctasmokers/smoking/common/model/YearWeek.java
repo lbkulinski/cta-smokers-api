@@ -23,4 +23,9 @@ public record YearWeek(int year, int week) {
             throw new IllegalArgumentException("Invalid week %d for year %d".formatted(week, year));
         }
     }
+
+    @Override
+    public String toString() {
+        return "%d-W%02d".formatted(this.year, this.week);
+    }
 }

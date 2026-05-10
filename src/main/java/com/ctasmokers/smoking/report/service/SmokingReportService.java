@@ -1,5 +1,6 @@
 package com.ctasmokers.smoking.report.service;
 
+import com.ctasmokers.smoking.report.config.CtaReportProperties;
 import com.ctasmokers.smoking.report.dto.SmokingReportsResponse;
 import com.ctasmokers.smoking.report.dto.SmokingReportResponse;
 import com.ctasmokers.smoking.report.dto.SubmitReportRequest;
@@ -10,12 +11,8 @@ import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -27,42 +24,25 @@ import java.util.UUID;
 @Service
 @NullMarked
 public final class SmokingReportService {
-    private static final int MIN_PAGE_SIZE = 1;
-    private static final int MAX_PAGE_SIZE = 100;
     private static final ZoneId CHICAGO_ZONE_ID = ZoneId.of("America/Chicago");
     private static final String REPORT_ID_FORMAT = "%d_%s";
-    private static final String LOCATION_HEADER_FORMAT = "%s/api/cta/reports/smoking/{date}/{reportId}";
 
     private final SmokingReportRepository smokingReportRepository;
 
-    private final String baseUrl;
     private final int pageSize;
     private final long expireAfterMinutes;
 
     @Autowired
     public SmokingReportService(
         SmokingReportRepository smokingReportRepository,
-        @Value("${app.cta.reports.base-url}") String baseUrl,
-        @Value("${app.cta.reports.page-size}") int pageSize,
-        @Value("${app.cta.reports.expire-after-minutes}") int expireAfterMinutes
+        CtaReportProperties reportsProperties
     ) {
-        if (pageSize < MIN_PAGE_SIZE || pageSize > MAX_PAGE_SIZE) {
-            throw new IllegalArgumentException(
-                "pageSize must be a positive integer between %d and %d".formatted(MIN_PAGE_SIZE, MAX_PAGE_SIZE)
-            );
-        }
-
-        if (expireAfterMinutes <= 0) {
-            throw new IllegalArgumentException("expireAfterMinutes must be a positive integer");
-        }
-
         this.smokingReportRepository = smokingReportRepository;
-        this.baseUrl = baseUrl;
-        this.pageSize = pageSize;
-        this.expireAfterMinutes = expireAfterMinutes;
+        this.pageSize = reportsProperties.pageSize();
+        this.expireAfterMinutes = reportsProperties.expireAfterMinutes();
     }
 
-    public ResponseEntity<SmokingReportResponse> submitReport(SubmitReportRequest request) {
+    public SmokingReportResponse submitReport(SubmitReportRequest request) {
         Objects.requireNonNull(request);
 
         TrainLine line = TrainLine.valueOf(request.line());
@@ -94,18 +74,10 @@ public final class SmokingReportService {
 
         this.smokingReportRepository.save(report);
 
-        URI location = ServletUriComponentsBuilder.fromPath(LOCATION_HEADER_FORMAT.formatted(this.baseUrl))
-                                                  .buildAndExpand(date, reportId)
-                                                  .encode()
-                                                  .toUri();
-
-        SmokingReportResponse response = SmokingReportResponse.from(report);
-
-        return ResponseEntity.created(location)
-                             .body(response);
+        return SmokingReportResponse.from(report);
     }
 
-    public ResponseEntity<SmokingReportsResponse> getReportsByDate(LocalDate date, @Nullable String nextCursor) {
+    public SmokingReportsResponse getReportsByDate(LocalDate date, @Nullable String nextCursor) {
         Objects.requireNonNull(date);
 
         SmokingReportRepository.SmokingReportPage page = this.smokingReportRepository.findPageByDate(
@@ -129,18 +101,15 @@ public final class SmokingReportService {
                             .s();
         }
 
-        SmokingReportsResponse response = new SmokingReportsResponse(reportResponses, newCursor);
-
-        return ResponseEntity.ok(response);
+        return new SmokingReportsResponse(reportResponses, newCursor);
     }
 
-    public ResponseEntity<SmokingReportResponse> getReportById(LocalDate date, String reportId) {
+    public SmokingReportResponse getReportById(LocalDate date, String reportId) {
         Objects.requireNonNull(date);
         Objects.requireNonNull(reportId);
 
         return this.smokingReportRepository.findById(date, reportId)
                                            .map(SmokingReportResponse::from)
-                                           .map(ResponseEntity::ok)
                                            .orElseThrow(() -> new SmokingReportNotFoundException(date, reportId));
     }
 }

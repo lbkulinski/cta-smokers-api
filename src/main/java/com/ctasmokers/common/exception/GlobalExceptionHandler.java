@@ -1,5 +1,6 @@
 package com.ctasmokers.common.exception;
 
+import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.rollbar.notifier.Rollbar;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +35,19 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
 
     @ExceptionHandler(SmokingReportNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleNotFoundException(HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, NOT_FOUND_DETAIL);
+
+        URI instance = URI.create(request.getRequestURI());
+
+        problem.setTitle(NOT_FOUND_TITLE);
+        problem.setInstance(instance);
+
+        return ResponseEntity.of(problem)
+                             .build();
+    }
+
+    @ExceptionHandler(SmokingReportAggregateNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleAggregateNotFoundException(HttpServletRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, NOT_FOUND_DETAIL);
 
         URI instance = URI.create(request.getRequestURI());
