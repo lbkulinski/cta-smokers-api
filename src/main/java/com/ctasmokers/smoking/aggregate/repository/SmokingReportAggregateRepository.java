@@ -41,8 +41,8 @@ public final class SmokingReportAggregateRepository {
     }
 
     public Optional<SmokingReportAggregate> findByLineAndDay(TrainLine line, LocalDate day) {
-        Objects.requireNonNull(line, "line must not be null");
-        Objects.requireNonNull(day, "day must not be null");
+        Objects.requireNonNull(line);
+        Objects.requireNonNull(day);
 
         String pk = PK_TEMPLATE.formatted(line);
         String sk = SK_DAY_TEMPLATE.formatted(day);
@@ -58,8 +58,8 @@ public final class SmokingReportAggregateRepository {
     }
 
     public Optional<SmokingReportAggregate> findByLineAndWeek(TrainLine line, YearWeek yearWeek) {
-        Objects.requireNonNull(line, "line must not be null");
-        Objects.requireNonNull(yearWeek, "yearWeek must not be null");
+        Objects.requireNonNull(line);
+        Objects.requireNonNull(yearWeek);
 
         String pk = PK_TEMPLATE.formatted(line);
         String sk = SK_WEEK_TEMPLATE.formatted(yearWeek);
@@ -75,8 +75,8 @@ public final class SmokingReportAggregateRepository {
     }
 
     public Optional<SmokingReportAggregate> findByLineAndMonth(TrainLine line, YearMonth yearMonth) {
-        Objects.requireNonNull(line, "line must not be null");
-        Objects.requireNonNull(yearMonth, "yearMonth must not be null");
+        Objects.requireNonNull(line);
+        Objects.requireNonNull(yearMonth);
 
         String pk = PK_TEMPLATE.formatted(line);
         String sk = SK_MONTH_TEMPLATE.formatted(yearMonth);
@@ -92,8 +92,8 @@ public final class SmokingReportAggregateRepository {
     }
 
     public Optional<SmokingReportAggregate> findByLineAndYear(TrainLine line, Year year) {
-        Objects.requireNonNull(line, "line must not be null");
-        Objects.requireNonNull(year, "year must not be null");
+        Objects.requireNonNull(line);
+        Objects.requireNonNull(year);
 
         String pk = PK_TEMPLATE.formatted(line);
         String sk = SK_YEAR_TEMPLATE.formatted(year);
@@ -109,7 +109,7 @@ public final class SmokingReportAggregateRepository {
     }
 
     public Optional<SmokingReportAggregate> findByLineAllTime(TrainLine line) {
-        Objects.requireNonNull(line, "line must not be null");
+        Objects.requireNonNull(line);
 
         String pk = PK_TEMPLATE.formatted(line);
 

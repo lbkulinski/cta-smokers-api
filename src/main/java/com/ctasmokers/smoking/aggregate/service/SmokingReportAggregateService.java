@@ -25,8 +25,8 @@ public final class SmokingReportAggregateService {
     }
 
     public SmokingReportAggregateResponse getDayAggregate(TrainLine line, LocalDate day) {
-        Objects.requireNonNull(line, "line must not be null");
-        Objects.requireNonNull(day, "day must not be null");
+        Objects.requireNonNull(line);
+        Objects.requireNonNull(day);
 
         return this.smokingReportAggregateRepository.findByLineAndDay(line, day)
                                                     .map(SmokingReportAggregateResponse::from)
@@ -35,8 +35,8 @@ public final class SmokingReportAggregateService {
     }
 
     public SmokingReportAggregateResponse getWeekAggregate(TrainLine line, YearWeek yearWeek) {
-        Objects.requireNonNull(line, "line must not be null");
-        Objects.requireNonNull(yearWeek, "yearWeek must not be null");
+        Objects.requireNonNull(line);
+        Objects.requireNonNull(yearWeek);
 
         return this.smokingReportAggregateRepository.findByLineAndWeek(line, yearWeek)
                                                     .map(SmokingReportAggregateResponse::from)
@@ -45,8 +45,8 @@ public final class SmokingReportAggregateService {
     }
 
     public SmokingReportAggregateResponse getMonthAggregate(TrainLine line, YearMonth yearMonth) {
-        Objects.requireNonNull(line, "line must not be null");
-        Objects.requireNonNull(yearMonth, "yearMonth must not be null");
+        Objects.requireNonNull(line);
+        Objects.requireNonNull(yearMonth);
 
         return this.smokingReportAggregateRepository.findByLineAndMonth(line, yearMonth)
                                                     .map(SmokingReportAggregateResponse::from)
@@ -55,8 +55,8 @@ public final class SmokingReportAggregateService {
     }
 
     public SmokingReportAggregateResponse getYearAggregate(TrainLine line, Year year) {
-        Objects.requireNonNull(line, "line must not be null");
-        Objects.requireNonNull(year, "year must not be null");
+        Objects.requireNonNull(line);
+        Objects.requireNonNull(year);
 
         return this.smokingReportAggregateRepository.findByLineAndYear(line, year)
                                                     .map(SmokingReportAggregateResponse::from)
@@ -65,7 +65,7 @@ public final class SmokingReportAggregateService {
     }
 
     public SmokingReportAggregateResponse getAllTimeAggregate(TrainLine line) {
-        Objects.requireNonNull(line, "line must not be null");
+        Objects.requireNonNull(line);
 
         return this.smokingReportAggregateRepository.findByLineAllTime(line)
                                                     .map(SmokingReportAggregateResponse::from)

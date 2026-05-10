@@ -4,6 +4,8 @@ import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.jspecify.annotations.NullMarked;
 
+import java.util.Objects;
+
 @Schema(description = "Response body for a smoking report aggregate")
 @NullMarked
 public record SmokingReportAggregateResponse(
@@ -17,6 +19,8 @@ public record SmokingReportAggregateResponse(
     }
 
     public static SmokingReportAggregateResponse from(SmokingReportAggregate aggregate) {
+        Objects.requireNonNull(aggregate);
+
         return new SmokingReportAggregateResponse(aggregate.reportCount());
     }
 }

@@ -18,9 +18,13 @@ public final class StringToYearWeekConverter implements Converter<String, YearWe
             throw new IllegalArgumentException("Invalid YearWeek format: %s".formatted(source));
         }
 
-        int year = Integer.parseInt(source.substring(0, delimiterIndex));
-        int week = Integer.parseInt(source.substring(delimiterIndex + DELIMITER.length()));
+        try {
+            int year = Integer.parseInt(source.substring(0, delimiterIndex));
+            int week = Integer.parseInt(source.substring(delimiterIndex + DELIMITER.length()));
 
-        return new YearWeek(year, week);
+            return new YearWeek(year, week);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid YearWeek format: %s".formatted(source), e);
+        }
     }
 }
