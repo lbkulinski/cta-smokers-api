@@ -1,5 +1,6 @@
 package com.ctasmokers.smoking.report.model;
 
+import com.ctasmokers.smoking.common.model.TrainLine;
 import lombok.Builder;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;

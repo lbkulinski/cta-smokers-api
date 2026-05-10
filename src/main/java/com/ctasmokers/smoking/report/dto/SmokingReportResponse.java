@@ -1,7 +1,7 @@
 package com.ctasmokers.smoking.report.dto;
 
 import com.ctasmokers.smoking.report.model.SmokingReport;
-import com.ctasmokers.smoking.report.model.TrainLine;
+import com.ctasmokers.smoking.common.model.TrainLine;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -59,15 +59,15 @@ public record SmokingReportResponse(
         Objects.requireNonNull(report);
 
         return new SmokingReportResponse(
-            report.getDate(),
-            report.getReportId(),
-            report.getReportedAt(),
-            Instant.ofEpochSecond(report.getExpiresAt()),
-            report.getLine(),
-            report.getDestinationId(),
-            report.getNextStationId(),
-            report.getCarNumber(),
-            report.getRunNumber()
+            report.date(),
+            report.reportId(),
+            report.reportedAt(),
+            Instant.ofEpochSecond(report.expiresAt()),
+            report.line(),
+            report.destinationId(),
+            report.nextStationId(),
+            report.carNumber(),
+            report.runNumber()
         );
     }
 }

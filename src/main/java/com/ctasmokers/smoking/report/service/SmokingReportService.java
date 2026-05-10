@@ -5,7 +5,7 @@ import com.ctasmokers.smoking.report.dto.SmokingReportResponse;
 import com.ctasmokers.smoking.report.dto.SubmitReportRequest;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
-import com.ctasmokers.smoking.report.model.TrainLine;
+import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
