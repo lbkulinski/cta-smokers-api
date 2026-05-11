@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Smoking report aggregate API with endpoints for day, week, month, year, and all-time report counts per train line.
 - `YearWeek` type for ISO week-based lookups (e.g. `2026-W13`).
 - `DynamoDbTableProperties` configuration properties record for table name binding.
-- Unit tests for all repositories and services.
+- Unit tests for all controllers, repositories, services, and model classes.
 
 ### Changed
 

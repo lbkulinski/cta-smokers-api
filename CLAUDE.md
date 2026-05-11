@@ -27,7 +27,8 @@ public final class MyController { }
 
 ## Null Safety
 
-- All new classes, records, interfaces, and enums must have `@NullMarked` (from `org.jspecify.annotations`).
+- All new classes, records, interfaces, and enums in `src/main` must have `@NullMarked` (from `org.jspecify.annotations`).
+- Test classes do not use `@NullMarked`.
 - Use `@Nullable` on parameters or return types that can be null.
 
 ## Configuration Properties

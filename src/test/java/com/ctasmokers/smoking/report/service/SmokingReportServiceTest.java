@@ -125,6 +125,17 @@ class SmokingReportServiceTest {
     }
 
     @Test
+    void getReportsByDate_withCursor_forwardsCursorToRepository() {
+        SmokingReportPage page = new SmokingReportPage(List.of(), null);
+
+        when(repository.findPageByDate(DATE, PAGE_SIZE, REPORT_ID)).thenReturn(page);
+
+        service.getReportsByDate(DATE, REPORT_ID);
+
+        verify(repository).findPageByDate(DATE, PAGE_SIZE, REPORT_ID);
+    }
+
+    @Test
     void getReportById_found() {
         SmokingReport report = report();
 
