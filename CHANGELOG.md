@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-05-10
+
+### Added
+
+- Smoking report aggregate API with endpoints for day, week, month, year, and all-time report counts per train line.
+- `YearWeek` type for ISO week-based lookups (e.g. `2026-W13`).
+- `DynamoDbTableProperties` configuration properties record for table name binding.
+- Unit tests for all controllers, repositories, services, and model classes.
+
+### Changed
+
+- Refactored `SmokingReportService` to return DTOs directly; HTTP response construction moved to `SmokingReportController`.
+- Migrated `CorsProperties` and `OpenAPIProperties` from Lombok `@Data` classes to records with JSR-303 validation.
+- Added `@Validated` constraints to all `@ConfigurationProperties` records.
+- Fixed `SmokingReportController` location header to use `UriComponentsBuilder.fromUriString` for correct absolute URI construction.
+
 ## [3.1.0] - 2026-04-06
 
 ### Changed
@@ -90,7 +106,8 @@ consistency.
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.1.0...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.2.0...HEAD
+[3.2.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.3...v3.1.0
 [3.0.3]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.1...v3.0.2

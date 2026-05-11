@@ -1,8 +1,10 @@
 package com.ctasmokers.common.exception;
 
-import com.ctasmokers.smoking.exception.SmokingReportNotFoundException;
+import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
+import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.rollbar.notifier.Rollbar;
 import jakarta.servlet.http.HttpServletRequest;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import java.net.URI;
 
 @RestControllerAdvice
+@NullMarked
 public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
@@ -34,6 +37,19 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
 
     @ExceptionHandler(SmokingReportNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleNotFoundException(HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, NOT_FOUND_DETAIL);
+
+        URI instance = URI.create(request.getRequestURI());
+
+        problem.setTitle(NOT_FOUND_TITLE);
+        problem.setInstance(instance);
+
+        return ResponseEntity.of(problem)
+                             .build();
+    }
+
+    @ExceptionHandler(SmokingReportAggregateNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleAggregateNotFoundException(HttpServletRequest request) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, NOT_FOUND_DETAIL);
 
         URI instance = URI.create(request.getRequestURI());

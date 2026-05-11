@@ -1,44 +1,38 @@
 package com.ctasmokers.common.config.properties;
 
-import lombok.Data;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
 
-@Data
-@NullMarked
-@Configuration
 @ConfigurationProperties("app.openapi")
-public class OpenAPIProperties {
-    Info info;
+@Validated
+@NullMarked
+public record OpenAPIProperties(
+    @NotNull @Valid Info info,
+    @NotNull @Valid Contact contact,
+    @NotNull @Valid License license,
+    @NotNull @Valid Server server
+) {
+    public record Info(
+        @NotBlank String title,
+        @NotBlank String description
+    ) {}
 
-    Contact contact;
+    public record Contact(
+        @NotBlank String name,
+        @NotBlank String email
+    ) {}
 
-    License license;
+    public record License(
+        @NotBlank String name,
+        @NotBlank String url
+    ) {}
 
-    Server server;
-
-    @Data
-    public static class Info {
-        String title;
-        String description;
-    }
-
-    @Data
-    public static class Contact {
-        String name;
-        String email;
-    }
-
-    @Data
-    public static class License {
-        String name;
-        String url;
-    }
-
-    @Data
-    public static class Server {
-        String url;
-        String description;
-    }
+    public record Server(
+        @NotBlank String url,
+        @NotBlank String description
+    ) {}
 }

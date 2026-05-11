@@ -1,18 +1,18 @@
 package com.ctasmokers.common.config.properties;
 
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
-@Data
-@NullMarked
-@Configuration
 @ConfigurationProperties(prefix = "app.cors")
-public class CorsProperties {
-    List<String> allowedOrigins;
-    List<String> allowedMethods;
-    List<String> allowedHeaders;
-}
+@Validated
+@NullMarked
+public record CorsProperties(
+    @NotEmpty List<@NotBlank String> allowedOrigins,
+    @NotEmpty List<@NotBlank String> allowedMethods,
+    @NotEmpty List<@NotBlank String> allowedHeaders
+) {}

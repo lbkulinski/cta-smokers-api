@@ -9,6 +9,7 @@ app:
     dynamodb:
       tables:
         smoking-reports: cta-smoking-reports
+        smoking-report-aggregates: cta-smoking-report-aggregates
   rollbar:
     environment: test
   cors:

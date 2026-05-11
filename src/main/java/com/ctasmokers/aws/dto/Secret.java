@@ -7,12 +7,18 @@ import java.util.Objects;
 @NullMarked
 public record Secret(
     CloudflareSecret cloudflare,
-
     RollbarSecret rollbar
 ) {
     public Secret {
         Objects.requireNonNull(cloudflare);
         Objects.requireNonNull(rollbar);
+    }
+
+    @Override
+    public String toString() {
+        return """
+        Secret{cloudflare=CloudflareSecret{originVerify="REDACTED"}, \
+        rollbar=RollbarSecret{accessToken="REDACTED"}}""";
     }
 
     public record CloudflareSecret(String originVerify) {
