@@ -69,6 +69,12 @@ curl -X POST https://api.ctasmokers.com/api/cta/reports/smoking -H "Content-Type
 curl -s https://api.ctasmokers.com/api/cta/reports/smoking/$(date +%F) | jq '[.reports[] | {line, destinationId, carNumber, reportedAt}]'
 ```
 
+### Fetch the Red Line report count for a given week
+
+``` bash
+curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/week/$(date +%Y-W%V) | jq '.reportCount'
+```
+
 ------------------------------------------------------------------------
 
 ## 📚 Endpoints

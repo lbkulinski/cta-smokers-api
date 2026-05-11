@@ -7,7 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.2.0] - 2026-05-10
+## [3.3.0] - 2026-05-11
+
+### Added
+
+- Aggregate example to README.
+
+### Changed
+
+- `DynamoDbTableProperties` fields now validated against the DynamoDB table name character set at startup to catch misconfigured deployments early.
+- Bump `software.amazon.awssdk:bom` from `2.42.41` to `2.44.4`
+
+## [3.2.0] - 2026-05-11
 
 ### Added
 
@@ -106,7 +117,8 @@ consistency.
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.2.0...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.3.0...HEAD
+[3.3.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.3...v3.1.0
 [3.0.3]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.2...v3.0.3
