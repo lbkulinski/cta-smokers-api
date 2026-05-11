@@ -72,7 +72,7 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/$(date +%F) | jq '[.r
 ### Fetch the Red Line report count for a given week
 
 ``` bash
-curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/week/$(date +%Y-W%V) | jq '.reportCount'
+curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/week/$(date +%G-W%V) | jq '.reportCount'
 ```
 
 ------------------------------------------------------------------------
