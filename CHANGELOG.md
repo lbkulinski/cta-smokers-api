@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.1] - 2026-05-11
+
+### Fixed
+
+- Removed `@EnableWebMvc` from `WebConfig`, which was suppressing Spring Boot's MVC auto-configuration and preventing `StringToYearWeekConverter` from being registered — causing the week aggregate endpoint to return 500.
+- Refactored `WebConfig` to register CORS configuration via a `@Bean` method returning `WebMvcConfigurer` rather than implementing the interface directly on the class.
+
 ## [3.3.0] - 2026-05-11
 
 ### Added
@@ -117,7 +124,8 @@ consistency.
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.3.0...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.3.1...HEAD
+[3.3.1]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.3.0...v3.3.1
 [3.3.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.2.0...v3.3.0
 [3.2.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.0.3...v3.1.0
