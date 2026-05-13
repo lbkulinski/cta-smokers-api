@@ -11,10 +11,12 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -121,5 +123,25 @@ public final class SmokingReportAggregateRepository {
         SmokingReportAggregate aggregate = this.smokingReportAggregates.getItem(key);
 
         return Optional.ofNullable(aggregate);
+    }
+
+    public List<SmokingReportAggregate> findDaysByLineAndMonth(TrainLine line, YearMonth yearMonth) {
+        Objects.requireNonNull(line);
+        Objects.requireNonNull(yearMonth);
+
+        String pk = PK_TEMPLATE.formatted(line);
+        String skPrefix = SK_DAY_TEMPLATE.formatted(yearMonth);
+
+        Key key = Key.builder()
+                     .partitionValue(pk)
+                     .sortValue(skPrefix)
+                     .build();
+
+        QueryConditional queryConditional = QueryConditional.sortBeginsWith(key);
+
+        return this.smokingReportAggregates.query(queryConditional)
+                                           .items()
+                                           .stream()
+                                           .toList();
     }
 }

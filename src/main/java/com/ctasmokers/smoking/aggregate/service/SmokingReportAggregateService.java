@@ -1,7 +1,10 @@
 package com.ctasmokers.smoking.aggregate.service;
 
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportAggregateResponse;
+import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyAggregatesResponse;
+import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
+import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import com.ctasmokers.smoking.aggregate.repository.SmokingReportAggregateRepository;
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -71,5 +75,29 @@ public final class SmokingReportAggregateService {
                                                     .map(SmokingReportAggregateResponse::from)
                                                     .orElseThrow(() ->
                                                         new SmokingReportAggregateNotFoundException(line));
+    }
+
+    public SmokingReportDailyAggregatesResponse getDailyAggregates(TrainLine line, YearMonth yearMonth) {
+        Objects.requireNonNull(line);
+        Objects.requireNonNull(yearMonth);
+
+        List<SmokingReportAggregate> aggregates = this.smokingReportAggregateRepository.findDaysByLineAndMonth(
+            line,
+            yearMonth
+        );
+
+        List<SmokingReportDailyCount> counts = aggregates.stream()
+                                                         .map(aggregate -> {
+                                                             String dateString = aggregate.sk()
+                                                                                          .substring("DAY#".length());
+
+                                                             return new SmokingReportDailyCount(
+                                                                 LocalDate.parse(dateString),
+                                                                 aggregate.reportCount()
+                                                             );
+                                                         })
+                                                         .toList();
+
+        return new SmokingReportDailyAggregatesResponse(counts);
     }
 }

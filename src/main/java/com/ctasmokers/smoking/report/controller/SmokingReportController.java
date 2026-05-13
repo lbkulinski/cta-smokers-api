@@ -52,10 +52,7 @@ public final class SmokingReportController {
     }
 
     @PostMapping
-    @Operation(
-        summary = "Submit a new smoking report",
-        description = "Submit a new smoking report for a CTA train"
-    )
+    @Operation(summary = "Submit a new smoking report for a CTA train")
     @ApiResponses({
         @ApiResponse(
             responseCode = "201",
