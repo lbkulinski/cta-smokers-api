@@ -6,13 +6,13 @@ import org.jspecify.annotations.NullMarked;
 import java.util.List;
 import java.util.Objects;
 
-@Schema(description = "Response body for daily smoking report aggregates within a month")
+@Schema(description = "Response body for daily smoking report counts within a month")
 @NullMarked
-public record SmokingReportDailyAggregatesResponse(
-    @Schema(description = "Daily aggregates, one entry per day with recorded reports")
+public record SmokingReportDailyCountsResponse(
+    @Schema(description = "Daily counts, one entry per day with at least one recorded report")
     List<SmokingReportDailyCount> days
 ) {
-    public SmokingReportDailyAggregatesResponse {
+    public SmokingReportDailyCountsResponse {
         Objects.requireNonNull(days);
 
         days = List.copyOf(days);

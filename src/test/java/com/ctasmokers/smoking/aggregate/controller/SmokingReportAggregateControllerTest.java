@@ -4,7 +4,7 @@ import com.ctasmokers.aws.client.AwsSecretsClient;
 import com.ctasmokers.aws.dto.Secret;
 import com.ctasmokers.common.config.properties.CorsProperties;
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportAggregateResponse;
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyAggregatesResponse;
+import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountsResponse;
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
 import com.ctasmokers.smoking.aggregate.service.SmokingReportAggregateService;
@@ -178,9 +178,9 @@ class SmokingReportAggregateControllerTest {
     void getDailyAggregates_returns200() throws Exception {
         YearMonth yearMonth = YearMonth.of(2026, 5);
         SmokingReportDailyCount count = new SmokingReportDailyCount(LocalDate.of(2026, 5, 10), 7L);
-        SmokingReportDailyAggregatesResponse response = new SmokingReportDailyAggregatesResponse(List.of(count));
+        SmokingReportDailyCountsResponse response = new SmokingReportDailyCountsResponse(List.of(count));
 
-        when(smokingReportAggregateService.getDailyAggregates(LINE, yearMonth)).thenReturn(response);
+        when(smokingReportAggregateService.getDailyCounts(LINE, yearMonth)).thenReturn(response);
 
         mockMvc.perform(withRequiredHeaders(get(BASE_PATH + "/{line}/month/2026-05/days", LINE)))
                .andExpect(status().isOk())
@@ -190,8 +190,8 @@ class SmokingReportAggregateControllerTest {
 
     @Test
     void getDailyAggregates_emptyMonth_returns200() throws Exception {
-        when(smokingReportAggregateService.getDailyAggregates(any(), any()))
-            .thenReturn(new SmokingReportDailyAggregatesResponse(List.of()));
+        when(smokingReportAggregateService.getDailyCounts(any(), any()))
+            .thenReturn(new SmokingReportDailyCountsResponse(List.of()));
 
         mockMvc.perform(withRequiredHeaders(get(BASE_PATH + "/{line}/month/2026-05/days", LINE)))
                .andExpect(status().isOk())

@@ -1,7 +1,7 @@
 package com.ctasmokers.smoking.aggregate.controller;
 
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportAggregateResponse;
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyAggregatesResponse;
+import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountsResponse;
 import com.ctasmokers.smoking.aggregate.service.SmokingReportAggregateService;
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
@@ -236,15 +236,15 @@ public final class SmokingReportAggregateController {
 
     @GetMapping("/{line}/month/{yearMonth}/days")
     @Operation(
-        summary = "Get daily aggregates",
-        description = "Retrieve the daily smoking report aggregates for a train line in a specific month (e.g. 2026-03)"
+        summary = "Get daily counts",
+        description = "Retrieve the daily smoking report counts for a train line in a specific month (e.g. 2026-03)"
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Aggregates retrieved successfully",
+            description = "Counts retrieved successfully",
             content = @Content(
-                schema = @Schema(implementation = SmokingReportDailyAggregatesResponse.class),
+                schema = @Schema(implementation = SmokingReportDailyCountsResponse.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
             )
         ),
@@ -257,11 +257,11 @@ public final class SmokingReportAggregateController {
             )
         )
     })
-    public ResponseEntity<SmokingReportDailyAggregatesResponse> getDailyAggregates(
+    public ResponseEntity<SmokingReportDailyCountsResponse> getDailyCounts(
         @PathVariable TrainLine line,
         @PathVariable @Schema(type = "string", example = "2026-03") YearMonth yearMonth
     ) {
-        SmokingReportDailyAggregatesResponse response = this.smokingReportAggregateService.getDailyAggregates(
+        SmokingReportDailyCountsResponse response = this.smokingReportAggregateService.getDailyCounts(
             line,
             yearMonth
         );

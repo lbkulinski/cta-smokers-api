@@ -1,6 +1,7 @@
 package com.ctasmokers.smoking.aggregate.repository;
 
 import com.ctasmokers.aws.config.DynamoDbTableProperties;
+import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
@@ -24,7 +25,8 @@ import java.util.Optional;
 @NullMarked
 public final class SmokingReportAggregateRepository {
     private static final String PK_TEMPLATE = "LINE#%s";
-    private static final String SK_DAY_TEMPLATE = "DAY#%s";
+    private static final String SK_DAY_PREFIX = "DAY#";
+    private static final String SK_DAY_TEMPLATE = SK_DAY_PREFIX + "%s";
     private static final String SK_WEEK_TEMPLATE = "WEEK#%s";
     private static final String SK_MONTH_TEMPLATE = "MONTH#%s";
     private static final String SK_YEAR_TEMPLATE = "YEAR#%s";
@@ -125,7 +127,7 @@ public final class SmokingReportAggregateRepository {
         return Optional.ofNullable(aggregate);
     }
 
-    public List<SmokingReportAggregate> findDaysByLineAndMonth(TrainLine line, YearMonth yearMonth) {
+    public List<SmokingReportDailyCount> findCountsByLineAndMonth(TrainLine line, YearMonth yearMonth) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(yearMonth);
 
@@ -142,6 +144,15 @@ public final class SmokingReportAggregateRepository {
         return this.smokingReportAggregates.query(queryConditional)
                                            .items()
                                            .stream()
+                                           .map(aggregate -> {
+                                               String dateString = aggregate.sk()
+                                                                            .substring(SK_DAY_PREFIX.length());
+
+                                               return new SmokingReportDailyCount(
+                                                   LocalDate.parse(dateString),
+                                                   aggregate.reportCount()
+                                               );
+                                           })
                                            .toList();
     }
 }

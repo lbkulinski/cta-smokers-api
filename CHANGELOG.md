@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `GET /api/cta/reports/smoking/aggregates/{line}/month/{yearMonth}/days` — returns daily smoking report counts for each day in a given month, replacing up to 31 individual day aggregate calls with a single request.
+- `GET /api/cta/reports/smoking/aggregates/{line}/month/{yearMonth}/days` — returns daily smoking report counts for a given month; only days with at least one report are included (days with no reports are omitted), replacing up to 31 individual day aggregate calls with a single request.
 
 ## [3.3.1] - 2026-05-11
 

@@ -129,7 +129,7 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/month/
 }
 ```
 
-### Smoking Report Daily Aggregates
+### Smoking Report Daily Counts
 
 ``` json
 {

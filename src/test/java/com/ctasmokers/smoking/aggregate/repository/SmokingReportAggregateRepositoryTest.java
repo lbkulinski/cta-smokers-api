@@ -1,6 +1,7 @@
 package com.ctasmokers.smoking.aggregate.repository;
 
 import com.ctasmokers.aws.config.DynamoDbTableProperties;
+import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
@@ -83,7 +84,7 @@ class SmokingReportAggregateRepositoryTest {
         ArgumentCaptor<Key> keyCaptor = ArgumentCaptor.forClass(Key.class);
         verify(smokingReportAggregates).getItem(keyCaptor.capture());
         assertThat(keyCaptor.getValue().partitionKeyValue().s()).isEqualTo(EXPECTED_PK);
-        assertThat(keyCaptor.getValue().sortKeyValue().get().s()).isEqualTo("DAY#2026-05-10");
+        assertThat(keyCaptor.getValue().sortKeyValue().orElseThrow().s()).isEqualTo("DAY#2026-05-10");
     }
 
     @Test
@@ -113,7 +114,7 @@ class SmokingReportAggregateRepositoryTest {
         ArgumentCaptor<Key> keyCaptor = ArgumentCaptor.forClass(Key.class);
         verify(smokingReportAggregates).getItem(keyCaptor.capture());
         assertThat(keyCaptor.getValue().partitionKeyValue().s()).isEqualTo(EXPECTED_PK);
-        assertThat(keyCaptor.getValue().sortKeyValue().get().s()).isEqualTo("WEEK#2026-W13");
+        assertThat(keyCaptor.getValue().sortKeyValue().orElseThrow().s()).isEqualTo("WEEK#2026-W13");
     }
 
     @Test
@@ -143,7 +144,7 @@ class SmokingReportAggregateRepositoryTest {
         ArgumentCaptor<Key> keyCaptor = ArgumentCaptor.forClass(Key.class);
         verify(smokingReportAggregates).getItem(keyCaptor.capture());
         assertThat(keyCaptor.getValue().partitionKeyValue().s()).isEqualTo(EXPECTED_PK);
-        assertThat(keyCaptor.getValue().sortKeyValue().get().s()).isEqualTo("MONTH#2026-03");
+        assertThat(keyCaptor.getValue().sortKeyValue().orElseThrow().s()).isEqualTo("MONTH#2026-03");
     }
 
     @Test
@@ -173,7 +174,7 @@ class SmokingReportAggregateRepositoryTest {
         ArgumentCaptor<Key> keyCaptor = ArgumentCaptor.forClass(Key.class);
         verify(smokingReportAggregates).getItem(keyCaptor.capture());
         assertThat(keyCaptor.getValue().partitionKeyValue().s()).isEqualTo(EXPECTED_PK);
-        assertThat(keyCaptor.getValue().sortKeyValue().get().s()).isEqualTo("YEAR#2026");
+        assertThat(keyCaptor.getValue().sortKeyValue().orElseThrow().s()).isEqualTo("YEAR#2026");
     }
 
     @Test
@@ -202,7 +203,7 @@ class SmokingReportAggregateRepositoryTest {
         ArgumentCaptor<Key> keyCaptor = ArgumentCaptor.forClass(Key.class);
         verify(smokingReportAggregates).getItem(keyCaptor.capture());
         assertThat(keyCaptor.getValue().partitionKeyValue().s()).isEqualTo(EXPECTED_PK);
-        assertThat(keyCaptor.getValue().sortKeyValue().get().s()).isEqualTo("ALL_TIME");
+        assertThat(keyCaptor.getValue().sortKeyValue().orElseThrow().s()).isEqualTo("ALL_TIME");
     }
 
     @Test
@@ -215,7 +216,7 @@ class SmokingReportAggregateRepositoryTest {
     }
 
     @Test
-    void findDaysByLineAndMonth_returnsItems() {
+    void findCountsByLineAndMonth_returnsItems() {
         YearMonth yearMonth = YearMonth.of(2026, 5);
         SmokingReportAggregate aggregate = SmokingReportAggregate.builder()
                                                                  .pk(EXPECTED_PK)
@@ -227,20 +228,29 @@ class SmokingReportAggregateRepositoryTest {
         when(pageIterable.items()).thenReturn(items);
         when(items.stream()).thenReturn(Stream.of(aggregate));
 
-        List<SmokingReportAggregate> result = repository.findDaysByLineAndMonth(LINE, yearMonth);
+        List<SmokingReportDailyCount> result = repository.findCountsByLineAndMonth(LINE, yearMonth);
 
-        assertThat(result).containsExactly(aggregate);
+        assertThat(result).containsExactly(new SmokingReportDailyCount(LocalDate.of(2026, 5, 10), 7));
+
+        ArgumentCaptor<QueryConditional> queryCaptor = ArgumentCaptor.forClass(QueryConditional.class);
+        verify(smokingReportAggregates).query(queryCaptor.capture());
+
+        Key expectedKey = Key.builder()
+                             .partitionValue(EXPECTED_PK)
+                             .sortValue("DAY#2026-05")
+                             .build();
+        assertThat(queryCaptor.getValue()).isEqualTo(QueryConditional.sortBeginsWith(expectedKey));
     }
 
     @Test
-    void findDaysByLineAndMonth_empty() {
+    void findCountsByLineAndMonth_empty() {
         YearMonth yearMonth = YearMonth.of(2026, 5);
 
         when(smokingReportAggregates.query(any(QueryConditional.class))).thenReturn(pageIterable);
         when(pageIterable.items()).thenReturn(items);
         when(items.stream()).thenReturn(Stream.of());
 
-        List<SmokingReportAggregate> result = repository.findDaysByLineAndMonth(LINE, yearMonth);
+        List<SmokingReportDailyCount> result = repository.findCountsByLineAndMonth(LINE, yearMonth);
 
         assertThat(result).isEmpty();
     }

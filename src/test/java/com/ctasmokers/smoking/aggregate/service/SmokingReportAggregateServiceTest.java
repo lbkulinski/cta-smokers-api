@@ -1,7 +1,7 @@
 package com.ctasmokers.smoking.aggregate.service;
 
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportAggregateResponse;
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyAggregatesResponse;
+import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountsResponse;
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
@@ -154,17 +154,13 @@ class SmokingReportAggregateServiceTest {
     }
 
     @Test
-    void getDailyAggregates_returnsCounts() {
+    void getDailyCounts_returnsCounts() {
         YearMonth yearMonth = YearMonth.of(2026, 5);
-        SmokingReportAggregate aggregate = SmokingReportAggregate.builder()
-                                                                 .pk("LINE#RED")
-                                                                 .sk("DAY#2026-05-10")
-                                                                 .reportCount(7)
-                                                                 .build();
+        SmokingReportDailyCount count = new SmokingReportDailyCount(LocalDate.of(2026, 5, 10), 7);
 
-        when(repository.findDaysByLineAndMonth(LINE, yearMonth)).thenReturn(List.of(aggregate));
+        when(repository.findCountsByLineAndMonth(LINE, yearMonth)).thenReturn(List.of(count));
 
-        SmokingReportDailyAggregatesResponse response = service.getDailyAggregates(LINE, yearMonth);
+        SmokingReportDailyCountsResponse response = service.getDailyCounts(LINE, yearMonth);
 
         assertThat(response.days()).hasSize(1);
         assertThat(response.days().getFirst().date()).isEqualTo(LocalDate.of(2026, 5, 10));
@@ -184,12 +180,12 @@ class SmokingReportAggregateServiceTest {
     }
 
     @Test
-    void getDailyAggregates_empty() {
+    void getDailyCounts_empty() {
         YearMonth yearMonth = YearMonth.of(2026, 5);
 
-        when(repository.findDaysByLineAndMonth(LINE, yearMonth)).thenReturn(List.of());
+        when(repository.findCountsByLineAndMonth(LINE, yearMonth)).thenReturn(List.of());
 
-        SmokingReportDailyAggregatesResponse response = service.getDailyAggregates(LINE, yearMonth);
+        SmokingReportDailyCountsResponse response = service.getDailyCounts(LINE, yearMonth);
 
         assertThat(response.days()).isEmpty();
     }
