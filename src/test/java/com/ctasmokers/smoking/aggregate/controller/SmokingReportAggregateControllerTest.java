@@ -4,6 +4,8 @@ import com.ctasmokers.aws.client.AwsSecretsClient;
 import com.ctasmokers.aws.dto.Secret;
 import com.ctasmokers.common.config.properties.CorsProperties;
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportAggregateResponse;
+import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountsResponse;
+import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
 import com.ctasmokers.smoking.aggregate.service.SmokingReportAggregateService;
 import com.ctasmokers.smoking.common.StringToYearWeekConverter;
@@ -29,6 +31,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -169,5 +172,35 @@ class SmokingReportAggregateControllerTest {
         mockMvc.perform(get(BASE_PATH + "/{line}/all-time", LINE)
                    .header("CF-Connecting-IP", CF_IP))
                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void getDailyAggregates_returns200() throws Exception {
+        YearMonth yearMonth = YearMonth.of(2026, 5);
+        SmokingReportDailyCount count = new SmokingReportDailyCount(LocalDate.of(2026, 5, 10), 7L);
+        SmokingReportDailyCountsResponse response = new SmokingReportDailyCountsResponse(List.of(count));
+
+        when(smokingReportAggregateService.getDailyCounts(LINE, yearMonth)).thenReturn(response);
+
+        mockMvc.perform(withRequiredHeaders(get(BASE_PATH + "/{line}/month/2026-05/days", LINE)))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.days[0].date").value("2026-05-10"))
+               .andExpect(jsonPath("$.days[0].reportCount").value(7));
+    }
+
+    @Test
+    void getDailyAggregates_emptyMonth_returns200() throws Exception {
+        when(smokingReportAggregateService.getDailyCounts(any(), any()))
+            .thenReturn(new SmokingReportDailyCountsResponse(List.of()));
+
+        mockMvc.perform(withRequiredHeaders(get(BASE_PATH + "/{line}/month/2026-05/days", LINE)))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.days").isEmpty());
+    }
+
+    @Test
+    void getDailyAggregates_invalidLine_returns400() throws Exception {
+        mockMvc.perform(withRequiredHeaders(get(BASE_PATH + "/INVALID/month/2026-05/days")))
+               .andExpect(status().isBadRequest());
     }
 }

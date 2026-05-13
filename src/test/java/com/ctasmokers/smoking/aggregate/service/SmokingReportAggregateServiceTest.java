@@ -1,6 +1,8 @@
 package com.ctasmokers.smoking.aggregate.service;
 
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportAggregateResponse;
+import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountsResponse;
+import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import com.ctasmokers.smoking.aggregate.repository.SmokingReportAggregateRepository;
@@ -15,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -148,5 +151,46 @@ class SmokingReportAggregateServiceTest {
 
         assertThatThrownBy(() -> service.getAllTimeAggregate(LINE))
             .isInstanceOf(SmokingReportAggregateNotFoundException.class);
+    }
+
+    @Test
+    void getDailyCounts_returnsCounts() {
+        YearMonth yearMonth = YearMonth.of(2026, 5);
+        SmokingReportAggregate aggregate = SmokingReportAggregate.builder()
+                                                                 .pk("LINE#RED")
+                                                                 .sk("DAY#2026-05-10")
+                                                                 .reportCount(7)
+                                                                 .build();
+
+        when(repository.findDayAggregatesByLineAndMonth(LINE, yearMonth)).thenReturn(List.of(aggregate));
+
+        SmokingReportDailyCountsResponse response = service.getDailyCounts(LINE, yearMonth);
+
+        assertThat(response.days()).hasSize(1);
+        assertThat(response.days().getFirst().date()).isEqualTo(LocalDate.of(2026, 5, 10));
+        assertThat(response.days().getFirst().reportCount()).isEqualTo(7);
+    }
+
+    @Test
+    void smokingReportAggregateResponse_negativeReportCount_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> new SmokingReportAggregateResponse(-1L))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void smokingReportDailyCount_negativeReportCount_throwsIllegalArgumentException() {
+        assertThatThrownBy(() -> new SmokingReportDailyCount(LocalDate.of(2026, 5, 10), -1L))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void getDailyCounts_empty() {
+        YearMonth yearMonth = YearMonth.of(2026, 5);
+
+        when(repository.findDayAggregatesByLineAndMonth(LINE, yearMonth)).thenReturn(List.of());
+
+        SmokingReportDailyCountsResponse response = service.getDailyCounts(LINE, yearMonth);
+
+        assertThat(response.days()).isEmpty();
     }
 }

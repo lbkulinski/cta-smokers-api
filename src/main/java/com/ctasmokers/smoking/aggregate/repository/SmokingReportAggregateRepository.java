@@ -11,10 +11,12 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 
 import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -22,7 +24,8 @@ import java.util.Optional;
 @NullMarked
 public final class SmokingReportAggregateRepository {
     private static final String PK_TEMPLATE = "LINE#%s";
-    private static final String SK_DAY_TEMPLATE = "DAY#%s";
+    private static final String SK_DAY_PREFIX = "DAY#";
+    private static final String SK_DAY_TEMPLATE = SK_DAY_PREFIX + "%s";
     private static final String SK_WEEK_TEMPLATE = "WEEK#%s";
     private static final String SK_MONTH_TEMPLATE = "MONTH#%s";
     private static final String SK_YEAR_TEMPLATE = "YEAR#%s";
@@ -121,5 +124,25 @@ public final class SmokingReportAggregateRepository {
         SmokingReportAggregate aggregate = this.smokingReportAggregates.getItem(key);
 
         return Optional.ofNullable(aggregate);
+    }
+
+    public List<SmokingReportAggregate> findDayAggregatesByLineAndMonth(TrainLine line, YearMonth yearMonth) {
+        Objects.requireNonNull(line);
+        Objects.requireNonNull(yearMonth);
+
+        String pk = PK_TEMPLATE.formatted(line);
+        String skPrefix = SK_DAY_TEMPLATE.formatted(yearMonth);
+
+        Key key = Key.builder()
+                     .partitionValue(pk)
+                     .sortValue(skPrefix)
+                     .build();
+
+        QueryConditional queryConditional = QueryConditional.sortBeginsWith(key);
+
+        return this.smokingReportAggregates.query(queryConditional)
+                                           .items()
+                                           .stream()
+                                           .toList();
     }
 }

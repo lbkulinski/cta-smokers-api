@@ -35,9 +35,10 @@ reports:
 
 The full OpenAPI spec is available for developers who want to generate clients or explore endpoints interactively.
 
-**Endpoints:**
+**Available formats:**
 
 * `GET /v3/api-docs` — JSON format (OpenAPI 3.1)
+* [Swagger UI](https://api.ctasmokers.com/swagger-ui/index.html) — Interactive visual spec
 
 You can view or import it directly in tools like [Swagger Editor](https://editor.swagger.io/) or [Postman](https://www.postman.com/).
 
@@ -75,6 +76,12 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/$(date +%F) | jq '[.r
 curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/week/$(date +%G-W%V) | jq '.reportCount'
 ```
 
+### Fetch daily Red Line report counts for the current month
+
+``` bash
+curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/month/$(date +%Y-%m)/days | jq '.days'
+```
+
 ------------------------------------------------------------------------
 
 ## 📚 Endpoints
@@ -90,6 +97,7 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/week/$
 - `GET /api/cta/reports/smoking/aggregates/{line}/day/{date}` — Daily report count (e.g. `2026-05-10`).
 - `GET /api/cta/reports/smoking/aggregates/{line}/week/{yearWeek}` — Weekly report count (e.g. `2026-W13`).
 - `GET /api/cta/reports/smoking/aggregates/{line}/month/{yearMonth}` — Monthly report count (e.g. `2026-03`).
+- `GET /api/cta/reports/smoking/aggregates/{line}/month/{yearMonth}/days` — Daily report counts for a month (e.g. `2026-05`).
 - `GET /api/cta/reports/smoking/aggregates/{line}/year/{year}` — Yearly report count (e.g. `2026`).
 - `GET /api/cta/reports/smoking/aggregates/{line}/all-time` — All-time report count.
 
@@ -118,6 +126,17 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/week/$
 ``` json
 {
   "reportCount": 42
+}
+```
+
+### Smoking Report Daily Counts
+
+``` json
+{
+  "days": [
+    { "date": "2026-02-21", "reportCount": 3 },
+    { "date": "2026-02-28", "reportCount": 7 }
+  ]
 }
 ```
 
