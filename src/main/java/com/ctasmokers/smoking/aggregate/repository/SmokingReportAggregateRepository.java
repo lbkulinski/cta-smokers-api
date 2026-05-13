@@ -1,7 +1,6 @@
 package com.ctasmokers.smoking.aggregate.repository;
 
 import com.ctasmokers.aws.config.DynamoDbTableProperties;
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
@@ -127,7 +126,7 @@ public final class SmokingReportAggregateRepository {
         return Optional.ofNullable(aggregate);
     }
 
-    public List<SmokingReportDailyCount> findCountsByLineAndMonth(TrainLine line, YearMonth yearMonth) {
+    public List<SmokingReportAggregate> findDayAggregatesByLineAndMonth(TrainLine line, YearMonth yearMonth) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(yearMonth);
 
@@ -144,15 +143,6 @@ public final class SmokingReportAggregateRepository {
         return this.smokingReportAggregates.query(queryConditional)
                                            .items()
                                            .stream()
-                                           .map(aggregate -> {
-                                               String dateString = aggregate.sk()
-                                                                            .substring(SK_DAY_PREFIX.length());
-
-                                               return new SmokingReportDailyCount(
-                                                   LocalDate.parse(dateString),
-                                                   aggregate.reportCount()
-                                               );
-                                           })
                                            .toList();
     }
 }

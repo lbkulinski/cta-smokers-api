@@ -1,7 +1,6 @@
 package com.ctasmokers.smoking.aggregate.repository;
 
 import com.ctasmokers.aws.config.DynamoDbTableProperties;
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
@@ -216,7 +215,7 @@ class SmokingReportAggregateRepositoryTest {
     }
 
     @Test
-    void findCountsByLineAndMonth_returnsItems() {
+    void findDayAggregatesByLineAndMonth_returnsItems() {
         YearMonth yearMonth = YearMonth.of(2026, 5);
         SmokingReportAggregate aggregate = SmokingReportAggregate.builder()
                                                                  .pk(EXPECTED_PK)
@@ -228,9 +227,9 @@ class SmokingReportAggregateRepositoryTest {
         when(pageIterable.items()).thenReturn(items);
         when(items.stream()).thenReturn(Stream.of(aggregate));
 
-        List<SmokingReportDailyCount> result = repository.findCountsByLineAndMonth(LINE, yearMonth);
+        List<SmokingReportAggregate> result = repository.findDayAggregatesByLineAndMonth(LINE, yearMonth);
 
-        assertThat(result).containsExactly(new SmokingReportDailyCount(LocalDate.of(2026, 5, 10), 7));
+        assertThat(result).containsExactly(aggregate);
 
         ArgumentCaptor<QueryConditional> queryCaptor = ArgumentCaptor.forClass(QueryConditional.class);
         verify(smokingReportAggregates).query(queryCaptor.capture());
@@ -243,14 +242,14 @@ class SmokingReportAggregateRepositoryTest {
     }
 
     @Test
-    void findCountsByLineAndMonth_empty() {
+    void findDayAggregatesByLineAndMonth_empty() {
         YearMonth yearMonth = YearMonth.of(2026, 5);
 
         when(smokingReportAggregates.query(any(QueryConditional.class))).thenReturn(pageIterable);
         when(pageIterable.items()).thenReturn(items);
         when(items.stream()).thenReturn(Stream.of());
 
-        List<SmokingReportDailyCount> result = repository.findCountsByLineAndMonth(LINE, yearMonth);
+        List<SmokingReportAggregate> result = repository.findDayAggregatesByLineAndMonth(LINE, yearMonth);
 
         assertThat(result).isEmpty();
     }

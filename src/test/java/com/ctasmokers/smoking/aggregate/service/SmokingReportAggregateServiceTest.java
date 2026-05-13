@@ -156,9 +156,13 @@ class SmokingReportAggregateServiceTest {
     @Test
     void getDailyCounts_returnsCounts() {
         YearMonth yearMonth = YearMonth.of(2026, 5);
-        SmokingReportDailyCount count = new SmokingReportDailyCount(LocalDate.of(2026, 5, 10), 7);
+        SmokingReportAggregate aggregate = SmokingReportAggregate.builder()
+                                                                 .pk("LINE#RED")
+                                                                 .sk("DAY#2026-05-10")
+                                                                 .reportCount(7)
+                                                                 .build();
 
-        when(repository.findCountsByLineAndMonth(LINE, yearMonth)).thenReturn(List.of(count));
+        when(repository.findDayAggregatesByLineAndMonth(LINE, yearMonth)).thenReturn(List.of(aggregate));
 
         SmokingReportDailyCountsResponse response = service.getDailyCounts(LINE, yearMonth);
 
@@ -183,7 +187,7 @@ class SmokingReportAggregateServiceTest {
     void getDailyCounts_empty() {
         YearMonth yearMonth = YearMonth.of(2026, 5);
 
-        when(repository.findCountsByLineAndMonth(LINE, yearMonth)).thenReturn(List.of());
+        when(repository.findDayAggregatesByLineAndMonth(LINE, yearMonth)).thenReturn(List.of());
 
         SmokingReportDailyCountsResponse response = service.getDailyCounts(LINE, yearMonth);
 

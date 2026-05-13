@@ -1,9 +1,10 @@
 package com.ctasmokers.smoking.aggregate.service;
 
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportAggregateResponse;
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountsResponse;
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCount;
+import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountsResponse;
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
+import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import com.ctasmokers.smoking.aggregate.repository.SmokingReportAggregateRepository;
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
@@ -80,10 +81,22 @@ public final class SmokingReportAggregateService {
         Objects.requireNonNull(line);
         Objects.requireNonNull(yearMonth);
 
-        List<SmokingReportDailyCount> days = this.smokingReportAggregateRepository.findCountsByLineAndMonth(
+        List<SmokingReportAggregate> aggregates = this.smokingReportAggregateRepository.findDayAggregatesByLineAndMonth(
             line,
             yearMonth
         );
+
+        List<SmokingReportDailyCount> days = aggregates.stream()
+                                                        .map(aggregate -> {
+                                                            String dateString = aggregate.sk()
+                                                                                         .substring("DAY#".length());
+
+                                                            return new SmokingReportDailyCount(
+                                                                LocalDate.parse(dateString),
+                                                                aggregate.reportCount()
+                                                            );
+                                                        })
+                                                        .toList();
 
         return new SmokingReportDailyCountsResponse(days);
     }
