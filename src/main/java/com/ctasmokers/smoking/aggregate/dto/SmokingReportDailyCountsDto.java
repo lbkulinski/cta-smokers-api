@@ -8,11 +8,11 @@ import java.util.Objects;
 
 @Schema(description = "Response body for daily smoking report counts within a month")
 @NullMarked
-public record SmokingReportDailyCountsResponse(
+public record SmokingReportDailyCountsDto(
     @Schema(description = "Daily counts, one entry per day with at least one recorded report")
-    List<SmokingReportDailyCount> days
+    List<SmokingReportDailyCountDto> days
 ) {
-    public SmokingReportDailyCountsResponse {
+    public SmokingReportDailyCountsDto {
         Objects.requireNonNull(days);
 
         days = List.copyOf(days);

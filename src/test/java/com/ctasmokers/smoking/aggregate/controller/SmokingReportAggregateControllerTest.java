@@ -3,10 +3,9 @@ package com.ctasmokers.smoking.aggregate.controller;
 import com.ctasmokers.aws.client.AwsSecretsClient;
 import com.ctasmokers.aws.dto.Secret;
 import com.ctasmokers.common.config.properties.CorsProperties;
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportAggregateResponse;
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountsResponse;
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
+import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
+import com.ctasmokers.smoking.aggregate.model.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.service.SmokingReportAggregateService;
 import com.ctasmokers.smoking.common.StringToYearWeekConverter;
 import com.ctasmokers.smoking.common.model.TrainLine;
@@ -87,8 +86,12 @@ class SmokingReportAggregateControllerTest {
             .header("X-Origin-Verify", ORIGIN_VERIFY);
     }
 
-    private SmokingReportAggregateResponse sampleResponse() {
-        return new SmokingReportAggregateResponse(42L);
+    private SmokingReportAggregate sampleResponse() {
+        return SmokingReportAggregate.builder()
+                                     .pk("LINE#RED")
+                                     .sk("SK")
+                                     .reportCount(42L)
+                                     .build();
     }
 
     @Test
@@ -178,9 +181,8 @@ class SmokingReportAggregateControllerTest {
     void getDailyAggregates_returns200() throws Exception {
         YearMonth yearMonth = YearMonth.of(2026, 5);
         SmokingReportDailyCount count = new SmokingReportDailyCount(LocalDate.of(2026, 5, 10), 7L);
-        SmokingReportDailyCountsResponse response = new SmokingReportDailyCountsResponse(List.of(count));
 
-        when(smokingReportAggregateService.getDailyCounts(LINE, yearMonth)).thenReturn(response);
+        when(smokingReportAggregateService.getDailyCounts(LINE, yearMonth)).thenReturn(List.of(count));
 
         mockMvc.perform(withRequiredHeaders(get(BASE_PATH + "/{line}/month/2026-05/days", LINE)))
                .andExpect(status().isOk())
@@ -191,7 +193,7 @@ class SmokingReportAggregateControllerTest {
     @Test
     void getDailyAggregates_emptyMonth_returns200() throws Exception {
         when(smokingReportAggregateService.getDailyCounts(any(), any()))
-            .thenReturn(new SmokingReportDailyCountsResponse(List.of()));
+            .thenReturn(List.of());
 
         mockMvc.perform(withRequiredHeaders(get(BASE_PATH + "/{line}/month/2026-05/days", LINE)))
                .andExpect(status().isOk())

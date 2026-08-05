@@ -24,17 +24,17 @@ public final class SmokingReportService {
     private static final ZoneId CHICAGO_ZONE_ID = ZoneId.of("America/Chicago");
     private static final String REPORT_ID_FORMAT = "%d_%s";
 
-    private final SmokingReportRepository smokingReportRepository;
+    private final SmokingReportRepository reportRepository;
 
     private final int pageSize;
     private final long expireAfterMinutes;
 
     @Autowired
     public SmokingReportService(
-        SmokingReportRepository smokingReportRepository,
+        SmokingReportRepository reportRepository,
         CtaReportProperties reportsProperties
     ) {
-        this.smokingReportRepository = smokingReportRepository;
+        this.reportRepository = reportRepository;
         this.pageSize = reportsProperties.pageSize();
         this.expireAfterMinutes = reportsProperties.expireAfterMinutes();
     }
@@ -78,7 +78,7 @@ public final class SmokingReportService {
                                             .runNumber(runNumber)
                                             .build();
 
-        this.smokingReportRepository.save(report);
+        this.reportRepository.save(report);
 
         return report;
     }
@@ -86,14 +86,14 @@ public final class SmokingReportService {
     public SmokingReportPage getReportsByDate(LocalDate date, @Nullable String nextCursor) {
         Objects.requireNonNull(date);
 
-        return this.smokingReportRepository.findPageByDate(date, this.pageSize, nextCursor);
+        return this.reportRepository.findPageByDate(date, this.pageSize, nextCursor);
     }
 
     public SmokingReport getReportById(LocalDate date, String reportId) {
         Objects.requireNonNull(date);
         Objects.requireNonNull(reportId);
 
-        return this.smokingReportRepository.findById(date, reportId)
-                                           .orElseThrow(() -> new SmokingReportNotFoundException(date, reportId));
+        return this.reportRepository.findById(date, reportId)
+                                    .orElseThrow(() -> new SmokingReportNotFoundException(date, reportId));
     }
 }

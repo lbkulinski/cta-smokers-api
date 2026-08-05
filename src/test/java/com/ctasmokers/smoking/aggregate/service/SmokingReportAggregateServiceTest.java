@@ -1,10 +1,8 @@
 package com.ctasmokers.smoking.aggregate.service;
 
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportAggregateResponse;
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountsResponse;
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
+import com.ctasmokers.smoking.aggregate.model.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.repository.SmokingReportAggregateRepository;
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
@@ -53,7 +51,7 @@ class SmokingReportAggregateServiceTest {
 
         when(repository.findByLineAndDay(LINE, day)).thenReturn(Optional.of(aggregate));
 
-        SmokingReportAggregateResponse response = service.getDayAggregate(LINE, day);
+        SmokingReportAggregate response = service.getDayAggregate(LINE, day);
 
         assertThat(response.reportCount()).isEqualTo(5);
     }
@@ -75,7 +73,7 @@ class SmokingReportAggregateServiceTest {
 
         when(repository.findByLineAndWeek(LINE, yearWeek)).thenReturn(Optional.of(aggregate));
 
-        SmokingReportAggregateResponse response = service.getWeekAggregate(LINE, yearWeek);
+        SmokingReportAggregate response = service.getWeekAggregate(LINE, yearWeek);
 
         assertThat(response.reportCount()).isEqualTo(10);
     }
@@ -97,7 +95,7 @@ class SmokingReportAggregateServiceTest {
 
         when(repository.findByLineAndMonth(LINE, yearMonth)).thenReturn(Optional.of(aggregate));
 
-        SmokingReportAggregateResponse response = service.getMonthAggregate(LINE, yearMonth);
+        SmokingReportAggregate response = service.getMonthAggregate(LINE, yearMonth);
 
         assertThat(response.reportCount()).isEqualTo(42);
     }
@@ -119,7 +117,7 @@ class SmokingReportAggregateServiceTest {
 
         when(repository.findByLineAndYear(LINE, year)).thenReturn(Optional.of(aggregate));
 
-        SmokingReportAggregateResponse response = service.getYearAggregate(LINE, year);
+        SmokingReportAggregate response = service.getYearAggregate(LINE, year);
 
         assertThat(response.reportCount()).isEqualTo(100);
     }
@@ -140,7 +138,7 @@ class SmokingReportAggregateServiceTest {
 
         when(repository.findByLineAllTime(LINE)).thenReturn(Optional.of(aggregate));
 
-        SmokingReportAggregateResponse response = service.getAllTimeAggregate(LINE);
+        SmokingReportAggregate response = service.getAllTimeAggregate(LINE);
 
         assertThat(response.reportCount()).isEqualTo(999);
     }
@@ -164,17 +162,11 @@ class SmokingReportAggregateServiceTest {
 
         when(repository.findDayAggregatesByLineAndMonth(LINE, yearMonth)).thenReturn(List.of(aggregate));
 
-        SmokingReportDailyCountsResponse response = service.getDailyCounts(LINE, yearMonth);
+        List<SmokingReportDailyCount> response = service.getDailyCounts(LINE, yearMonth);
 
-        assertThat(response.days()).hasSize(1);
-        assertThat(response.days().getFirst().date()).isEqualTo(LocalDate.of(2026, 5, 10));
-        assertThat(response.days().getFirst().reportCount()).isEqualTo(7);
-    }
-
-    @Test
-    void smokingReportAggregateResponse_negativeReportCount_throwsIllegalArgumentException() {
-        assertThatThrownBy(() -> new SmokingReportAggregateResponse(-1L))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThat(response).hasSize(1);
+        assertThat(response.getFirst().date()).isEqualTo(LocalDate.of(2026, 5, 10));
+        assertThat(response.getFirst().reportCount()).isEqualTo(7);
     }
 
     @Test
@@ -189,8 +181,8 @@ class SmokingReportAggregateServiceTest {
 
         when(repository.findDayAggregatesByLineAndMonth(LINE, yearMonth)).thenReturn(List.of());
 
-        SmokingReportDailyCountsResponse response = service.getDailyCounts(LINE, yearMonth);
+        List<SmokingReportDailyCount> response = service.getDailyCounts(LINE, yearMonth);
 
-        assertThat(response.days()).isEmpty();
+        assertThat(response).isEmpty();
     }
 }

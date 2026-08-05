@@ -41,16 +41,16 @@ import java.util.List;
 public final class SmokingReportController {
     private static final String LOCATION_HEADER_FORMAT = "%s/api/cta/reports/smoking/{date}/{reportId}";
 
-    private final SmokingReportService smokingReportService;
+    private final SmokingReportService reportService;
 
     private final String baseUrl;
 
     @Autowired
     public SmokingReportController(
-        SmokingReportService smokingReportService,
+        SmokingReportService reportService,
         CtaReportProperties reportProperties
     ) {
-        this.smokingReportService = smokingReportService;
+        this.reportService = reportService;
         this.baseUrl = reportProperties.baseUrl();
     }
 
@@ -75,7 +75,7 @@ public final class SmokingReportController {
         )
     })
     public ResponseEntity<SmokingReportDto> submitReport(@Valid @RequestBody SubmitReportDto request) {
-        SmokingReport report = this.smokingReportService.submitReport(
+        SmokingReport report = this.reportService.submitReport(
             request.line(),
             request.destinationId(),
             request.nextStationId(),
@@ -121,7 +121,7 @@ public final class SmokingReportController {
         @PathVariable LocalDate date,
         @Nullable @ValidReportId @RequestParam(required = false) String nextCursor
     ) {
-        SmokingReportPage page = this.smokingReportService.getReportsByDate(date, nextCursor);
+        SmokingReportPage page = this.reportService.getReportsByDate(date, nextCursor);
 
         List<SmokingReportDto> reportsDtos = page.reports()
                                                  .stream()
@@ -168,7 +168,7 @@ public final class SmokingReportController {
         @PathVariable LocalDate date,
         @PathVariable @ValidReportId String reportId
     ) {
-        SmokingReport report = this.smokingReportService.getReportById(date, reportId);
+        SmokingReport report = this.reportService.getReportById(date, reportId);
 
         SmokingReportDto reportDto = SmokingReportDto.from(report);
 
