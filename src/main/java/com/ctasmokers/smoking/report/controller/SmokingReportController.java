@@ -1,9 +1,11 @@
 package com.ctasmokers.smoking.report.controller;
 
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
-import com.ctasmokers.smoking.report.dto.SmokingReportResponse;
-import com.ctasmokers.smoking.report.dto.SmokingReportsResponse;
-import com.ctasmokers.smoking.report.dto.SubmitReportRequest;
+import com.ctasmokers.smoking.report.dto.SmokingReportDto;
+import com.ctasmokers.smoking.report.dto.SmokingReportPageDto;
+import com.ctasmokers.smoking.report.dto.SubmitReportDto;
+import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.service.SmokingReportService;
 import com.ctasmokers.smoking.report.validator.ValidReportId;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,6 +32,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cta/reports/smoking")
@@ -58,7 +61,7 @@ public final class SmokingReportController {
             responseCode = "201",
             description = "Report created successfully",
             content = @Content(
-                schema = @Schema(implementation = SmokingReportResponse.class),
+                schema = @Schema(implementation = SmokingReportDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
             )
         ),
@@ -71,16 +74,24 @@ public final class SmokingReportController {
             )
         )
     })
-    public ResponseEntity<SmokingReportResponse> submitReport(@Valid @RequestBody SubmitReportRequest request) {
-        SmokingReportResponse response = this.smokingReportService.submitReport(request);
+    public ResponseEntity<SmokingReportDto> submitReport(@Valid @RequestBody SubmitReportDto request) {
+        SmokingReport report = this.smokingReportService.submitReport(
+            request.line(),
+            request.destinationId(),
+            request.nextStationId(),
+            request.carNumber(),
+            request.runNumber()
+        );
+
+        SmokingReportDto reportDto = SmokingReportDto.from(report);
 
         URI location = UriComponentsBuilder.fromUriString(LOCATION_HEADER_FORMAT.formatted(this.baseUrl))
-                                           .buildAndExpand(response.date(), response.reportId())
+                                           .buildAndExpand(report.date(), report.reportId())
                                            .encode()
                                            .toUri();
 
         return ResponseEntity.created(location)
-                             .body(response);
+                             .body(reportDto);
     }
 
     @GetMapping("/{date}")
@@ -93,7 +104,7 @@ public final class SmokingReportController {
             responseCode = "200",
             description = "Reports retrieved successfully",
             content = @Content(
-                schema = @Schema(implementation = SmokingReportsResponse.class),
+                schema = @Schema(implementation = SmokingReportPageDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
             )
         ),
@@ -106,13 +117,20 @@ public final class SmokingReportController {
             )
         )
     })
-    public ResponseEntity<SmokingReportsResponse> getReportsByDate(
+    public ResponseEntity<SmokingReportPageDto> getReportsByDate(
         @PathVariable LocalDate date,
         @Nullable @ValidReportId @RequestParam(required = false) String nextCursor
     ) {
-        SmokingReportsResponse response = this.smokingReportService.getReportsByDate(date, nextCursor);
+        SmokingReportPage page = this.smokingReportService.getReportsByDate(date, nextCursor);
 
-        return ResponseEntity.ok(response);
+        List<SmokingReportDto> reportsDtos = page.reports()
+                                                 .stream()
+                                                 .map(SmokingReportDto::from)
+                                                 .toList();
+
+        SmokingReportPageDto pageDto = new SmokingReportPageDto(reportsDtos, page.nextCursor());
+
+        return ResponseEntity.ok(pageDto);
     }
 
     @GetMapping("/{date}/{reportId}")
@@ -125,7 +143,7 @@ public final class SmokingReportController {
             responseCode = "200",
             description = "Report retrieved successfully",
             content = @Content(
-                schema = @Schema(implementation = SmokingReportResponse.class),
+                schema = @Schema(implementation = SmokingReportDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
             )
         ),
@@ -146,12 +164,14 @@ public final class SmokingReportController {
             )
         )
     })
-    public ResponseEntity<SmokingReportResponse> getReportById(
+    public ResponseEntity<SmokingReportDto> getReportById(
         @PathVariable LocalDate date,
         @PathVariable @ValidReportId String reportId
     ) {
-        SmokingReportResponse response = this.smokingReportService.getReportById(date, reportId);
+        SmokingReport report = this.smokingReportService.getReportById(date, reportId);
 
-        return ResponseEntity.ok(response);
+        SmokingReportDto reportDto = SmokingReportDto.from(report);
+
+        return ResponseEntity.ok(reportDto);
     }
 }

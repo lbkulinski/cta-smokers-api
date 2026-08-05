@@ -12,7 +12,7 @@ import java.util.Objects;
 
 @Schema(description = "Response body for a smoking report")
 @NullMarked
-public record SmokingReportResponse(
+public record SmokingReportDto(
     @Schema(description = "Date of the report", example = "2026-02-21")
     LocalDate date,
 
@@ -44,7 +44,7 @@ public record SmokingReportResponse(
     @Schema(description = "Run number of the train", example = "902")
     String runNumber
 ) {
-    public SmokingReportResponse {
+    public SmokingReportDto {
         Objects.requireNonNull(date);
         Objects.requireNonNull(reportId);
         Objects.requireNonNull(reportedAt);
@@ -55,10 +55,10 @@ public record SmokingReportResponse(
         Objects.requireNonNull(carNumber);
     }
 
-    public static SmokingReportResponse from(SmokingReport report) {
+    public static SmokingReportDto from(SmokingReport report) {
         Objects.requireNonNull(report);
 
-        return new SmokingReportResponse(
+        return new SmokingReportDto(
             report.date(),
             report.reportId(),
             report.reportedAt(),

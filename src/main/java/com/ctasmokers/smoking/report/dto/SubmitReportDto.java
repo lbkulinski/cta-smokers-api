@@ -8,7 +8,7 @@ import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Request body for submitting a new smoking report")
 @NullMarked
-public record SubmitReportRequest(
+public record SubmitReportDto(
     @NotNull
     @Pattern(regexp = LINE_REGEX, message = LINE_MESSAGE)
     @Schema(description = "CTA train line", example = "RED")

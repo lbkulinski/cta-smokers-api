@@ -1,6 +1,7 @@
 package com.ctasmokers.smoking.report.repository;
 
 import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class SmokingReportRepositoryTest {
     private static final String TABLE_NAME = "smoking-reports";
+    private static final String REPORT_ID_KEY = "reportId";
     private static final LocalDate DATE = LocalDate.of(2026, 5, 10);
     private static final String REPORT_ID = "1234567890_abc-def";
 
@@ -117,10 +119,10 @@ class SmokingReportRepositoryTest {
         when(page.items()).thenReturn(List.of(report));
         when(page.lastEvaluatedKey()).thenReturn(null);
 
-        SmokingReportRepository.SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
+        SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
 
         assertThat(result.reports()).containsExactly(report);
-        assertThat(result.lastEvaluatedKey()).isNull();
+        assertThat(result.nextCursor()).isNull();
     }
 
     @Test
@@ -136,13 +138,13 @@ class SmokingReportRepositoryTest {
         verify(smokingReports).query(requestCaptor.capture());
         Map<String, AttributeValue> startKey = requestCaptor.getValue().exclusiveStartKey();
         assertThat(startKey).isNotNull();
-        assertThat(startKey.get(SmokingReportRepository.REPORT_ID_KEY).s()).isEqualTo(REPORT_ID);
+        assertThat(startKey.get(REPORT_ID_KEY).s()).isEqualTo(REPORT_ID);
     }
 
     @Test
     void findPageByDate_withNextPage_returnsLastEvaluatedKey() {
         Map<String, AttributeValue> lastKey = Map.of(
-            SmokingReportRepository.REPORT_ID_KEY, AttributeValue.builder().s(REPORT_ID).build()
+            REPORT_ID_KEY, AttributeValue.builder().s(REPORT_ID).build()
         );
 
         when(smokingReports.query(any(QueryEnhancedRequest.class))).thenReturn(pageIterable);
@@ -150,9 +152,9 @@ class SmokingReportRepositoryTest {
         when(page.items()).thenReturn(List.of());
         when(page.lastEvaluatedKey()).thenReturn(lastKey);
 
-        SmokingReportRepository.SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
+        SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
 
-        assertThat(result.lastEvaluatedKey()).isEqualTo(lastKey);
+        assertThat(result.nextCursor()).isEqualTo(REPORT_ID);
     }
 
     @Test
@@ -169,9 +171,9 @@ class SmokingReportRepositoryTest {
         when(smokingReports.query(any(QueryEnhancedRequest.class))).thenReturn(pageIterable);
         when(pageIterable.stream()).thenReturn(Stream.empty());
 
-        SmokingReportRepository.SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
+        SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
 
         assertThat(result.reports()).isEmpty();
-        assertThat(result.lastEvaluatedKey()).isNull();
+        assertThat(result.nextCursor()).isNull();
     }
 }

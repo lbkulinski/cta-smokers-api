@@ -1,6 +1,7 @@
 package com.ctasmokers.smoking.report.repository;
 
 import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +26,8 @@ import java.util.Optional;
 public final class SmokingReportRepository {
     private static final int MIN_PAGE_SIZE = 1;
     private static final int MAX_PAGE_SIZE = 100;
-    public static final String DATE_KEY = "date";
-    public static final String REPORT_ID_KEY = "reportId";
+    private static final String DATE_KEY = "date";
+    private static final String REPORT_ID_KEY = "reportId";
 
     private final DynamoDbTable<SmokingReport> smokingReports;
 
@@ -44,17 +45,6 @@ public final class SmokingReportRepository {
         Objects.requireNonNull(report);
 
         this.smokingReports.putItem(report);
-    }
-
-    public record SmokingReportPage(
-        List<SmokingReport> reports,
-        @Nullable Map<String, AttributeValue> lastEvaluatedKey
-    ) {
-        public SmokingReportPage {
-            Objects.requireNonNull(reports);
-
-            reports = List.copyOf(reports);
-        }
     }
 
     public SmokingReportPage findPageByDate(
@@ -103,7 +93,11 @@ public final class SmokingReportRepository {
                                   .findFirst()
                                   .map(page -> new SmokingReportPage(
                                       page.items(),
-                                      page.lastEvaluatedKey()
+                                      page.lastEvaluatedKey() == null
+                                          ? null
+                                          : page.lastEvaluatedKey()
+                                                .get(REPORT_ID_KEY)
+                                                .s()
                                   ))
                                   .orElseGet(() -> new SmokingReportPage(List.of(), null));
     }

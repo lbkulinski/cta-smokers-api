@@ -6,8 +6,8 @@ Spring Boot REST API for crowdsourced smoking reports on Chicago CTA trains. Bac
 
 ## Architecture
 
-- **Controllers** — HTTP concerns only (build `ResponseEntity`, `Location` headers, path/query binding)
-- **Services** — business logic, return DTOs directly, throw typed exceptions on not-found
+- **Controllers** — HTTP concerns only (build `ResponseEntity`, `Location` headers, path/query binding, map models to DTOs for the response body)
+- **Services** — business logic, return models directly, throw typed exceptions on not-found
 - **Repositories** — DynamoDB access via the Enhanced Client (`DynamoDbEnhancedClient`)
 - **`@ConfigurationProperties` records** — one record per config namespace, validated with JSR-303
 

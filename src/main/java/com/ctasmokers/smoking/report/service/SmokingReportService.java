@@ -1,12 +1,10 @@
 package com.ctasmokers.smoking.report.service;
 
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
-import com.ctasmokers.smoking.report.dto.SmokingReportsResponse;
-import com.ctasmokers.smoking.report.dto.SmokingReportResponse;
-import com.ctasmokers.smoking.report.dto.SubmitReportRequest;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.common.model.TrainLine;
+import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -17,7 +15,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -42,10 +39,19 @@ public final class SmokingReportService {
         this.expireAfterMinutes = reportsProperties.expireAfterMinutes();
     }
 
-    public SmokingReportResponse submitReport(SubmitReportRequest request) {
-        Objects.requireNonNull(request);
+    public SmokingReport submitReport(
+        String line,
+        String destinationId,
+        String nextStationId,
+        String carNumber,
+        @Nullable String runNumber
+    ) {
+        Objects.requireNonNull(line);
+        Objects.requireNonNull(destinationId);
+        Objects.requireNonNull(nextStationId);
+        Objects.requireNonNull(carNumber);
 
-        TrainLine line = TrainLine.valueOf(request.line());
+        TrainLine trainLine = TrainLine.valueOf(line);
 
         Instant now = Instant.now();
 
@@ -65,51 +71,29 @@ public final class SmokingReportService {
                                             .reportId(reportId)
                                             .reportedAt(now)
                                             .expiresAt(expiresAt)
-                                            .line(line)
-                                            .destinationId(request.destinationId())
-                                            .nextStationId(request.nextStationId())
-                                            .carNumber(request.carNumber())
-                                            .runNumber(request.runNumber())
+                                            .line(trainLine)
+                                            .destinationId(destinationId)
+                                            .nextStationId(nextStationId)
+                                            .carNumber(carNumber)
+                                            .runNumber(runNumber)
                                             .build();
 
         this.smokingReportRepository.save(report);
 
-        return SmokingReportResponse.from(report);
+        return report;
     }
 
-    public SmokingReportsResponse getReportsByDate(LocalDate date, @Nullable String nextCursor) {
+    public SmokingReportPage getReportsByDate(LocalDate date, @Nullable String nextCursor) {
         Objects.requireNonNull(date);
 
-        SmokingReportRepository.SmokingReportPage page = this.smokingReportRepository.findPageByDate(
-            date,
-            this.pageSize,
-            nextCursor
-        );
-
-        List<SmokingReportResponse> reportResponses = page.reports()
-                                                          .stream()
-                                                          .map(SmokingReportResponse::from)
-                                                          .toList();
-
-        String newCursor;
-
-        if (page.lastEvaluatedKey() == null) {
-            newCursor = null;
-        } else {
-            newCursor = page.lastEvaluatedKey()
-                            .get(SmokingReportRepository.REPORT_ID_KEY)
-                            .s();
-        }
-
-        return new SmokingReportsResponse(reportResponses, newCursor);
+        return this.smokingReportRepository.findPageByDate(date, this.pageSize, nextCursor);
     }
 
-    public SmokingReportResponse getReportById(LocalDate date, String reportId) {
+    public SmokingReport getReportById(LocalDate date, String reportId) {
         Objects.requireNonNull(date);
         Objects.requireNonNull(reportId);
 
         return this.smokingReportRepository.findById(date, reportId)
-                                           .map(SmokingReportResponse::from)
                                            .orElseThrow(() -> new SmokingReportNotFoundException(date, reportId));
     }
 }
