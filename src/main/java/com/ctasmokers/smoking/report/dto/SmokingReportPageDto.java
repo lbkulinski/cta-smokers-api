@@ -10,7 +10,10 @@ import java.util.Objects;
 @Schema(description = "Response body for a list of smoking reports")
 @NullMarked
 public record SmokingReportPageDto(
-    @Schema(description = "List of smoking reports")
+    @Schema(
+        description = "List of smoking reports",
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
     List<SmokingReportDto> reports,
 
     @Nullable

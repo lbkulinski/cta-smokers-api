@@ -2,10 +2,12 @@ package com.ctasmokers.smoking.report.service;
 
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
+import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
+import com.rollbar.notifier.Rollbar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +23,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,6 +40,9 @@ class SmokingReportServiceTest {
     @Mock
     private CtaReportProperties reportProperties;
 
+    @Mock
+    private Rollbar rollbar;
+
     private SmokingReportService service;
 
     @BeforeEach
@@ -44,7 +50,7 @@ class SmokingReportServiceTest {
         when(reportProperties.pageSize()).thenReturn(PAGE_SIZE);
         when(reportProperties.expireAfterMinutes()).thenReturn(EXPIRE_AFTER_MINUTES);
 
-        service = new SmokingReportService(repository, reportProperties);
+        service = new SmokingReportService(repository, rollbar, reportProperties);
     }
 
     private SmokingReport report() {
@@ -85,6 +91,16 @@ class SmokingReportServiceTest {
         ArgumentCaptor<SmokingReport> reportCaptor = ArgumentCaptor.forClass(SmokingReport.class);
         verify(repository).save(reportCaptor.capture());
         assertThat(reportCaptor.getValue().runNumber()).isEqualTo("902");
+    }
+
+    @Test
+    void submitReport_whenActiveReportExists_throwsExceptionAndDoesNotSave() {
+        when(repository.existsActiveByCarNumberAndLine("2435", TrainLine.RED)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.submitReport("RED", "40900", "41220", "2435", null))
+            .isInstanceOf(SmokingReportAlreadyExistsException.class);
+
+        verify(repository, never()).save(any());
     }
 
     @Test

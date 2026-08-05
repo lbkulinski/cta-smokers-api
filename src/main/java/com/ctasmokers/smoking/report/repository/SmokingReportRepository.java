@@ -1,5 +1,6 @@
 package com.ctasmokers.smoking.report.repository;
 
+import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import org.jspecify.annotations.NullMarked;
@@ -9,12 +10,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -72,12 +75,8 @@ public final class SmokingReportRepository {
 
         if (nextCursor != null) {
             exclusiveStartKey = Map.of(
-                DATE_KEY, AttributeValue.builder()
-                                      .s(dateString)
-                                      .build(),
-                REPORT_ID_KEY, AttributeValue.builder()
-                                          .s(nextCursor)
-                                          .build()
+                DATE_KEY, AttributeValue.builder().s(dateString).build(),
+                REPORT_ID_KEY, AttributeValue.builder().s(nextCursor).build()
             );
         }
 
@@ -95,9 +94,7 @@ public final class SmokingReportRepository {
                                       page.items(),
                                       page.lastEvaluatedKey() == null
                                           ? null
-                                          : page.lastEvaluatedKey()
-                                                .get(REPORT_ID_KEY)
-                                                .s()
+                                          : page.lastEvaluatedKey().get(REPORT_ID_KEY).s()
                                   ))
                                   .orElseGet(() -> new SmokingReportPage(List.of(), null));
     }
@@ -114,5 +111,40 @@ public final class SmokingReportRepository {
         SmokingReport report = this.smokingReports.getItem(key);
 
         return Optional.ofNullable(report);
+    }
+
+    public boolean existsActiveByCarNumberAndLine(String carNumber, TrainLine line) {
+        Objects.requireNonNull(carNumber);
+        Objects.requireNonNull(line);
+
+        Key key = Key.builder()
+                     .partitionValue(carNumber)
+                     .sortValue(line.name())
+                     .build();
+
+        QueryConditional queryConditional = QueryConditional.keyEqualTo(key);
+
+        long now = Instant.now()
+                          .getEpochSecond();
+
+        AttributeValue nowValue = AttributeValue.builder()
+                                                .n(Long.toString(now))
+                                                .build();
+
+        Expression filterExpression = Expression.builder()
+                                                .expression("expiresAt > :now")
+                                                .putExpressionValue(":now", nowValue)
+                                                .build();
+
+        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
+                                                           .queryConditional(queryConditional)
+                                                           .filterExpression(filterExpression)
+                                                           .limit(1)
+                                                           .build();
+
+        return this.smokingReports.index(SmokingReport.CAR_NUMBER_LINE_INDEX)
+                                  .query(request)
+                                  .stream()
+                                  .anyMatch(page -> !page.items().isEmpty());
     }
 }

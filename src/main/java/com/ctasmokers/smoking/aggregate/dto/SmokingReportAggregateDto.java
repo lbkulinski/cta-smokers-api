@@ -9,7 +9,11 @@ import java.util.Objects;
 @Schema(description = "Response body for a smoking report aggregate")
 @NullMarked
 public record SmokingReportAggregateDto(
-    @Schema(description = "Total number of smoking reports", example = "42")
+    @Schema(
+        description = "Total number of smoking reports for the requested period",
+        example = "42",
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
     long reportCount
 ) {
     public SmokingReportAggregateDto {

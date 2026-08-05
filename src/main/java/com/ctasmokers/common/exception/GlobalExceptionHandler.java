@@ -1,6 +1,7 @@
 package com.ctasmokers.common.exception;
 
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
+import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.rollbar.notifier.Rollbar;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +26,9 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
     private static final String NOT_FOUND_DETAIL = "The requested resource was not found.";
     private static final String NOT_FOUND_TITLE = "Not Found";
 
+    private static final String CONFLICT_DETAIL = "The requested resource already exists.";
+    private static final String CONFLICT_TITLE = "Conflict";
+
     private static final String INTERNAL_ERROR_DETAIL = "An unexpected error occurred.";
     private static final String INTERNAL_ERROR_TITLE = "Internal Server Error";
 
@@ -42,6 +46,19 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
         URI instance = URI.create(request.getRequestURI());
 
         problem.setTitle(NOT_FOUND_TITLE);
+        problem.setInstance(instance);
+
+        return ResponseEntity.of(problem)
+                             .build();
+    }
+
+    @ExceptionHandler(SmokingReportAlreadyExistsException.class)
+    public ResponseEntity<ProblemDetail> handleAlreadyExistsException(HttpServletRequest request) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, CONFLICT_DETAIL);
+
+        URI instance = URI.create(request.getRequestURI());
+
+        problem.setTitle(CONFLICT_TITLE);
         problem.setInstance(instance);
 
         return ResponseEntity.of(problem)

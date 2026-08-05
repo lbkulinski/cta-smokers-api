@@ -5,6 +5,7 @@ import com.ctasmokers.aws.dto.Secret;
 import com.ctasmokers.common.config.properties.CorsProperties;
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
+import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
@@ -132,6 +133,26 @@ class SmokingReportControllerTest {
                    .contentType(MediaType.APPLICATION_JSON)
                    .content(body))
                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void submitReport_duplicateActiveReport_returns409WithProblemDetail() throws Exception {
+        when(smokingReportService.submitReport(any(), any(), any(), any(), any()))
+            .thenThrow(new SmokingReportAlreadyExistsException("2435", TrainLine.RED));
+
+        String body = """
+        {"line":"RED","destinationId":"40900","nextStationId":"41220","carNumber":"2435","runNumber":null}
+        """;
+
+        mockMvc.perform(withRequiredHeaders(post("/api/cta/reports/smoking"))
+                   .contentType(MediaType.APPLICATION_JSON)
+                   .content(body))
+               .andExpect(status().isConflict())
+               .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+               .andExpect(jsonPath("$.status").value(409))
+               .andExpect(jsonPath("$.title").value("Conflict"))
+               .andExpect(jsonPath("$.detail").value("The requested resource already exists."))
+               .andExpect(jsonPath("$.instance").value("/api/cta/reports/smoking"));
     }
 
     @Test

@@ -1,13 +1,17 @@
 package com.ctasmokers.smoking.report.service;
 
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
+import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
+import com.rollbar.notifier.Rollbar;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,10 +25,13 @@ import java.util.UUID;
 @Service
 @NullMarked
 public final class SmokingReportService {
+    private static final Logger log = LoggerFactory.getLogger(SmokingReportService.class);
+
     private static final ZoneId CHICAGO_ZONE_ID = ZoneId.of("America/Chicago");
     private static final String REPORT_ID_FORMAT = "%d_%s";
 
     private final SmokingReportRepository reportRepository;
+    private final Rollbar rollbar;
 
     private final int pageSize;
     private final long expireAfterMinutes;
@@ -32,9 +39,11 @@ public final class SmokingReportService {
     @Autowired
     public SmokingReportService(
         SmokingReportRepository reportRepository,
+        Rollbar rollbar,
         CtaReportProperties reportsProperties
     ) {
         this.reportRepository = reportRepository;
+        this.rollbar = rollbar;
         this.pageSize = reportsProperties.pageSize();
         this.expireAfterMinutes = reportsProperties.expireAfterMinutes();
     }
@@ -52,6 +61,18 @@ public final class SmokingReportService {
         Objects.requireNonNull(carNumber);
 
         TrainLine trainLine = TrainLine.valueOf(line);
+
+        if (this.reportRepository.existsActiveByCarNumberAndLine(carNumber, trainLine)) {
+            String message = "Smoking report already exists for car number %s on line %s".formatted(
+                carNumber,
+                trainLine
+            );
+
+            log.warn(message);
+            this.rollbar.warning(message);
+
+            throw new SmokingReportAlreadyExistsException(carNumber, trainLine);
+        }
 
         Instant now = Instant.now();
 

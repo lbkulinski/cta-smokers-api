@@ -9,6 +9,7 @@ import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.service.SmokingReportService;
 import com.ctasmokers.smoking.report.validator.ValidReportId;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -55,7 +56,12 @@ public final class SmokingReportController {
     }
 
     @PostMapping
-    @Operation(summary = "Submit a new smoking report for a CTA train")
+    @Operation(
+        summary = "Submit a new smoking report for a CTA train",
+        description = """
+        Create a new smoking report for the given car and line, rejecting duplicates while an active report already \
+        exists for that car and line"""
+    )
     @ApiResponses({
         @ApiResponse(
             responseCode = "201",
@@ -68,6 +74,14 @@ public final class SmokingReportController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid request data",
+            content = @Content(
+                schema = @Schema(implementation = ProblemDetail.class),
+                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
+            )
+        ),
+        @ApiResponse(
+            responseCode = "409",
+            description = "Report already exists",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
@@ -118,8 +132,15 @@ public final class SmokingReportController {
         )
     })
     public ResponseEntity<SmokingReportPageDto> getReportsByDate(
-        @PathVariable LocalDate date,
-        @Nullable @ValidReportId @RequestParam(required = false) String nextCursor
+        @PathVariable
+        @Parameter(description = "Date to retrieve reports for")
+        LocalDate date,
+
+        @RequestParam(required = false)
+        @ValidReportId
+        @Parameter(description = "Cursor for fetching the next page of results")
+        @Nullable
+        String nextCursor
     ) {
         SmokingReportPage page = this.reportService.getReportsByDate(date, nextCursor);
 
@@ -165,8 +186,14 @@ public final class SmokingReportController {
         )
     })
     public ResponseEntity<SmokingReportDto> getReportById(
-        @PathVariable LocalDate date,
-        @PathVariable @ValidReportId String reportId
+        @PathVariable
+        @Parameter(description = "Date of the report to retrieve")
+        LocalDate date,
+
+        @PathVariable
+        @ValidReportId
+        @Parameter(description = "Unique identifier of the report to retrieve")
+        String reportId
     ) {
         SmokingReport report = this.reportService.getReportById(date, reportId);
 

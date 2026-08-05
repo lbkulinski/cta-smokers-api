@@ -7,7 +7,6 @@ import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -21,11 +20,11 @@ public final class AwsSecretsClient {
 
     @Autowired
     public AwsSecretsClient(
-        SecretsManagerClient secretsManagerClient,
+        SecretCache secretCache,
         ObjectMapper objectMapper,
         @Value("${app.aws.secrets-manager.id}") String appSecretId
     ) {
-        this.secretCache = new SecretCache(secretsManagerClient);
+        this.secretCache = secretCache;
         this.objectMapper = objectMapper;
         this.appSecretId = appSecretId;
     }

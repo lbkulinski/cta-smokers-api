@@ -17,7 +17,8 @@ app:
       - https://ctasmokers.com
       - https://www.ctasmokers.com
       - https://cta-smokers-front-end.lagers-rancor-0o.workers.dev
-      - http://localhost:5173
+      - https://cta4j.com
+      - https://www.cta4j.com
     allowed-methods:
       - GET
       - POST

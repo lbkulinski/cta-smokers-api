@@ -9,6 +9,7 @@ import com.ctasmokers.smoking.aggregate.service.SmokingReportAggregateService;
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -73,8 +74,13 @@ public final class SmokingReportAggregateController {
         )
     })
     public ResponseEntity<SmokingReportAggregateDto> getDayAggregate(
-        @PathVariable TrainLine line,
-        @PathVariable LocalDate date
+        @PathVariable
+        @Parameter(description = "CTA train line")
+        TrainLine line,
+
+        @PathVariable
+        @Parameter(description = "Day to retrieve the aggregate for")
+        LocalDate date
     ) {
         SmokingReportAggregate aggregate = this.aggregateService.getDayAggregate(line, date);
 
@@ -115,8 +121,14 @@ public final class SmokingReportAggregateController {
         )
     })
     public ResponseEntity<SmokingReportAggregateDto> getWeekAggregate(
-        @PathVariable TrainLine line,
-        @PathVariable @Schema(type = "string", example = "2026-W13") YearWeek yearWeek
+        @PathVariable
+        @Parameter(description = "CTA train line")
+        TrainLine line,
+
+        @PathVariable
+        @Parameter(description = "ISO week to retrieve the aggregate for (e.g. 2026-W13)")
+        @Schema(type = "string", example = "2026-W13")
+        YearWeek yearWeek
     ) {
         SmokingReportAggregate aggregate = this.aggregateService.getWeekAggregate(line, yearWeek);
 
@@ -157,8 +169,14 @@ public final class SmokingReportAggregateController {
         )
     })
     public ResponseEntity<SmokingReportAggregateDto> getMonthAggregate(
-        @PathVariable TrainLine line,
-        @PathVariable @Schema(type = "string", example = "2026-03") YearMonth yearMonth
+        @PathVariable
+        @Parameter(description = "CTA train line")
+        TrainLine line,
+
+        @PathVariable
+        @Parameter(description = "Month to retrieve the aggregate for (e.g. 2026-03)")
+        @Schema(type = "string", example = "2026-03")
+        YearMonth yearMonth
     ) {
         SmokingReportAggregate aggregate = this.aggregateService.getMonthAggregate(line, yearMonth);
 
@@ -199,8 +217,14 @@ public final class SmokingReportAggregateController {
         )
     })
     public ResponseEntity<SmokingReportAggregateDto> getYearAggregate(
-        @PathVariable TrainLine line,
-        @PathVariable @Schema(type = "string", example = "2026") Year year
+        @PathVariable
+        @Parameter(description = "CTA train line")
+        TrainLine line,
+
+        @PathVariable
+        @Parameter(description = "Year to retrieve the aggregate for (e.g. 2026)")
+        @Schema(type = "string", example = "2026")
+        Year year
     ) {
         SmokingReportAggregate aggregate = this.aggregateService.getYearAggregate(line, year);
 
@@ -240,7 +264,11 @@ public final class SmokingReportAggregateController {
             )
         )
     })
-    public ResponseEntity<SmokingReportAggregateDto> getAllTimeAggregate(@PathVariable TrainLine line) {
+    public ResponseEntity<SmokingReportAggregateDto> getAllTimeAggregate(
+        @PathVariable
+        @Parameter(description = "CTA train line")
+        TrainLine line
+    ) {
         SmokingReportAggregate aggregate = this.aggregateService.getAllTimeAggregate(line);
 
         SmokingReportAggregateDto aggregateDto = SmokingReportAggregateDto.from(aggregate);
@@ -272,8 +300,14 @@ public final class SmokingReportAggregateController {
         )
     })
     public ResponseEntity<SmokingReportDailyCountsDto> getDailyCounts(
-        @PathVariable TrainLine line,
-        @PathVariable @Schema(type = "string", example = "2026-03") YearMonth yearMonth
+        @PathVariable
+        @Parameter(description = "CTA train line")
+        TrainLine line,
+
+        @PathVariable
+        @Parameter(description = "Month to retrieve daily counts for (e.g. 2026-03)")
+        @Schema(type = "string", example = "2026-03")
+        YearMonth yearMonth
     ) {
         List<SmokingReportDailyCount> dailyCounts = this.aggregateService.getDailyCounts(
             line,

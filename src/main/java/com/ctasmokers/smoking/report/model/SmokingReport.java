@@ -24,4 +24,6 @@ public record SmokingReport(
     String nextStationId,
     String carNumber,
     @Nullable String runNumber
-) {}
+) {
+    public static final String CAR_NUMBER_LINE_INDEX = "carNumber-line-index";
+}

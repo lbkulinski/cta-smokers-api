@@ -1,5 +1,6 @@
 package com.ctasmokers.smoking.report.repository;
 
+import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,11 +9,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -52,6 +56,14 @@ class SmokingReportRepositoryTest {
     @SuppressWarnings("rawtypes")
     private Page page;
 
+    @Mock
+    @SuppressWarnings("rawtypes")
+    private DynamoDbIndex carNumberLineIndex;
+
+    @Mock
+    @SuppressWarnings("rawtypes")
+    private SdkIterable indexResults;
+
     private SmokingReportRepository repository;
 
     @BeforeEach
@@ -68,7 +80,7 @@ class SmokingReportRepositoryTest {
                             .reportId(REPORT_ID)
                             .reportedAt(Instant.now())
                             .expiresAt(Instant.now().getEpochSecond() + 3600)
-                            .line(com.ctasmokers.smoking.common.model.TrainLine.RED)
+                            .line(TrainLine.RED)
                             .destinationId("40900")
                             .nextStationId("41220")
                             .carNumber("2435")
@@ -175,5 +187,54 @@ class SmokingReportRepositoryTest {
 
         assertThat(result.reports()).isEmpty();
         assertThat(result.nextCursor()).isNull();
+    }
+
+    @Test
+    void existsActiveByCarNumberAndLine_activeReportExists_returnsTrue() {
+        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_INDEX)).thenReturn(carNumberLineIndex);
+        when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
+        when(indexResults.stream()).thenReturn(Stream.of(page));
+        when(page.items()).thenReturn(List.of(report()));
+
+        boolean result = repository.existsActiveByCarNumberAndLine("2435", TrainLine.RED);
+
+        assertThat(result).isTrue();
+
+        ArgumentCaptor<QueryEnhancedRequest> requestCaptor = ArgumentCaptor.forClass(QueryEnhancedRequest.class);
+        verify(carNumberLineIndex).query(requestCaptor.capture());
+
+        QueryEnhancedRequest request = requestCaptor.getValue();
+        Key expectedKey = Key.builder()
+                             .partitionValue("2435")
+                             .sortValue("RED")
+                             .build();
+
+        assertThat(request.queryConditional()).isEqualTo(QueryConditional.keyEqualTo(expectedKey));
+        assertThat(request.limit()).isEqualTo(1);
+        assertThat(request.filterExpression().expression()).isEqualTo("expiresAt > :now");
+        assertThat(request.filterExpression().expressionValues()).containsKey(":now");
+    }
+
+    @Test
+    void existsActiveByCarNumberAndLine_noActiveReport_returnsFalse() {
+        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_INDEX)).thenReturn(carNumberLineIndex);
+        when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
+        when(indexResults.stream()).thenReturn(Stream.of(page));
+        when(page.items()).thenReturn(List.of());
+
+        boolean result = repository.existsActiveByCarNumberAndLine("2435", TrainLine.RED);
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void existsActiveByCarNumberAndLine_noResults_returnsFalse() {
+        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_INDEX)).thenReturn(carNumberLineIndex);
+        when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
+        when(indexResults.stream()).thenReturn(Stream.empty());
+
+        boolean result = repository.existsActiveByCarNumberAndLine("2435", TrainLine.RED);
+
+        assertThat(result).isFalse();
     }
 }
