@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
@@ -117,32 +116,22 @@ public final class SmokingReportRepository {
         Objects.requireNonNull(carNumber);
         Objects.requireNonNull(line);
 
+        String carNumberLine = "%s#%s".formatted(carNumber, line.name());
+        long now = Instant.now().getEpochSecond();
+
         Key key = Key.builder()
-                     .partitionValue(carNumber)
-                     .sortValue(line.name())
+                     .partitionValue(carNumberLine)
+                     .sortValue(now)
                      .build();
 
-        QueryConditional queryConditional = QueryConditional.keyEqualTo(key);
-
-        long now = Instant.now()
-                          .getEpochSecond();
-
-        AttributeValue nowValue = AttributeValue.builder()
-                                                .n(Long.toString(now))
-                                                .build();
-
-        Expression filterExpression = Expression.builder()
-                                                .expression("expiresAt > :now")
-                                                .putExpressionValue(":now", nowValue)
-                                                .build();
+        QueryConditional queryConditional = QueryConditional.sortGreaterThan(key);
 
         QueryEnhancedRequest request = QueryEnhancedRequest.builder()
                                                            .queryConditional(queryConditional)
-                                                           .filterExpression(filterExpression)
                                                            .limit(1)
                                                            .build();
 
-        return this.smokingReports.index(SmokingReport.CAR_NUMBER_LINE_INDEX)
+        return this.smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)
                                   .query(request)
                                   .stream()
                                   .anyMatch(page -> !page.items().isEmpty());

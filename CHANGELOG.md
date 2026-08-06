@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Refactored DTOs out of the service layer; services now return domain models directly and controllers map them to DTOs for responses.
 - `AwsSecretsClient` now receives an injected `SecretCache` bean instead of constructing one internally.
+- Bump `software.amazon.awssdk:bom` from `2.49.3` to `2.49.5`
+- Bump `commons-validator:commons-validator` from `1.10.1` to `1.11.0`
 
 ## [3.4.0] - 2026-05-13
 

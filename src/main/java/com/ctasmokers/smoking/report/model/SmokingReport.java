@@ -25,20 +25,22 @@ public record SmokingReport(
 
     Instant reportedAt,
 
+    @DynamoDbSecondarySortKey(indexNames = CAR_NUMBER_LINE_EXPIRES_AT_INDEX)
     long expiresAt,
 
-    @DynamoDbSecondarySortKey(indexNames = CAR_NUMBER_LINE_INDEX)
     TrainLine line,
 
     String destinationId,
 
     String nextStationId,
 
-    @DynamoDbSecondaryPartitionKey(indexNames = CAR_NUMBER_LINE_INDEX)
     String carNumber,
+
+    @DynamoDbSecondaryPartitionKey(indexNames = CAR_NUMBER_LINE_EXPIRES_AT_INDEX)
+    String carNumberLine,
 
     @Nullable
     String runNumber
 ) {
-    public static final String CAR_NUMBER_LINE_INDEX = "carNumber-line-index";
+    public static final String CAR_NUMBER_LINE_EXPIRES_AT_INDEX = "carNumberLine-expiresAt-index";
 }

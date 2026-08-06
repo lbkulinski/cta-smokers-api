@@ -75,17 +75,14 @@ public final class SmokingReportService {
         }
 
         Instant now = Instant.now();
-
-        LocalDate date = now.atZone(CHICAGO_ZONE_ID)
-                            .toLocalDate();
-
         long epochMillis = now.toEpochMilli();
-        String uuid = UUID.randomUUID()
-                          .toString();
+        String uuid = UUID.randomUUID().toString();
 
+        LocalDate date = now.atZone(CHICAGO_ZONE_ID).toLocalDate();
         String reportId = REPORT_ID_FORMAT.formatted(epochMillis, uuid);
-        long expiresAt = now.plus(this.expireAfterMinutes, ChronoUnit.MINUTES)
-                            .getEpochSecond();
+
+        long expiresAt = now.plus(this.expireAfterMinutes, ChronoUnit.MINUTES).getEpochSecond();
+        String carNumberLine = "%s#%s".formatted(carNumber, trainLine.name());
 
         SmokingReport report = SmokingReport.builder()
                                             .date(date)
@@ -96,6 +93,7 @@ public final class SmokingReportService {
                                             .destinationId(destinationId)
                                             .nextStationId(nextStationId)
                                             .carNumber(carNumber)
+                                            .carNumberLine(carNumberLine)
                                             .runNumber(runNumber)
                                             .build();
 

@@ -63,6 +63,7 @@ class SmokingReportServiceTest {
                             .destinationId("40900")
                             .nextStationId("41220")
                             .carNumber("2435")
+                            .carNumberLine("2435#RED")
                             .build();
     }
 
@@ -78,6 +79,7 @@ class SmokingReportServiceTest {
         assertThat(saved.destinationId()).isEqualTo("40900");
         assertThat(saved.nextStationId()).isEqualTo("41220");
         assertThat(saved.carNumber()).isEqualTo("2435");
+        assertThat(saved.carNumberLine()).isEqualTo("2435#RED");
         assertThat(saved.runNumber()).isNull();
 
         assertThat(response.line()).isEqualTo(TrainLine.RED);
@@ -91,6 +93,7 @@ class SmokingReportServiceTest {
         ArgumentCaptor<SmokingReport> reportCaptor = ArgumentCaptor.forClass(SmokingReport.class);
         verify(repository).save(reportCaptor.capture());
         assertThat(reportCaptor.getValue().runNumber()).isEqualTo("902");
+        assertThat(reportCaptor.getValue().carNumberLine()).isEqualTo("2435#BLUE");
     }
 
     @Test

@@ -13,10 +13,11 @@ import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
-import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -84,6 +85,7 @@ class SmokingReportRepositoryTest {
                             .destinationId("40900")
                             .nextStationId("41220")
                             .carNumber("2435")
+                            .carNumberLine("2435#RED")
                             .build();
     }
 
@@ -191,12 +193,16 @@ class SmokingReportRepositoryTest {
 
     @Test
     void existsActiveByCarNumberAndLine_activeReportExists_returnsTrue() {
-        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_INDEX)).thenReturn(carNumberLineIndex);
+        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
         when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
         when(indexResults.stream()).thenReturn(Stream.of(page));
         when(page.items()).thenReturn(List.of(report()));
 
+        long before = Instant.now().getEpochSecond();
+
         boolean result = repository.existsActiveByCarNumberAndLine("2435", TrainLine.RED);
+
+        long after = Instant.now().getEpochSecond();
 
         assertThat(result).isTrue();
 
@@ -204,20 +210,27 @@ class SmokingReportRepositoryTest {
         verify(carNumberLineIndex).query(requestCaptor.capture());
 
         QueryEnhancedRequest request = requestCaptor.getValue();
-        Key expectedKey = Key.builder()
-                             .partitionValue("2435")
-                             .sortValue("RED")
-                             .build();
 
-        assertThat(request.queryConditional()).isEqualTo(QueryConditional.keyEqualTo(expectedKey));
         assertThat(request.limit()).isEqualTo(1);
-        assertThat(request.filterExpression().expression()).isEqualTo("expiresAt > :now");
-        assertThat(request.filterExpression().expressionValues()).containsKey(":now");
+        assertThat(request.filterExpression()).isNull();
+
+        TableSchema<SmokingReport> tableSchema = TableSchema.fromImmutableClass(SmokingReport.class);
+        Expression expression = request.queryConditional()
+                                       .expression(tableSchema, SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX);
+
+        assertThat(expression.expression()).contains(" > ");
+        assertThat(expression.expressionValues().values())
+            .extracting(AttributeValue::s)
+            .contains("2435#RED");
+        assertThat(expression.expressionValues().values())
+            .filteredOn(value -> value.n() != null)
+            .extracting(value -> Long.parseLong(value.n()))
+            .allSatisfy(epochSecond -> assertThat(epochSecond).isBetween(before, after));
     }
 
     @Test
     void existsActiveByCarNumberAndLine_noActiveReport_returnsFalse() {
-        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_INDEX)).thenReturn(carNumberLineIndex);
+        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
         when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
         when(indexResults.stream()).thenReturn(Stream.of(page));
         when(page.items()).thenReturn(List.of());
@@ -229,7 +242,7 @@ class SmokingReportRepositoryTest {
 
     @Test
     void existsActiveByCarNumberAndLine_noResults_returnsFalse() {
-        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_INDEX)).thenReturn(carNumberLineIndex);
+        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
         when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
         when(indexResults.stream()).thenReturn(Stream.empty());
 
