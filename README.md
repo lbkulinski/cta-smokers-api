@@ -168,6 +168,7 @@ found [here](https://data.cityofchicago.org/resource/8pix-ypme.json)
 ## 🔒 Moderation & Integrity
 
 - Basic validation on all submissions
+- Duplicate active reports for the same car number and line are rejected
 - Server-generated timestamps
 - Rate limiting to prevent spam
 - No personally identifiable information stored

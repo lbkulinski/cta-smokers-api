@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-08-06
+
+### Added
+
+- `409 Conflict` response when submitting a smoking report for a car number and line that already has an active (unexpired) report.
+- `https://cta4j.com` and `https://www.cta4j.com` as allowed CORS origins.
+
+### Changed
+
+- Refactored DTOs out of the service layer; services now return domain models directly and controllers map them to DTOs for responses.
+- `AwsSecretsClient` now receives an injected `SecretCache` bean instead of constructing one internally.
+
 ## [3.4.0] - 2026-05-13
 
 ### Added
@@ -130,7 +142,8 @@ consistency.
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.4.0...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.4.0...v4.0.0
 [3.4.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.3.1...v3.4.0
 [3.3.1]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.3.0...v3.3.1
 [3.3.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.2.0...v3.3.0
