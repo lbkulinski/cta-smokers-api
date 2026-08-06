@@ -6,6 +6,8 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
 import java.time.Instant;
@@ -15,15 +17,28 @@ import java.time.LocalDate;
 @DynamoDbImmutable(builder = SmokingReport.SmokingReportBuilder.class)
 @NullMarked
 public record SmokingReport(
-    @DynamoDbPartitionKey LocalDate date,
-    @DynamoDbSortKey String reportId,
+    @DynamoDbPartitionKey
+    LocalDate date,
+
+    @DynamoDbSortKey
+    String reportId,
+
     Instant reportedAt,
+
     long expiresAt,
+
+    @DynamoDbSecondarySortKey(indexNames = CAR_NUMBER_LINE_INDEX)
     TrainLine line,
+
     String destinationId,
+
     String nextStationId,
+
+    @DynamoDbSecondaryPartitionKey(indexNames = CAR_NUMBER_LINE_INDEX)
     String carNumber,
-    @Nullable String runNumber
+
+    @Nullable
+    String runNumber
 ) {
     public static final String CAR_NUMBER_LINE_INDEX = "carNumber-line-index";
 }
