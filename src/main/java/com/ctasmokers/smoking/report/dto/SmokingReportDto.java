@@ -69,7 +69,11 @@ public record SmokingReportDto(
     )
     String carNumber,
 
-    @Schema(description = "Run number of the train", example = "902", nullable = true)
+    @Schema(
+        description = "Run number of the train, or null if not provided",
+        example = "902",
+        nullable = true
+    )
     @Nullable
     String runNumber
 ) {

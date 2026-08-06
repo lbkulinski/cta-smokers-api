@@ -45,7 +45,7 @@ public final class SmokingReportAggregateController {
     @GetMapping("/{line}/day/{date}")
     @Operation(
         summary = "Get daily aggregate",
-        description = "Retrieve the smoking report aggregate for a train line on a specific day"
+        description = "Retrieve the smoking report aggregate for a train line on a specific day (e.g. 2026-02-21)"
     )
     @ApiResponses({
         @ApiResponse(
@@ -79,7 +79,8 @@ public final class SmokingReportAggregateController {
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "Day to retrieve the aggregate for")
+        @Parameter(description = "Day to retrieve the aggregate for (e.g. 2026-02-21)")
+        @Schema(type = "string", example = "2026-02-21")
         LocalDate date
     ) {
         SmokingReportAggregate aggregate = this.aggregateService.getDayAggregate(line, date);
@@ -278,7 +279,7 @@ public final class SmokingReportAggregateController {
 
     @GetMapping("/{line}/month/{yearMonth}/days")
     @Operation(
-        summary = "Get daily counts",
+        summary = "Get daily count breakdown",
         description = "Retrieve the daily smoking report counts for a train line in a specific month (e.g. 2026-03)"
     )
     @ApiResponses({

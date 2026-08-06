@@ -11,7 +11,7 @@ import org.jspecify.annotations.Nullable;
 public record SubmitReportDto(
     @NotNull
     @Pattern(regexp = LINE_REGEX, message = LINE_MESSAGE)
-    @Schema(description = "CTA train line", example = "RED")
+    @Schema(description = "Train line where the smoking was reported", example = "RED")
     String line,
 
     @NotNull
@@ -30,7 +30,11 @@ public record SubmitReportDto(
     String carNumber,
 
     @Pattern(regexp = RUN_NUMBER_REGEX, message = RUN_NUMBER_MESSAGE)
-    @Schema(description = "Run number (optional, exactly 3 digits)", example = "902", nullable = true)
+    @Schema(
+        description = "Run number (optional, exactly 3 digits), or null if not provided",
+        example = "902",
+        nullable = true
+    )
     @Nullable
     String runNumber
 ) {

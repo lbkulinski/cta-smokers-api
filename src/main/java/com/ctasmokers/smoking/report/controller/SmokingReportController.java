@@ -133,7 +133,8 @@ public final class SmokingReportController {
     })
     public ResponseEntity<SmokingReportPageDto> getReportsByDate(
         @PathVariable
-        @Parameter(description = "Date to retrieve reports for")
+        @Parameter(description = "Date to retrieve reports for (e.g. 2026-02-21)")
+        @Schema(type = "string", example = "2026-02-21")
         LocalDate date,
 
         @RequestParam(required = false)
@@ -187,7 +188,8 @@ public final class SmokingReportController {
     })
     public ResponseEntity<SmokingReportDto> getReportById(
         @PathVariable
-        @Parameter(description = "Date of the report to retrieve")
+        @Parameter(description = "Date of the report to retrieve (e.g. 2026-02-21)")
+        @Schema(type = "string", example = "2026-02-21")
         LocalDate date,
 
         @PathVariable
