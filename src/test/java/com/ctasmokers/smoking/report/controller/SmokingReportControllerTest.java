@@ -90,6 +90,7 @@ class SmokingReportControllerTest {
                             .destinationId("40900")
                             .nextStationId("41220")
                             .carNumber("2435")
+                            .carNumberLine("2435#RED")
                             .build();
     }
 
