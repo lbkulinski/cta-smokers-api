@@ -7,6 +7,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmut
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
+import java.util.Objects;
+
 @Builder
 @DynamoDbImmutable(builder = SmokingReportAggregate.SmokingReportAggregateBuilder.class)
 @NullMarked
@@ -20,4 +22,9 @@ public record SmokingReportAggregate(
     String sk,
 
     long reportCount
-) {}
+) {
+    public SmokingReportAggregate {
+        Objects.requireNonNull(pk);
+        Objects.requireNonNull(sk);
+    }
+}

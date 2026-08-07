@@ -12,6 +12,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Builder
 @DynamoDbImmutable(builder = SmokingReport.SmokingReportBuilder.class)
@@ -43,4 +44,15 @@ public record SmokingReport(
     String runNumber
 ) {
     public static final String CAR_NUMBER_LINE_EXPIRES_AT_INDEX = "carNumberLine-expiresAt-index";
+
+    public SmokingReport {
+        Objects.requireNonNull(date);
+        Objects.requireNonNull(reportId);
+        Objects.requireNonNull(reportedAt);
+        Objects.requireNonNull(line);
+        Objects.requireNonNull(destinationId);
+        Objects.requireNonNull(nextStationId);
+        Objects.requireNonNull(carNumber);
+        Objects.requireNonNull(carNumberLine);
+    }
 }

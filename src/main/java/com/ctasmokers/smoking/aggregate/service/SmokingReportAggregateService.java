@@ -69,15 +69,12 @@ public final class SmokingReportAggregateService {
         Objects.requireNonNull(line);
         Objects.requireNonNull(yearMonth);
 
-        List<SmokingReportAggregate> aggregates = this.aggregateRepository.findDayAggregatesByLineAndMonth(
-            line,
-            yearMonth
-        );
+        List<SmokingReportAggregate> aggregates =
+            this.aggregateRepository.findDayAggregatesByLineAndMonth(line, yearMonth);
 
         return aggregates.stream()
                          .map(aggregate -> {
-                             String dateString = aggregate.sk()
-                                                          .substring("DAY#".length());
+                             String dateString = aggregate.sk().substring("DAY#".length());
 
                              return new SmokingReportDailyCount(
                                  LocalDate.parse(dateString),

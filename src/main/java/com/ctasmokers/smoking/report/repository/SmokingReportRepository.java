@@ -49,11 +49,7 @@ public final class SmokingReportRepository {
         this.smokingReports.putItem(report);
     }
 
-    public SmokingReportPage findPageByDate(
-        LocalDate date,
-        int pageSize,
-        @Nullable String nextCursor
-    ) {
+    public SmokingReportPage findPageByDate(LocalDate date, int pageSize, @Nullable String nextCursor) {
         Objects.requireNonNull(date);
 
         if (pageSize < MIN_PAGE_SIZE || pageSize > MAX_PAGE_SIZE) {

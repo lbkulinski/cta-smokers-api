@@ -24,8 +24,6 @@ public record SmokingReportPageDto(
     public SmokingReportPageDto {
         Objects.requireNonNull(reports);
 
-        reports.forEach(Objects::requireNonNull);
-
         reports = List.copyOf(reports);
     }
 }

@@ -310,10 +310,7 @@ public final class SmokingReportAggregateController {
         @Schema(type = "string", example = "2026-03")
         YearMonth yearMonth
     ) {
-        List<SmokingReportDailyCount> dailyCounts = this.aggregateService.getDailyCounts(
-            line,
-            yearMonth
-        );
+        List<SmokingReportDailyCount> dailyCounts = this.aggregateService.getDailyCounts(line, yearMonth);
 
         List<SmokingReportDailyCountDto> days = dailyCounts.stream()
                                                            .map(SmokingReportDailyCountDto::from)
