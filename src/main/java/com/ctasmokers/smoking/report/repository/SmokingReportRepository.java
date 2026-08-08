@@ -112,7 +112,7 @@ public final class SmokingReportRepository {
         Objects.requireNonNull(carNumber);
         Objects.requireNonNull(line);
 
-        String carNumberLine = "%s#%s".formatted(carNumber, line.name());
+        String carNumberLine = SmokingReport.carNumberLineOf(carNumber, line);
         long now = Instant.now().getEpochSecond();
 
         Key key = Key.builder()
@@ -120,7 +120,7 @@ public final class SmokingReportRepository {
                      .sortValue(now)
                      .build();
 
-        QueryConditional queryConditional = QueryConditional.sortGreaterThan(key);
+        QueryConditional queryConditional = QueryConditional.sortGreaterThanOrEqualTo(key);
 
         QueryEnhancedRequest request = QueryEnhancedRequest.builder()
                                                            .queryConditional(queryConditional)

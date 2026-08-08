@@ -7,7 +7,6 @@ import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
-import com.rollbar.notifier.Rollbar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,9 +39,6 @@ class SmokingReportServiceTest {
     @Mock
     private CtaReportProperties reportProperties;
 
-    @Mock
-    private Rollbar rollbar;
-
     private SmokingReportService service;
 
     @BeforeEach
@@ -50,7 +46,7 @@ class SmokingReportServiceTest {
         when(reportProperties.pageSize()).thenReturn(PAGE_SIZE);
         when(reportProperties.expireAfterMinutes()).thenReturn(EXPIRE_AFTER_MINUTES);
 
-        service = new SmokingReportService(repository, rollbar, reportProperties);
+        service = new SmokingReportService(repository, reportProperties);
     }
 
     private SmokingReport report() {

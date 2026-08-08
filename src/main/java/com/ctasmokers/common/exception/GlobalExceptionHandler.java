@@ -53,7 +53,15 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
     }
 
     @ExceptionHandler(SmokingReportAlreadyExistsException.class)
-    public ResponseEntity<ProblemDetail> handleAlreadyExistsException(HttpServletRequest request) {
+    public ResponseEntity<ProblemDetail> handleAlreadyExistsException(
+        SmokingReportAlreadyExistsException exception,
+        HttpServletRequest request
+    ) {
+        String message = exception.getMessage();
+
+        log.warn(message);
+        this.rollbar.warning(message);
+
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, CONFLICT_DETAIL);
 
         URI instance = URI.create(request.getRequestURI());

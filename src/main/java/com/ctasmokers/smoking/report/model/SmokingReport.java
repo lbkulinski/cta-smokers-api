@@ -55,4 +55,8 @@ public record SmokingReport(
         Objects.requireNonNull(carNumber);
         Objects.requireNonNull(carNumberLine);
     }
+
+    public static String carNumberLineOf(String carNumber, TrainLine trainLine) {
+        return "%s#%s".formatted(carNumber, trainLine.name());
+    }
 }
