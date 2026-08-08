@@ -218,7 +218,7 @@ class SmokingReportRepositoryTest {
         Expression expression = request.queryConditional()
                                        .expression(tableSchema, SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX);
 
-        assertThat(expression.expression()).contains(" > ");
+        assertThat(expression.expression()).contains(" >= ");
         assertThat(expression.expressionValues().values())
             .extracting(AttributeValue::s)
             .contains("2435#RED");
