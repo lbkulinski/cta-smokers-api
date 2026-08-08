@@ -69,8 +69,10 @@ public final class SmokingReportAggregateService {
         Objects.requireNonNull(line);
         Objects.requireNonNull(yearMonth);
 
-        List<SmokingReportAggregate> aggregates =
-            this.aggregateRepository.findDayAggregatesByLineAndMonth(line, yearMonth);
+        List<SmokingReportAggregate> aggregates = this.aggregateRepository.findDayAggregatesByLineAndMonth(
+            line,
+            yearMonth
+        );
 
         return aggregates.stream()
                          .map(aggregate -> {

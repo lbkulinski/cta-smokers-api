@@ -14,12 +14,9 @@ public class WebConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(@NonNull CorsRegistry registry) {
-                String[] allowedOrigins = corsProperties.allowedOrigins()
-                                                        .toArray(String[]::new);
-                String[] allowedMethods = corsProperties.allowedMethods()
-                                                        .toArray(String[]::new);
-                String[] allowedHeaders = corsProperties.allowedHeaders()
-                                                        .toArray(String[]::new);
+                String[] allowedOrigins = corsProperties.allowedOrigins().toArray(String[]::new);
+                String[] allowedMethods = corsProperties.allowedMethods().toArray(String[]::new);
+                String[] allowedHeaders = corsProperties.allowedHeaders().toArray(String[]::new);
 
                 registry.addMapping("/**")
                         .allowedOrigins(allowedOrigins)

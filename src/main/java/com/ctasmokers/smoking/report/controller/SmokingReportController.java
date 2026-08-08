@@ -104,8 +104,7 @@ public final class SmokingReportController {
                                            .encode()
                                            .toUri();
 
-        return ResponseEntity.created(location)
-                             .body(reportDto);
+        return ResponseEntity.created(location).body(reportDto);
     }
 
     @GetMapping("/{date}")

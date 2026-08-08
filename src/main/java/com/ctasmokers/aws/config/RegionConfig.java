@@ -8,7 +8,7 @@ import software.amazon.awssdk.regions.Region;
 @Configuration
 public class RegionConfig {
     @Bean
-    public Region region(@Value("${app.aws.region}") String awsRegion) {
-        return Region.of(awsRegion);
+    public Region region(@Value("${app.aws.region}") String region) {
+        return Region.of(region);
     }
 }
