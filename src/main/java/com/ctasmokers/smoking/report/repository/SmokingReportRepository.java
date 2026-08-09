@@ -1,6 +1,8 @@
 package com.ctasmokers.smoking.report.repository;
 
+import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +12,13 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +30,8 @@ import java.util.Optional;
 public final class SmokingReportRepository {
     private static final int MIN_PAGE_SIZE = 1;
     private static final int MAX_PAGE_SIZE = 100;
-    public static final String DATE_KEY = "date";
-    public static final String REPORT_ID_KEY = "reportId";
+    private static final String DATE_KEY = "date";
+    private static final String REPORT_ID_KEY = "reportId";
 
     private final DynamoDbTable<SmokingReport> smokingReports;
 
@@ -46,22 +51,7 @@ public final class SmokingReportRepository {
         this.smokingReports.putItem(report);
     }
 
-    public record SmokingReportPage(
-        List<SmokingReport> reports,
-        @Nullable Map<String, AttributeValue> lastEvaluatedKey
-    ) {
-        public SmokingReportPage {
-            Objects.requireNonNull(reports);
-
-            reports = List.copyOf(reports);
-        }
-    }
-
-    public SmokingReportPage findPageByDate(
-        LocalDate date,
-        int pageSize,
-        @Nullable String nextCursor
-    ) {
+    public SmokingReportPage findPageByDate(LocalDate date, int pageSize, @Nullable String nextCursor) {
         Objects.requireNonNull(date);
 
         if (pageSize < MIN_PAGE_SIZE || pageSize > MAX_PAGE_SIZE) {
@@ -82,12 +72,8 @@ public final class SmokingReportRepository {
 
         if (nextCursor != null) {
             exclusiveStartKey = Map.of(
-                DATE_KEY, AttributeValue.builder()
-                                      .s(dateString)
-                                      .build(),
-                REPORT_ID_KEY, AttributeValue.builder()
-                                          .s(nextCursor)
-                                          .build()
+                DATE_KEY, AttributeValue.builder().s(dateString).build(),
+                REPORT_ID_KEY, AttributeValue.builder().s(nextCursor).build()
             );
         }
 
@@ -103,7 +89,9 @@ public final class SmokingReportRepository {
                                   .findFirst()
                                   .map(page -> new SmokingReportPage(
                                       page.items(),
-                                      page.lastEvaluatedKey()
+                                      page.lastEvaluatedKey() == null
+                                          ? null
+                                          : page.lastEvaluatedKey().get(REPORT_ID_KEY).s()
                                   ))
                                   .orElseGet(() -> new SmokingReportPage(List.of(), null));
     }
@@ -120,5 +108,32 @@ public final class SmokingReportRepository {
         SmokingReport report = this.smokingReports.getItem(key);
 
         return Optional.ofNullable(report);
+    }
+
+    public boolean existsActiveByCarNumberAndLine(String carNumber, TrainLine line) {
+        Objects.requireNonNull(carNumber);
+        Objects.requireNonNull(line);
+
+        String carNumberLine = SmokingReport.carNumberLineOf(carNumber, line);
+        long now = Instant.now().getEpochSecond();
+
+        Key key = Key.builder()
+                     .partitionValue(carNumberLine)
+                     .sortValue(now)
+                     .build();
+
+        QueryConditional queryConditional = QueryConditional.sortGreaterThanOrEqualTo(key);
+
+        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
+                                                           .select(Select.COUNT)
+                                                           .queryConditional(queryConditional)
+                                                           .limit(1)
+                                                           .build();
+
+        return this.smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)
+                                  .query(request)
+                                  .stream()
+                                  .mapToInt(Page::count)
+                                  .sum() > 0;
     }
 }

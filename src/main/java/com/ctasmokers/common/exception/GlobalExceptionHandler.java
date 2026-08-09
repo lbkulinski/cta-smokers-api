@@ -1,6 +1,7 @@
 package com.ctasmokers.common.exception;
 
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
+import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.rollbar.notifier.Rollbar;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,6 +26,9 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
     private static final String NOT_FOUND_DETAIL = "The requested resource was not found.";
     private static final String NOT_FOUND_TITLE = "Not Found";
 
+    private static final String CONFLICT_DETAIL = "The requested resource already exists.";
+    private static final String CONFLICT_TITLE = "Conflict";
+
     private static final String INTERNAL_ERROR_DETAIL = "An unexpected error occurred.";
     private static final String INTERNAL_ERROR_TITLE = "Internal Server Error";
 
@@ -37,12 +41,23 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
 
     @ExceptionHandler(SmokingReportNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleNotFoundException(HttpServletRequest request) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, NOT_FOUND_DETAIL);
+        ProblemDetail problem = buildProblemDetail(HttpStatus.NOT_FOUND, NOT_FOUND_DETAIL, NOT_FOUND_TITLE, request);
 
-        URI instance = URI.create(request.getRequestURI());
+        return ResponseEntity.of(problem)
+                             .build();
+    }
 
-        problem.setTitle(NOT_FOUND_TITLE);
-        problem.setInstance(instance);
+    @ExceptionHandler(SmokingReportAlreadyExistsException.class)
+    public ResponseEntity<ProblemDetail> handleAlreadyExistsException(
+        SmokingReportAlreadyExistsException exception,
+        HttpServletRequest request
+    ) {
+        String message = exception.getMessage();
+
+        log.warn(message);
+        this.rollbar.warning(message);
+
+        ProblemDetail problem = buildProblemDetail(HttpStatus.CONFLICT, CONFLICT_DETAIL, CONFLICT_TITLE, request);
 
         return ResponseEntity.of(problem)
                              .build();
@@ -50,12 +65,7 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
 
     @ExceptionHandler(SmokingReportAggregateNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleAggregateNotFoundException(HttpServletRequest request) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, NOT_FOUND_DETAIL);
-
-        URI instance = URI.create(request.getRequestURI());
-
-        problem.setTitle(NOT_FOUND_TITLE);
-        problem.setInstance(instance);
+        ProblemDetail problem = buildProblemDetail(HttpStatus.NOT_FOUND, NOT_FOUND_DETAIL, NOT_FOUND_TITLE, request);
 
         return ResponseEntity.of(problem)
                              .build();
@@ -71,17 +81,30 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
         log.error(message, exception);
         this.rollbar.error(exception, message);
 
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+        ProblemDetail problem = buildProblemDetail(
             HttpStatus.INTERNAL_SERVER_ERROR,
-            INTERNAL_ERROR_DETAIL
+            INTERNAL_ERROR_DETAIL,
+            INTERNAL_ERROR_TITLE,
+            request
         );
-
-        URI instance = URI.create(request.getRequestURI());
-
-        problem.setTitle(INTERNAL_ERROR_TITLE);
-        problem.setInstance(instance);
 
         return ResponseEntity.of(problem)
                              .build();
+    }
+
+    private static ProblemDetail buildProblemDetail(
+        HttpStatus status,
+        String detail,
+        String title,
+        HttpServletRequest request
+    ) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
+
+        URI instance = URI.create(request.getRequestURI());
+
+        problem.setTitle(title);
+        problem.setInstance(instance);
+
+        return problem;
     }
 }

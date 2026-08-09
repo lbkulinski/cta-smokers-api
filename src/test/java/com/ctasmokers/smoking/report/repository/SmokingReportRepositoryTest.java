@@ -1,15 +1,21 @@
 package com.ctasmokers.smoking.report.repository;
 
+import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
@@ -32,6 +38,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class SmokingReportRepositoryTest {
     private static final String TABLE_NAME = "smoking-reports";
+    private static final String REPORT_ID_KEY = "reportId";
     private static final LocalDate DATE = LocalDate.of(2026, 5, 10);
     private static final String REPORT_ID = "1234567890_abc-def";
 
@@ -50,6 +57,14 @@ class SmokingReportRepositoryTest {
     @SuppressWarnings("rawtypes")
     private Page page;
 
+    @Mock
+    @SuppressWarnings("rawtypes")
+    private DynamoDbIndex carNumberLineIndex;
+
+    @Mock
+    @SuppressWarnings("rawtypes")
+    private SdkIterable indexResults;
+
     private SmokingReportRepository repository;
 
     @BeforeEach
@@ -66,10 +81,11 @@ class SmokingReportRepositoryTest {
                             .reportId(REPORT_ID)
                             .reportedAt(Instant.now())
                             .expiresAt(Instant.now().getEpochSecond() + 3600)
-                            .line(com.ctasmokers.smoking.common.model.TrainLine.RED)
+                            .line(TrainLine.RED)
                             .destinationId("40900")
                             .nextStationId("41220")
                             .carNumber("2435")
+                            .carNumberLine("2435#RED")
                             .build();
     }
 
@@ -117,10 +133,10 @@ class SmokingReportRepositoryTest {
         when(page.items()).thenReturn(List.of(report));
         when(page.lastEvaluatedKey()).thenReturn(null);
 
-        SmokingReportRepository.SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
+        SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
 
         assertThat(result.reports()).containsExactly(report);
-        assertThat(result.lastEvaluatedKey()).isNull();
+        assertThat(result.nextCursor()).isNull();
     }
 
     @Test
@@ -136,13 +152,13 @@ class SmokingReportRepositoryTest {
         verify(smokingReports).query(requestCaptor.capture());
         Map<String, AttributeValue> startKey = requestCaptor.getValue().exclusiveStartKey();
         assertThat(startKey).isNotNull();
-        assertThat(startKey.get(SmokingReportRepository.REPORT_ID_KEY).s()).isEqualTo(REPORT_ID);
+        assertThat(startKey.get(REPORT_ID_KEY).s()).isEqualTo(REPORT_ID);
     }
 
     @Test
     void findPageByDate_withNextPage_returnsLastEvaluatedKey() {
         Map<String, AttributeValue> lastKey = Map.of(
-            SmokingReportRepository.REPORT_ID_KEY, AttributeValue.builder().s(REPORT_ID).build()
+            REPORT_ID_KEY, AttributeValue.builder().s(REPORT_ID).build()
         );
 
         when(smokingReports.query(any(QueryEnhancedRequest.class))).thenReturn(pageIterable);
@@ -150,9 +166,9 @@ class SmokingReportRepositoryTest {
         when(page.items()).thenReturn(List.of());
         when(page.lastEvaluatedKey()).thenReturn(lastKey);
 
-        SmokingReportRepository.SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
+        SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
 
-        assertThat(result.lastEvaluatedKey()).isEqualTo(lastKey);
+        assertThat(result.nextCursor()).isEqualTo(REPORT_ID);
     }
 
     @Test
@@ -169,9 +185,69 @@ class SmokingReportRepositoryTest {
         when(smokingReports.query(any(QueryEnhancedRequest.class))).thenReturn(pageIterable);
         when(pageIterable.stream()).thenReturn(Stream.empty());
 
-        SmokingReportRepository.SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
+        SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
 
         assertThat(result.reports()).isEmpty();
-        assertThat(result.lastEvaluatedKey()).isNull();
+        assertThat(result.nextCursor()).isNull();
+    }
+
+    @Test
+    void existsActiveByCarNumberAndLine_activeReportExists_returnsTrue() {
+        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
+        when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
+        when(indexResults.stream()).thenReturn(Stream.of(page));
+        when(page.count()).thenReturn(1);
+
+        long before = Instant.now().getEpochSecond();
+
+        boolean result = repository.existsActiveByCarNumberAndLine("2435", TrainLine.RED);
+
+        long after = Instant.now().getEpochSecond();
+
+        assertThat(result).isTrue();
+
+        ArgumentCaptor<QueryEnhancedRequest> requestCaptor = ArgumentCaptor.forClass(QueryEnhancedRequest.class);
+        verify(carNumberLineIndex).query(requestCaptor.capture());
+
+        QueryEnhancedRequest request = requestCaptor.getValue();
+
+        assertThat(request.limit()).isEqualTo(1);
+        assertThat(request.filterExpression()).isNull();
+
+        TableSchema<SmokingReport> tableSchema = TableSchema.fromImmutableClass(SmokingReport.class);
+        Expression expression = request.queryConditional()
+                                       .expression(tableSchema, SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX);
+
+        assertThat(expression.expression()).contains(" >= ");
+        assertThat(expression.expressionValues().values())
+            .extracting(AttributeValue::s)
+            .contains("2435#RED");
+        assertThat(expression.expressionValues().values())
+            .filteredOn(value -> value.n() != null)
+            .extracting(value -> Long.parseLong(value.n()))
+            .allSatisfy(epochSecond -> assertThat(epochSecond).isBetween(before, after));
+    }
+
+    @Test
+    void existsActiveByCarNumberAndLine_noActiveReport_returnsFalse() {
+        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
+        when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
+        when(indexResults.stream()).thenReturn(Stream.of(page));
+        when(page.count()).thenReturn(0);
+
+        boolean result = repository.existsActiveByCarNumberAndLine("2435", TrainLine.RED);
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void existsActiveByCarNumberAndLine_noResults_returnsFalse() {
+        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
+        when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
+        when(indexResults.stream()).thenReturn(Stream.empty());
+
+        boolean result = repository.existsActiveByCarNumberAndLine("2435", TrainLine.RED);
+
+        assertThat(result).isFalse();
     }
 }

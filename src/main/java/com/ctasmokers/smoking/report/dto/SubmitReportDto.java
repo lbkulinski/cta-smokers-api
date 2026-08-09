@@ -8,30 +8,34 @@ import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Request body for submitting a new smoking report")
 @NullMarked
-public record SubmitReportRequest(
+public record SubmitReportDto(
     @NotNull
     @Pattern(regexp = LINE_REGEX, message = LINE_MESSAGE)
-    @Schema(description = "CTA train line", example = "RED")
+    @Schema(description = "Train line where the smoking was reported", example = "RED")
     String line,
 
     @NotNull
     @Pattern(regexp = ID_REGEX, message = ID_MESSAGE)
-    @Schema(description = "Destination station ID", example = "40900")
+    @Schema(description = "Destination station ID (1-10 digit numeric string)", example = "40900")
     String destinationId,
 
     @NotNull
     @Pattern(regexp = ID_REGEX, message = ID_MESSAGE)
-    @Schema(description = "Next station ID", example = "41220")
+    @Schema(description = "Next station ID (1-10 digit numeric string)", example = "41220")
     String nextStationId,
 
     @NotNull
     @Pattern(regexp = CAR_NUMBER_REGEX, message = CAR_NUMBER_MESSAGE)
-    @Schema(description = "Car number", example = "2435")
+    @Schema(description = "Car number where the smoking was reported (exactly 4 digits)", example = "2435")
     String carNumber,
 
-    @Nullable
     @Pattern(regexp = RUN_NUMBER_REGEX, message = RUN_NUMBER_MESSAGE)
-    @Schema(description = "Run number (optional)", example = "902")
+    @Schema(
+        description = "Run number (optional, exactly 3 digits), or null if not provided",
+        example = "902",
+        nullable = true
+    )
+    @Nullable
     String runNumber
 ) {
     private static final String LINE_REGEX = "^(RED|BLUE|GREEN|BROWN|PURPLE|PINK|ORANGE|YELLOW)$";

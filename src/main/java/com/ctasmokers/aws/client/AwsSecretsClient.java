@@ -7,26 +7,25 @@ import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Component
 @NullMarked
 public final class AwsSecretsClient {
     private final SecretCache secretCache;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     private final String appSecretId;
 
     @Autowired
     public AwsSecretsClient(
-        SecretsManagerClient secretsManagerClient,
-        ObjectMapper objectMapper,
+        SecretCache secretCache,
+        JsonMapper jsonMapper,
         @Value("${app.aws.secrets-manager.id}") String appSecretId
     ) {
-        this.secretCache = new SecretCache(secretsManagerClient);
-        this.objectMapper = objectMapper;
+        this.secretCache = secretCache;
+        this.jsonMapper = jsonMapper;
         this.appSecretId = appSecretId;
     }
 
@@ -36,7 +35,7 @@ public final class AwsSecretsClient {
         Secret secret;
 
         try {
-            secret = this.objectMapper.readValue(secretString, Secret.class);
+            secret = this.jsonMapper.readValue(secretString, Secret.class);
         } catch (JacksonException e) {
             throw new SecretsClientException("Failed to parse application secret JSON", e);
         }

@@ -8,19 +8,23 @@ import java.util.Objects;
 
 @Schema(description = "Response body for a smoking report aggregate")
 @NullMarked
-public record SmokingReportAggregateResponse(
-    @Schema(description = "Total number of smoking reports", example = "42")
+public record SmokingReportAggregateDto(
+    @Schema(
+        description = "Total number of smoking reports for the requested period",
+        example = "42",
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
     long reportCount
 ) {
-    public SmokingReportAggregateResponse {
+    public SmokingReportAggregateDto {
         if (reportCount < 0) {
             throw new IllegalArgumentException("reportCount cannot be negative");
         }
     }
 
-    public static SmokingReportAggregateResponse from(SmokingReportAggregate aggregate) {
+    public static SmokingReportAggregateDto from(SmokingReportAggregate aggregate) {
         Objects.requireNonNull(aggregate);
 
-        return new SmokingReportAggregateResponse(aggregate.reportCount());
+        return new SmokingReportAggregateDto(aggregate.reportCount());
     }
 }

@@ -2,30 +2,27 @@ package com.ctasmokers.smoking.report.service;
 
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
-import com.ctasmokers.smoking.report.dto.SmokingReportResponse;
-import com.ctasmokers.smoking.report.dto.SmokingReportsResponse;
-import com.ctasmokers.smoking.report.dto.SubmitReportRequest;
+import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
-import com.ctasmokers.smoking.report.repository.SmokingReportRepository.SmokingReportPage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -62,14 +59,13 @@ class SmokingReportServiceTest {
                             .destinationId("40900")
                             .nextStationId("41220")
                             .carNumber("2435")
+                            .carNumberLine("2435#RED")
                             .build();
     }
 
     @Test
     void submitReport_savesReportAndReturnsResponse() {
-        SubmitReportRequest request = new SubmitReportRequest("RED", "40900", "41220", "2435", null);
-
-        SmokingReportResponse response = service.submitReport(request);
+        SmokingReport response = service.submitReport("RED", "40900", "41220", "2435", null);
 
         ArgumentCaptor<SmokingReport> reportCaptor = ArgumentCaptor.forClass(SmokingReport.class);
         verify(repository).save(reportCaptor.capture());
@@ -79,6 +75,7 @@ class SmokingReportServiceTest {
         assertThat(saved.destinationId()).isEqualTo("40900");
         assertThat(saved.nextStationId()).isEqualTo("41220");
         assertThat(saved.carNumber()).isEqualTo("2435");
+        assertThat(saved.carNumberLine()).isEqualTo("2435#RED");
         assertThat(saved.runNumber()).isNull();
 
         assertThat(response.line()).isEqualTo(TrainLine.RED);
@@ -87,13 +84,22 @@ class SmokingReportServiceTest {
 
     @Test
     void submitReport_withRunNumber_includesRunNumber() {
-        SubmitReportRequest request = new SubmitReportRequest("BLUE", "40900", "41220", "2435", "902");
-
-        service.submitReport(request);
+        service.submitReport("BLUE", "40900", "41220", "2435", "902");
 
         ArgumentCaptor<SmokingReport> reportCaptor = ArgumentCaptor.forClass(SmokingReport.class);
         verify(repository).save(reportCaptor.capture());
         assertThat(reportCaptor.getValue().runNumber()).isEqualTo("902");
+        assertThat(reportCaptor.getValue().carNumberLine()).isEqualTo("2435#BLUE");
+    }
+
+    @Test
+    void submitReport_whenActiveReportExists_throwsExceptionAndDoesNotSave() {
+        when(repository.existsActiveByCarNumberAndLine("2435", TrainLine.RED)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.submitReport("RED", "40900", "41220", "2435", null))
+            .isInstanceOf(SmokingReportAlreadyExistsException.class);
+
+        verify(repository, never()).save(any());
     }
 
     @Test
@@ -103,7 +109,7 @@ class SmokingReportServiceTest {
 
         when(repository.findPageByDate(DATE, PAGE_SIZE, null)).thenReturn(page);
 
-        SmokingReportsResponse response = service.getReportsByDate(DATE, null);
+        SmokingReportPage response = service.getReportsByDate(DATE, null);
 
         assertThat(response.reports()).hasSize(1);
         assertThat(response.nextCursor()).isNull();
@@ -112,14 +118,11 @@ class SmokingReportServiceTest {
     @Test
     void getReportsByDate_withNextPage_returnsCursor() {
         SmokingReport report = report();
-        Map<String, AttributeValue> lastKey = Map.of(
-            SmokingReportRepository.REPORT_ID_KEY, AttributeValue.builder().s(REPORT_ID).build()
-        );
-        SmokingReportPage page = new SmokingReportPage(List.of(report), lastKey);
+        SmokingReportPage page = new SmokingReportPage(List.of(report), REPORT_ID);
 
         when(repository.findPageByDate(DATE, PAGE_SIZE, null)).thenReturn(page);
 
-        SmokingReportsResponse response = service.getReportsByDate(DATE, null);
+        SmokingReportPage response = service.getReportsByDate(DATE, null);
 
         assertThat(response.nextCursor()).isEqualTo(REPORT_ID);
     }
@@ -141,7 +144,7 @@ class SmokingReportServiceTest {
 
         when(repository.findById(DATE, REPORT_ID)).thenReturn(Optional.of(report));
 
-        SmokingReportResponse response = service.getReportById(DATE, REPORT_ID);
+        SmokingReport response = service.getReportById(DATE, REPORT_ID);
 
         assertThat(response.reportId()).isEqualTo(REPORT_ID);
         assertThat(response.line()).isEqualTo(TrainLine.RED);

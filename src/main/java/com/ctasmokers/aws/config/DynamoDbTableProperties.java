@@ -11,17 +11,11 @@ import org.springframework.validation.annotation.Validated;
 @NullMarked
 public record DynamoDbTableProperties(
     @NotBlank
-    @Pattern(
-        regexp = TABLE_NAME_PATTERN,
-        message = TABLE_NAME_PATTERN_MESSAGE
-    )
+    @Pattern(regexp = TABLE_NAME_PATTERN, message = TABLE_NAME_PATTERN_MESSAGE)
     String smokingReports,
 
     @NotBlank
-    @Pattern(
-        regexp = TABLE_NAME_PATTERN,
-        message = TABLE_NAME_PATTERN_MESSAGE
-    )
+    @Pattern(regexp = TABLE_NAME_PATTERN, message = TABLE_NAME_PATTERN_MESSAGE)
     String smokingReportAggregates
 ) {
     private static final String TABLE_NAME_PATTERN = "^[a-zA-Z0-9_.\\-]{3,255}$";

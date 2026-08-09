@@ -9,11 +9,14 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 @Configuration
 public class DynamoDbConfig {
     @Bean
-    public DynamoDbEnhancedClient dynamoDbEnhancedClient(Region region) {
-        DynamoDbClient dynamoDbClient = DynamoDbClient.builder()
-                                                      .region(region)
-                                                      .build();
+    public DynamoDbClient dynamoDbClient(Region region) {
+        return DynamoDbClient.builder()
+                             .region(region)
+                             .build();
+    }
 
+    @Bean
+    public DynamoDbEnhancedClient dynamoDbEnhancedClient(DynamoDbClient dynamoDbClient) {
         return DynamoDbEnhancedClient.builder()
                                      .dynamoDbClient(dynamoDbClient)
                                      .build();

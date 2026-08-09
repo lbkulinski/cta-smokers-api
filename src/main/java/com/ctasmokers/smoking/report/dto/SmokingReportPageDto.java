@@ -9,9 +9,9 @@ import java.util.Objects;
 
 @Schema(description = "Response body for a list of smoking reports")
 @NullMarked
-public record SmokingReportsResponse(
-    @Schema(description = "List of smoking reports")
-    List<SmokingReportResponse> reports,
+public record SmokingReportPageDto(
+    @Schema(description = "List of smoking reports", requiredMode = Schema.RequiredMode.REQUIRED)
+    List<SmokingReportDto> reports,
 
     @Nullable
     @Schema(
@@ -21,10 +21,8 @@ public record SmokingReportsResponse(
     )
     String nextCursor
 ) {
-    public SmokingReportsResponse {
+    public SmokingReportPageDto {
         Objects.requireNonNull(reports);
-
-        reports.forEach(Objects::requireNonNull);
 
         reports = List.copyOf(reports);
     }

@@ -49,14 +49,13 @@ public final class OriginVerifyFilter extends OncePerRequestFilter {
 
         String cfConnectingIp = request.getHeader(CF_CONNECTING_IP_HEADER);
 
-        if ((cfConnectingIp == null) || cfConnectingIp.isBlank()) {
+        if (cfConnectingIp == null || cfConnectingIp.isBlank()) {
             response.sendError(HttpStatus.FORBIDDEN.value());
 
             return;
         }
 
-        if (!InetAddressValidator.getInstance()
-                                 .isValid(cfConnectingIp)) {
+        if (!InetAddressValidator.getInstance().isValid(cfConnectingIp)) {
             response.sendError(HttpStatus.FORBIDDEN.value());
 
             return;

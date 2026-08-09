@@ -5,9 +5,10 @@ import com.ctasmokers.aws.dto.Secret;
 import com.ctasmokers.common.config.properties.CorsProperties;
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
-import com.ctasmokers.smoking.report.dto.SmokingReportResponse;
-import com.ctasmokers.smoking.report.dto.SmokingReportsResponse;
+import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
+import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.service.SmokingReportService;
 import com.rollbar.notifier.Rollbar;
 import org.junit.jupiter.api.Test;
@@ -79,23 +80,23 @@ class SmokingReportControllerTest {
             .header("X-Origin-Verify", ORIGIN_VERIFY);
     }
 
-    private SmokingReportResponse sampleResponse() {
-        return new SmokingReportResponse(
-            DATE,
-            REPORT_ID,
-            Instant.parse("2026-05-10T12:00:00Z"),
-            Instant.parse("2026-05-10T12:30:00Z"),
-            TrainLine.RED,
-            "40900",
-            "41220",
-            "2435",
-            null
-        );
+    private SmokingReport sampleReport() {
+        return SmokingReport.builder()
+                            .date(DATE)
+                            .reportId(REPORT_ID)
+                            .reportedAt(Instant.parse("2026-05-10T12:00:00Z"))
+                            .expiresAt(Instant.parse("2026-05-10T12:30:00Z").getEpochSecond())
+                            .line(TrainLine.RED)
+                            .destinationId("40900")
+                            .nextStationId("41220")
+                            .carNumber("2435")
+                            .carNumberLine("2435#RED")
+                            .build();
     }
 
     @Test
     void submitReport_validRequest_returns201WithLocationAndBody() throws Exception {
-        when(smokingReportService.submitReport(any())).thenReturn(sampleResponse());
+        when(smokingReportService.submitReport(any(), any(), any(), any(), any())).thenReturn(sampleReport());
 
         String body = """
         {"line":"RED","destinationId":"40900","nextStationId":"41220","carNumber":"2435","runNumber":null}
@@ -136,9 +137,29 @@ class SmokingReportControllerTest {
     }
 
     @Test
+    void submitReport_duplicateActiveReport_returns409WithProblemDetail() throws Exception {
+        when(smokingReportService.submitReport(any(), any(), any(), any(), any()))
+            .thenThrow(new SmokingReportAlreadyExistsException("2435", TrainLine.RED));
+
+        String body = """
+        {"line":"RED","destinationId":"40900","nextStationId":"41220","carNumber":"2435","runNumber":null}
+        """;
+
+        mockMvc.perform(withRequiredHeaders(post("/api/cta/reports/smoking"))
+                   .contentType(MediaType.APPLICATION_JSON)
+                   .content(body))
+               .andExpect(status().isConflict())
+               .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+               .andExpect(jsonPath("$.status").value(409))
+               .andExpect(jsonPath("$.title").value("Conflict"))
+               .andExpect(jsonPath("$.detail").value("The requested resource already exists."))
+               .andExpect(jsonPath("$.instance").value("/api/cta/reports/smoking"));
+    }
+
+    @Test
     void getReportsByDate_returns200WithReports() throws Exception {
-        SmokingReportsResponse response = new SmokingReportsResponse(List.of(sampleResponse()), null);
-        when(smokingReportService.getReportsByDate(DATE, null)).thenReturn(response);
+        SmokingReportPage page = new SmokingReportPage(List.of(sampleReport()), null);
+        when(smokingReportService.getReportsByDate(DATE, null)).thenReturn(page);
 
         mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}", DATE)))
                .andExpect(status().isOk())
@@ -148,8 +169,8 @@ class SmokingReportControllerTest {
 
     @Test
     void getReportsByDate_withValidCursor_passesItToService() throws Exception {
-        SmokingReportsResponse response = new SmokingReportsResponse(List.of(), null);
-        when(smokingReportService.getReportsByDate(DATE, REPORT_ID)).thenReturn(response);
+        SmokingReportPage page = new SmokingReportPage(List.of(), null);
+        when(smokingReportService.getReportsByDate(DATE, REPORT_ID)).thenReturn(page);
 
         mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}", DATE))
                    .param("nextCursor", REPORT_ID))
@@ -160,8 +181,8 @@ class SmokingReportControllerTest {
 
     @Test
     void getReportsByDate_returnsNextCursorFromService() throws Exception {
-        SmokingReportsResponse response = new SmokingReportsResponse(List.of(sampleResponse()), REPORT_ID);
-        when(smokingReportService.getReportsByDate(DATE, null)).thenReturn(response);
+        SmokingReportPage page = new SmokingReportPage(List.of(sampleReport()), REPORT_ID);
+        when(smokingReportService.getReportsByDate(DATE, null)).thenReturn(page);
 
         mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}", DATE)))
                .andExpect(status().isOk())
@@ -177,7 +198,7 @@ class SmokingReportControllerTest {
 
     @Test
     void getReportById_found_returns200() throws Exception {
-        when(smokingReportService.getReportById(DATE, REPORT_ID)).thenReturn(sampleResponse());
+        when(smokingReportService.getReportById(DATE, REPORT_ID)).thenReturn(sampleReport());
 
         mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}/{reportId}", DATE, REPORT_ID)))
                .andExpect(status().isOk())

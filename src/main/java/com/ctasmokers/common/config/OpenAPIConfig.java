@@ -47,7 +47,8 @@ public class OpenAPIConfig {
             .url(serverProperties.url())
             .description(serverProperties.description());
 
-        return new OpenAPI().info(apiInfo)
-                            .servers(List.of(productionServer));
+        return new OpenAPI()
+            .info(apiInfo)
+            .servers(List.of(productionServer));
     }
 }
