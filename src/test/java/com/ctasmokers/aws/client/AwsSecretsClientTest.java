@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -25,7 +26,7 @@ class AwsSecretsClientTest {
 
     @BeforeEach
     void setUp() {
-        client = new AwsSecretsClient(secretCache, APP_SECRET_ID);
+        client = new AwsSecretsClient(secretCache, JsonMapper.shared(), APP_SECRET_ID);
     }
 
     @Test

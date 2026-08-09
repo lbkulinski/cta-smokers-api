@@ -196,7 +196,7 @@ class SmokingReportRepositoryTest {
         when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
         when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
         when(indexResults.stream()).thenReturn(Stream.of(page));
-        when(page.items()).thenReturn(List.of(report()));
+        when(page.count()).thenReturn(1);
 
         long before = Instant.now().getEpochSecond();
 
@@ -233,7 +233,7 @@ class SmokingReportRepositoryTest {
         when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
         when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
         when(indexResults.stream()).thenReturn(Stream.of(page));
-        when(page.items()).thenReturn(List.of());
+        when(page.count()).thenReturn(0);
 
         boolean result = repository.existsActiveByCarNumberAndLine("2435", TrainLine.RED);
 

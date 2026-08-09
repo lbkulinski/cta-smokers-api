@@ -12,9 +12,11 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -123,6 +125,7 @@ public final class SmokingReportRepository {
         QueryConditional queryConditional = QueryConditional.sortGreaterThanOrEqualTo(key);
 
         QueryEnhancedRequest request = QueryEnhancedRequest.builder()
+                                                           .select(Select.COUNT)
                                                            .queryConditional(queryConditional)
                                                            .limit(1)
                                                            .build();
@@ -130,6 +133,7 @@ public final class SmokingReportRepository {
         return this.smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)
                                   .query(request)
                                   .stream()
-                                  .anyMatch(page -> !page.items().isEmpty());
+                                  .mapToInt(Page::count)
+                                  .sum() > 0;
     }
 }
