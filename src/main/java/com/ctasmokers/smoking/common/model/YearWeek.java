@@ -14,7 +14,7 @@ public record YearWeek(int year, int week) {
             throw new IllegalArgumentException("Invalid year %d".formatted(year));
         }
 
-        LocalDate midYear = LocalDate.of(year, Month.JUNE, 1);
+        var midYear = LocalDate.of(year, Month.JUNE, 1);
 
         int maxWeek = (int) IsoFields.WEEK_OF_WEEK_BASED_YEAR.rangeRefinedBy(midYear).getMaximum();
 

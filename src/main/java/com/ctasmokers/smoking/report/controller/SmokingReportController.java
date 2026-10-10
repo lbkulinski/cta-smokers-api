@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -94,12 +93,11 @@ public final class SmokingReportController {
             request.destinationId(),
             request.nextStationId(),
             request.carNumber(),
-            request.runNumber()
-        );
+            request.runNumber());
 
-        SmokingReportDto reportDto = SmokingReportDto.from(report);
+        var reportDto = SmokingReportDto.from(report);
 
-        URI location = UriComponentsBuilder.fromUriString(LOCATION_HEADER_FORMAT.formatted(this.baseUrl))
+        var location = UriComponentsBuilder.fromUriString(LOCATION_HEADER_FORMAT.formatted(this.baseUrl))
                                            .buildAndExpand(report.date(), report.reportId())
                                            .encode()
                                            .toUri();
@@ -149,7 +147,7 @@ public final class SmokingReportController {
                                                  .map(SmokingReportDto::from)
                                                  .toList();
 
-        SmokingReportPageDto pageDto = new SmokingReportPageDto(reportsDtos, page.nextCursor());
+        var pageDto = new SmokingReportPageDto(reportsDtos, page.nextCursor());
 
         return ResponseEntity.ok(pageDto);
     }
@@ -198,7 +196,7 @@ public final class SmokingReportController {
     ) {
         SmokingReport report = this.reportService.getReportById(date, reportId);
 
-        SmokingReportDto reportDto = SmokingReportDto.from(report);
+        var reportDto = SmokingReportDto.from(report);
 
         return ResponseEntity.ok(reportDto);
     }

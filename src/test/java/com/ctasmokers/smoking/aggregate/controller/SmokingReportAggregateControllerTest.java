@@ -1,6 +1,6 @@
 package com.ctasmokers.smoking.aggregate.controller;
 
-import com.ctasmokers.aws.client.AwsSecretsClient;
+import com.ctasmokers.aws.client.SecretsClient;
 import com.ctasmokers.aws.dto.Secret;
 import com.ctasmokers.common.config.properties.CorsProperties;
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
@@ -62,8 +62,8 @@ class SmokingReportAggregateControllerTest {
     static class TestConfig implements WebMvcConfigurer {
         @Bean
         @Primary
-        AwsSecretsClient awsSecretsClient() {
-            AwsSecretsClient client = Mockito.mock(AwsSecretsClient.class);
+        SecretsClient awsSecretsClient() {
+            SecretsClient client = Mockito.mock(SecretsClient.class);
 
             Mockito.when(client.getAppSecret())
                    .thenReturn(new Secret(

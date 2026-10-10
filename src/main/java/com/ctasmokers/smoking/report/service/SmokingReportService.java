@@ -52,34 +52,34 @@ public final class SmokingReportService {
         Objects.requireNonNull(nextStationId);
         Objects.requireNonNull(carNumber);
 
-        TrainLine trainLine = TrainLine.valueOf(line);
+        var trainLine = TrainLine.valueOf(line);
 
         if (this.reportRepository.existsActiveByCarNumberAndLine(carNumber, trainLine)) {
             throw new SmokingReportAlreadyExistsException(carNumber, trainLine);
         }
 
-        Instant now = Instant.now();
+        var now = Instant.now();
         long epochMillis = now.toEpochMilli();
-        String uuid = UUID.randomUUID().toString();
+        var uuid = UUID.randomUUID().toString();
 
-        LocalDate date = now.atZone(CHICAGO_ZONE_ID).toLocalDate();
-        String reportId = REPORT_ID_FORMAT.formatted(epochMillis, uuid);
+        var date = now.atZone(CHICAGO_ZONE_ID).toLocalDate();
+        var reportId = REPORT_ID_FORMAT.formatted(epochMillis, uuid);
 
         long expiresAt = now.plus(this.expireAfterMinutes, ChronoUnit.MINUTES).getEpochSecond();
         String carNumberLine = SmokingReport.carNumberLineOf(carNumber, trainLine);
 
-        SmokingReport report = SmokingReport.builder()
-                                            .date(date)
-                                            .reportId(reportId)
-                                            .reportedAt(now)
-                                            .expiresAt(expiresAt)
-                                            .line(trainLine)
-                                            .destinationId(destinationId)
-                                            .nextStationId(nextStationId)
-                                            .carNumber(carNumber)
-                                            .carNumberLine(carNumberLine)
-                                            .runNumber(runNumber)
-                                            .build();
+        var report = SmokingReport.builder()
+                                  .date(date)
+                                  .reportId(reportId)
+                                  .reportedAt(now)
+                                  .expiresAt(expiresAt)
+                                  .line(trainLine)
+                                  .destinationId(destinationId)
+                                  .nextStationId(nextStationId)
+                                  .carNumber(carNumber)
+                                  .carNumberLine(carNumberLine)
+                                  .runNumber(runNumber)
+                                  .build();
 
         this.reportRepository.save(report);
 
@@ -96,7 +96,12 @@ public final class SmokingReportService {
         Objects.requireNonNull(date);
         Objects.requireNonNull(reportId);
 
-        return this.reportRepository.findById(date, reportId)
-                                    .orElseThrow(() -> new SmokingReportNotFoundException(date, reportId));
+        SmokingReport report = this.reportRepository.findById(date, reportId);
+
+        if (report == null) {
+            throw new SmokingReportNotFoundException(date, reportId);
+        }
+
+        return report;
     }
 }

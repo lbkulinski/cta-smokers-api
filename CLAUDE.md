@@ -28,7 +28,7 @@ public final class MyController { }
 ## Null Safety
 
 - All new classes, records, interfaces, and enums in `src/main` must have `@NullMarked` (from `org.jspecify.annotations`).
-- Test classes do not use `@NullMarked`.
+- Test classes and `@Configuration` classes (e.g. `WebConfig`) do not use `@NullMarked`.
 - Use `@Nullable` on parameters or return types that can be null.
 
 ## Configuration Properties
@@ -68,12 +68,12 @@ Table: `cta-smoking-report-aggregates`
 - Assertions use AssertJ (`assertThat`, `assertThatThrownBy`)
 - Use `ArgumentCaptor` to verify what was passed to mocks, not just that a method was called
 - Raw `DynamoDbTable<T>` mocks require `@SuppressWarnings("rawtypes")` on the field and `@SuppressWarnings("unchecked")` on methods that use them
-- `ApplicationContextTest` is the only `@SpringBootTest` — it mocks `AwsSecretsClient` via `@TestConfiguration`
+- `ApplicationContextTest` is the only `@SpringBootTest` — it mocks `SecretsClient` via `@TestConfiguration`
 
 ## Code Style
 
 - No `ResponseEntity` in service methods
 - No comments unless the why is non-obvious
 - Prefer `Objects.requireNonNull` for null guards in public service/repository methods
-- `final` on all classes that are not designed for extension
+- `final` on all classes that are not designed for extension (except `@Configuration` classes, which stay non-final)
 - Lombok `@Builder` + `@DynamoDbImmutable` for DynamoDB model records

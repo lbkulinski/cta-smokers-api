@@ -16,17 +16,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AwsSecretsClientTest {
+class SecretsClientTest {
     private static final String APP_SECRET_ID = "app-secret-id";
 
     @Mock
     private SecretCache secretCache;
 
-    private AwsSecretsClient client;
+    private SecretsClient client;
 
     @BeforeEach
     void setUp() {
-        client = new AwsSecretsClient(secretCache, JsonMapper.shared(), APP_SECRET_ID);
+        client = new SecretsClient(secretCache, JsonMapper.shared(), APP_SECRET_ID);
     }
 
     @Test

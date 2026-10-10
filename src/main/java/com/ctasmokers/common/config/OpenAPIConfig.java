@@ -21,20 +21,20 @@ public class OpenAPIConfig {
     ) {
         OpenAPIProperties.Contact contactProperties = openAPIProperties.contact();
 
-        Contact contact = new Contact()
+        var contact = new Contact()
             .name(contactProperties.name())
             .email(contactProperties.email());
 
         OpenAPIProperties.License licenseProperties = openAPIProperties.license();
 
-        License apacheLicense = new License()
+        var apacheLicense = new License()
             .name(licenseProperties.name())
             .url(licenseProperties.url());
 
         OpenAPIProperties.Info infoProperties = openAPIProperties.info();
         String version = buildProperties.getVersion();
 
-        Info apiInfo = new Info()
+        var apiInfo = new Info()
             .title(infoProperties.title())
             .description(infoProperties.description())
             .version(version)
@@ -43,7 +43,7 @@ public class OpenAPIConfig {
 
         OpenAPIProperties.Server serverProperties = openAPIProperties.server();
 
-        Server productionServer = new Server()
+        var productionServer = new Server()
             .url(serverProperties.url())
             .description(serverProperties.description());
 

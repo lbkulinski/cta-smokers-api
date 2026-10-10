@@ -76,7 +76,7 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
         Exception exception,
         HttpServletRequest request
     ) {
-        String message = "Unexpected error for %s".formatted(request.getRequestURI());
+        var message = "Unexpected error for %s".formatted(request.getRequestURI());
 
         log.error(message, exception);
         this.rollbar.error(exception, message);
@@ -85,8 +85,7 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
             HttpStatus.INTERNAL_SERVER_ERROR,
             INTERNAL_ERROR_DETAIL,
             INTERNAL_ERROR_TITLE,
-            request
-        );
+            request);
 
         return ResponseEntity.of(problem)
                              .build();
@@ -98,9 +97,9 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
         String title,
         HttpServletRequest request
     ) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
+        var problem = ProblemDetail.forStatusAndDetail(status, detail);
 
-        URI instance = URI.create(request.getRequestURI());
+        var instance = URI.create(request.getRequestURI());
 
         problem.setTitle(title);
         problem.setInstance(instance);

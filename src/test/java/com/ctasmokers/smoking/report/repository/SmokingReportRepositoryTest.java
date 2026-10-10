@@ -1,5 +1,6 @@
 package com.ctasmokers.smoking.report.repository;
 
+import com.ctasmokers.aws.config.DynamoDbProperties;
 import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
@@ -25,7 +26,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,14 +65,18 @@ class SmokingReportRepositoryTest {
     @SuppressWarnings("rawtypes")
     private SdkIterable indexResults;
 
+    @Mock
+    private DynamoDbProperties dynamoDbProperties;
+
     private SmokingReportRepository repository;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
     void setUp() {
+        when(dynamoDbProperties.smokingReports()).thenReturn(TABLE_NAME);
         when(dynamoDbClient.table(eq(TABLE_NAME), any())).thenReturn(smokingReports);
 
-        repository = new SmokingReportRepository(dynamoDbClient, TABLE_NAME);
+        repository = new SmokingReportRepository(dynamoDbClient, dynamoDbProperties);
     }
 
     private SmokingReport report() {
@@ -105,9 +109,9 @@ class SmokingReportRepositoryTest {
 
         when(smokingReports.getItem(any(Key.class))).thenReturn(report);
 
-        Optional<SmokingReport> result = repository.findById(DATE, REPORT_ID);
+        SmokingReport result = repository.findById(DATE, REPORT_ID);
 
-        assertThat(result).contains(report);
+        assertThat(result).isEqualTo(report);
 
         ArgumentCaptor<Key> keyCaptor = ArgumentCaptor.forClass(Key.class);
         verify(smokingReports).getItem(keyCaptor.capture());
@@ -119,9 +123,9 @@ class SmokingReportRepositoryTest {
     void findById_notFound() {
         when(smokingReports.getItem(any(Key.class))).thenReturn(null);
 
-        Optional<SmokingReport> result = repository.findById(DATE, REPORT_ID);
+        SmokingReport result = repository.findById(DATE, REPORT_ID);
 
-        assertThat(result).isEmpty();
+        assertThat(result).isNull();
     }
 
     @Test
@@ -136,6 +140,19 @@ class SmokingReportRepositoryTest {
         SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
 
         assertThat(result.reports()).containsExactly(report);
+        assertThat(result.nextCursor()).isNull();
+    }
+
+    @Test
+    void findPageByDate_nullItems_returnsEmptyReports() {
+        when(smokingReports.query(any(QueryEnhancedRequest.class))).thenReturn(pageIterable);
+        when(pageIterable.stream()).thenReturn(Stream.of(page));
+        when(page.items()).thenReturn(null);
+        when(page.lastEvaluatedKey()).thenReturn(null);
+
+        SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
+
+        assertThat(result.reports()).isEmpty();
         assertThat(result.nextCursor()).isNull();
     }
 

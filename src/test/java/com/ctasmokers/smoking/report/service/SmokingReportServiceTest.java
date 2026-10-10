@@ -17,7 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -142,7 +141,7 @@ class SmokingReportServiceTest {
     void getReportById_found() {
         SmokingReport report = report();
 
-        when(repository.findById(DATE, REPORT_ID)).thenReturn(Optional.of(report));
+        when(repository.findById(DATE, REPORT_ID)).thenReturn(report);
 
         SmokingReport response = service.getReportById(DATE, REPORT_ID);
 
@@ -152,7 +151,7 @@ class SmokingReportServiceTest {
 
     @Test
     void getReportById_notFound() {
-        when(repository.findById(any(), any())).thenReturn(Optional.empty());
+        when(repository.findById(any(), any())).thenReturn(null);
 
         assertThatThrownBy(() -> service.getReportById(DATE, REPORT_ID))
             .isInstanceOf(SmokingReportNotFoundException.class);

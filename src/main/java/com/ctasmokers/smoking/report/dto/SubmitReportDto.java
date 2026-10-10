@@ -39,8 +39,7 @@ public record SubmitReportDto(
     String runNumber
 ) {
     private static final String LINE_REGEX = "^(RED|BLUE|GREEN|BROWN|PURPLE|PINK|ORANGE|YELLOW)$";
-    private static final String LINE_MESSAGE = """
-    Must be one of: RED, BLUE, GREEN, BROWN, PURPLE, PINK, ORANGE, YELLOW""";
+    private static final String LINE_MESSAGE = "Must be one of: RED, BLUE, GREEN, BROWN, PURPLE, PINK, ORANGE, YELLOW";
 
     private static final String ID_REGEX = "^[0-9]{1,10}$";
     private static final String ID_MESSAGE = "Must be a numeric string with 1 to 10 digits";

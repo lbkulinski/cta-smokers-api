@@ -100,7 +100,6 @@ public record SmokingReportDto(
             report.destinationId(),
             report.nextStationId(),
             report.carNumber(),
-            report.runNumber()
-        );
+            report.runNumber());
     }
 }

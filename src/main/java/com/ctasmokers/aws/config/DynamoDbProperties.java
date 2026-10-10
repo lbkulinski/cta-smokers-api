@@ -9,7 +9,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "app.aws.dynamodb.tables")
 @Validated
 @NullMarked
-public record DynamoDbTableProperties(
+public record DynamoDbProperties(
     @NotBlank
     @Pattern(regexp = TABLE_NAME_PATTERN, message = TABLE_NAME_PATTERN_MESSAGE)
     String smokingReports,
@@ -19,6 +19,6 @@ public record DynamoDbTableProperties(
     String smokingReportAggregates
 ) {
     private static final String TABLE_NAME_PATTERN = "^[a-zA-Z0-9_.\\-]{3,255}$";
-    private static final String TABLE_NAME_PATTERN_MESSAGE = """
-    Must contain only letters, numbers, underscores, hyphens, or dots and be between 3 and 255 characters long""";
+    private static final String TABLE_NAME_PATTERN_MESSAGE =
+        "Must contain only letters, numbers, underscores, hyphens, or dots and be between 3 and 255 characters long";
 }

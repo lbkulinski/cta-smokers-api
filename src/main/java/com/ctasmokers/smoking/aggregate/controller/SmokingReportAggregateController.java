@@ -85,7 +85,7 @@ public final class SmokingReportAggregateController {
     ) {
         SmokingReportAggregate aggregate = this.aggregateService.getDayAggregate(line, date);
 
-        SmokingReportAggregateDto aggregateDto = SmokingReportAggregateDto.from(aggregate);
+        var aggregateDto = SmokingReportAggregateDto.from(aggregate);
 
         return ResponseEntity.ok(aggregateDto);
     }
@@ -133,7 +133,7 @@ public final class SmokingReportAggregateController {
     ) {
         SmokingReportAggregate aggregate = this.aggregateService.getWeekAggregate(line, yearWeek);
 
-        SmokingReportAggregateDto aggregateDto = SmokingReportAggregateDto.from(aggregate);
+        var aggregateDto = SmokingReportAggregateDto.from(aggregate);
 
         return ResponseEntity.ok(aggregateDto);
     }
@@ -181,7 +181,7 @@ public final class SmokingReportAggregateController {
     ) {
         SmokingReportAggregate aggregate = this.aggregateService.getMonthAggregate(line, yearMonth);
 
-        SmokingReportAggregateDto aggregateDto = SmokingReportAggregateDto.from(aggregate);
+        var aggregateDto = SmokingReportAggregateDto.from(aggregate);
 
         return ResponseEntity.ok(aggregateDto);
     }
@@ -229,7 +229,7 @@ public final class SmokingReportAggregateController {
     ) {
         SmokingReportAggregate aggregate = this.aggregateService.getYearAggregate(line, year);
 
-        SmokingReportAggregateDto aggregateDto = SmokingReportAggregateDto.from(aggregate);
+        var aggregateDto = SmokingReportAggregateDto.from(aggregate);
 
         return ResponseEntity.ok(aggregateDto);
     }
@@ -272,7 +272,7 @@ public final class SmokingReportAggregateController {
     ) {
         SmokingReportAggregate aggregate = this.aggregateService.getAllTimeAggregate(line);
 
-        SmokingReportAggregateDto aggregateDto = SmokingReportAggregateDto.from(aggregate);
+        var aggregateDto = SmokingReportAggregateDto.from(aggregate);
 
         return ResponseEntity.ok(aggregateDto);
     }
@@ -312,11 +312,11 @@ public final class SmokingReportAggregateController {
     ) {
         List<SmokingReportDailyCount> dailyCounts = this.aggregateService.getDailyCounts(line, yearMonth);
 
-        List<SmokingReportDailyCountDto> days = dailyCounts.stream()
-                                                           .map(SmokingReportDailyCountDto::from)
-                                                           .toList();
+        var days = dailyCounts.stream()
+                              .map(SmokingReportDailyCountDto::from)
+                              .toList();
 
-        SmokingReportDailyCountsDto dailyCountsDto = new SmokingReportDailyCountsDto(days);
+        var dailyCountsDto = new SmokingReportDailyCountsDto(days);
 
         return ResponseEntity.ok(dailyCountsDto);
     }
