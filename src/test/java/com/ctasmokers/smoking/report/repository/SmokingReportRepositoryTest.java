@@ -109,7 +109,7 @@ class SmokingReportRepositoryTest {
 
         when(smokingReports.getItem(any(Key.class))).thenReturn(report);
 
-        SmokingReport result = repository.findById(DATE, REPORT_ID);
+        SmokingReport result = repository.findByCarNumberLine(DATE, REPORT_ID);
 
         assertThat(result).isEqualTo(report);
 
@@ -123,7 +123,7 @@ class SmokingReportRepositoryTest {
     void findById_notFound() {
         when(smokingReports.getItem(any(Key.class))).thenReturn(null);
 
-        SmokingReport result = repository.findById(DATE, REPORT_ID);
+        SmokingReport result = repository.findByCarNumberLine(DATE, REPORT_ID);
 
         assertThat(result).isNull();
     }
@@ -137,7 +137,7 @@ class SmokingReportRepositoryTest {
         when(page.items()).thenReturn(List.of(report));
         when(page.lastEvaluatedKey()).thenReturn(null);
 
-        SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
+        SmokingReportPage result = repository.findActivePageByReportedDate(DATE, 10, null);
 
         assertThat(result.reports()).containsExactly(report);
         assertThat(result.nextCursor()).isNull();
@@ -150,7 +150,7 @@ class SmokingReportRepositoryTest {
         when(page.items()).thenReturn(null);
         when(page.lastEvaluatedKey()).thenReturn(null);
 
-        SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
+        SmokingReportPage result = repository.findActivePageByReportedDate(DATE, 10, null);
 
         assertThat(result.reports()).isEmpty();
         assertThat(result.nextCursor()).isNull();
@@ -163,7 +163,7 @@ class SmokingReportRepositoryTest {
         when(page.items()).thenReturn(List.of());
         when(page.lastEvaluatedKey()).thenReturn(null);
 
-        repository.findPageByDate(DATE, 10, REPORT_ID);
+        repository.findActivePageByReportedDate(DATE, 10, REPORT_ID);
 
         ArgumentCaptor<QueryEnhancedRequest> requestCaptor = ArgumentCaptor.forClass(QueryEnhancedRequest.class);
         verify(smokingReports).query(requestCaptor.capture());
@@ -183,17 +183,17 @@ class SmokingReportRepositoryTest {
         when(page.items()).thenReturn(List.of());
         when(page.lastEvaluatedKey()).thenReturn(lastKey);
 
-        SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
+        SmokingReportPage result = repository.findActivePageByReportedDate(DATE, 10, null);
 
         assertThat(result.nextCursor()).isEqualTo(REPORT_ID);
     }
 
     @Test
     void findPageByDate_invalidPageSize_throws() {
-        assertThatThrownBy(() -> repository.findPageByDate(DATE, 0, null))
+        assertThatThrownBy(() -> repository.findActivePageByReportedDate(DATE, 0, null))
             .isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> repository.findPageByDate(DATE, 101, null))
+        assertThatThrownBy(() -> repository.findActivePageByReportedDate(DATE, 101, null))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -202,7 +202,7 @@ class SmokingReportRepositoryTest {
         when(smokingReports.query(any(QueryEnhancedRequest.class))).thenReturn(pageIterable);
         when(pageIterable.stream()).thenReturn(Stream.empty());
 
-        SmokingReportPage result = repository.findPageByDate(DATE, 10, null);
+        SmokingReportPage result = repository.findActivePageByReportedDate(DATE, 10, null);
 
         assertThat(result.reports()).isEmpty();
         assertThat(result.nextCursor()).isNull();
@@ -210,7 +210,7 @@ class SmokingReportRepositoryTest {
 
     @Test
     void existsActiveByCarNumberAndLine_activeReportExists_returnsTrue() {
-        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
+        when(smokingReports.index(SmokingReport.REPORT_DATE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
         when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
         when(indexResults.stream()).thenReturn(Stream.of(page));
         when(page.count()).thenReturn(1);
@@ -233,7 +233,7 @@ class SmokingReportRepositoryTest {
 
         TableSchema<SmokingReport> tableSchema = TableSchema.fromImmutableClass(SmokingReport.class);
         Expression expression = request.queryConditional()
-                                       .expression(tableSchema, SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX);
+                                       .expression(tableSchema, SmokingReport.REPORT_DATE_EXPIRES_AT_INDEX);
 
         assertThat(expression.expression()).contains(" >= ");
         assertThat(expression.expressionValues().values())
@@ -247,7 +247,7 @@ class SmokingReportRepositoryTest {
 
     @Test
     void existsActiveByCarNumberAndLine_noActiveReport_returnsFalse() {
-        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
+        when(smokingReports.index(SmokingReport.REPORT_DATE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
         when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
         when(indexResults.stream()).thenReturn(Stream.of(page));
         when(page.count()).thenReturn(0);
@@ -259,7 +259,7 @@ class SmokingReportRepositoryTest {
 
     @Test
     void existsActiveByCarNumberAndLine_noResults_returnsFalse() {
-        when(smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
+        when(smokingReports.index(SmokingReport.REPORT_DATE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
         when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
         when(indexResults.stream()).thenReturn(Stream.empty());
 

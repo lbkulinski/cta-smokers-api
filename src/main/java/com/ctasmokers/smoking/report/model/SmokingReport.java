@@ -8,7 +8,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbImmut
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -19,44 +18,36 @@ import java.util.Objects;
 @NullMarked
 public record SmokingReport(
     @DynamoDbPartitionKey
-    LocalDate date,
+    String carNumberLine,
 
-    @DynamoDbSortKey
-    String reportId,
+    String carNumber,
+
+    TrainLine line,
+
+    @DynamoDbSecondaryPartitionKey(indexNames = REPORT_DATE_EXPIRES_AT_INDEX)
+    LocalDate reportDate,
 
     Instant reportedAt,
 
-    @DynamoDbSecondarySortKey(indexNames = CAR_NUMBER_LINE_EXPIRES_AT_INDEX)
+    @DynamoDbSecondarySortKey(indexNames = REPORT_DATE_EXPIRES_AT_INDEX)
     long expiresAt,
-
-    TrainLine line,
 
     String destinationId,
 
     String nextStationId,
 
-    String carNumber,
-
-    @DynamoDbSecondaryPartitionKey(indexNames = CAR_NUMBER_LINE_EXPIRES_AT_INDEX)
-    String carNumberLine,
-
     @Nullable
     String runNumber
 ) {
-    public static final String CAR_NUMBER_LINE_EXPIRES_AT_INDEX = "carNumberLine-expiresAt-index";
+    public static final String REPORT_DATE_EXPIRES_AT_INDEX = "reportDate-expiresAt-index";
 
     public SmokingReport {
-        Objects.requireNonNull(date);
-        Objects.requireNonNull(reportId);
-        Objects.requireNonNull(reportedAt);
+        Objects.requireNonNull(carNumberLine);
+        Objects.requireNonNull(carNumber);
         Objects.requireNonNull(line);
+        Objects.requireNonNull(reportDate);
+        Objects.requireNonNull(reportedAt);
         Objects.requireNonNull(destinationId);
         Objects.requireNonNull(nextStationId);
-        Objects.requireNonNull(carNumber);
-        Objects.requireNonNull(carNumberLine);
-    }
-
-    public static String carNumberLineOf(String carNumber, TrainLine trainLine) {
-        return "%s#%s".formatted(carNumber, trainLine.name());
     }
 }

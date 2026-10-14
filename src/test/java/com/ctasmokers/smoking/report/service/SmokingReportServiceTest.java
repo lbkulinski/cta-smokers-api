@@ -106,7 +106,7 @@ class SmokingReportServiceTest {
         SmokingReport report = report();
         SmokingReportPage page = new SmokingReportPage(List.of(report), null);
 
-        when(repository.findPageByDate(DATE, PAGE_SIZE, null)).thenReturn(page);
+        when(repository.findActivePageByReportedDate(DATE, PAGE_SIZE, null)).thenReturn(page);
 
         SmokingReportPage response = service.getReportsByDate(DATE, null);
 
@@ -119,7 +119,7 @@ class SmokingReportServiceTest {
         SmokingReport report = report();
         SmokingReportPage page = new SmokingReportPage(List.of(report), REPORT_ID);
 
-        when(repository.findPageByDate(DATE, PAGE_SIZE, null)).thenReturn(page);
+        when(repository.findActivePageByReportedDate(DATE, PAGE_SIZE, null)).thenReturn(page);
 
         SmokingReportPage response = service.getReportsByDate(DATE, null);
 
@@ -130,18 +130,18 @@ class SmokingReportServiceTest {
     void getReportsByDate_withCursor_forwardsCursorToRepository() {
         SmokingReportPage page = new SmokingReportPage(List.of(), null);
 
-        when(repository.findPageByDate(DATE, PAGE_SIZE, REPORT_ID)).thenReturn(page);
+        when(repository.findActivePageByReportedDate(DATE, PAGE_SIZE, REPORT_ID)).thenReturn(page);
 
         service.getReportsByDate(DATE, REPORT_ID);
 
-        verify(repository).findPageByDate(DATE, PAGE_SIZE, REPORT_ID);
+        verify(repository).findActivePageByReportedDate(DATE, PAGE_SIZE, REPORT_ID);
     }
 
     @Test
     void getReportById_found() {
         SmokingReport report = report();
 
-        when(repository.findById(DATE, REPORT_ID)).thenReturn(report);
+        when(repository.findByCarNumberLine(DATE, REPORT_ID)).thenReturn(report);
 
         SmokingReport response = service.getReportById(DATE, REPORT_ID);
 
@@ -151,7 +151,7 @@ class SmokingReportServiceTest {
 
     @Test
     void getReportById_notFound() {
-        when(repository.findById(any(), any())).thenReturn(null);
+        when(repository.findByCarNumberLine(any(), any())).thenReturn(null);
 
         assertThatThrownBy(() -> service.getReportById(DATE, REPORT_ID))
             .isInstanceOf(SmokingReportNotFoundException.class);

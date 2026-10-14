@@ -89,14 +89,14 @@ public final class SmokingReportService {
     public SmokingReportPage getReportsByDate(LocalDate date, @Nullable String nextCursor) {
         Objects.requireNonNull(date);
 
-        return this.reportRepository.findPageByDate(date, this.pageSize, nextCursor);
+        return this.reportRepository.findActivePageByReportedDate(date, this.pageSize, nextCursor);
     }
 
     public SmokingReport getReportById(LocalDate date, String reportId) {
         Objects.requireNonNull(date);
         Objects.requireNonNull(reportId);
 
-        SmokingReport report = this.reportRepository.findById(date, reportId);
+        SmokingReport report = this.reportRepository.findByCarNumberLine(date, reportId);
 
         if (report == null) {
             throw new SmokingReportNotFoundException(date, reportId);
