@@ -2,6 +2,7 @@ package com.ctasmokers.smoking.report.repository;
 
 import com.ctasmokers.aws.config.DynamoDbProperties;
 import com.ctasmokers.smoking.common.model.TrainLine;
+import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import org.jspecify.annotations.NullMarked;
@@ -13,9 +14,11 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -48,7 +51,24 @@ public final class SmokingReportRepository {
     public void save(SmokingReport report) {
         Objects.requireNonNull(report);
 
-        this.smokingReports.putItem(report);
+        long now = Instant.now().getEpochSecond();
+        var nowString = Long.toString(now);
+
+        var validExpression = Expression.builder()
+                                        .expression("attribute_not_exists(carNumberLine) OR expiresAt < :now")
+                                        .expressionValues(Map.of("now", AttributeValue.createN(nowString)))
+                                        .build();
+
+        var request = PutItemEnhancedRequest.builder(SmokingReport.class)
+                                            .item(report)
+                                            .conditionExpression(validExpression)
+                                            .build();
+
+        try {
+            this.smokingReports.putItem(request);
+        } catch (ConditionalCheckFailedException e) {
+            throw new SmokingReportAlreadyExistsException(report.carNumber(), report.line());
+        }
     }
 
     public SmokingReportPage findActivePageByReportedDate(
