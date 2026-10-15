@@ -32,6 +32,12 @@ public final class SmokingReportRepository {
     private static final int MIN_PAGE_SIZE = 1;
     private static final int MAX_PAGE_SIZE = 100;
 
+    private static final String NOT_EXISTS_OR_EXPIRED_EXPRESSION =
+        "attribute_not_exists(carNumberLine) OR expiresAt < :now";
+    private static final String ACTIVE_EXPRESSION = "expiresAt > :now";
+
+    private static final String NOW_NAME = "now";
+
     private static final String REPORT_DATE_KEY = "reportDate";
     private static final String EXPIRES_AT_KEY = "expiresAt";
 
@@ -55,8 +61,8 @@ public final class SmokingReportRepository {
         var nowString = Long.toString(now);
 
         var validExpression = Expression.builder()
-                                        .expression("attribute_not_exists(carNumberLine) OR expiresAt < :now")
-                                        .expressionValues(Map.of("now", AttributeValue.createN(nowString)))
+                                        .expression(NOT_EXISTS_OR_EXPIRED_EXPRESSION)
+                                        .expressionValues(Map.of(NOW_NAME, AttributeValue.createN(nowString)))
                                         .build();
 
         var request = PutItemEnhancedRequest.builder(SmokingReport.class)
@@ -95,8 +101,8 @@ public final class SmokingReportRepository {
         var nowString = Long.toString(now);
 
         var activeExpression = Expression.builder()
-                                         .expression("expiresAt > :now")
-                                         .expressionValues(Map.of("now", AttributeValue.createN(nowString)))
+                                         .expression(ACTIVE_EXPRESSION)
+                                         .expressionValues(Map.of(NOW_NAME, AttributeValue.createN(nowString)))
                                          .build();
 
         Map<String, AttributeValue> exclusiveStartKey = null;
