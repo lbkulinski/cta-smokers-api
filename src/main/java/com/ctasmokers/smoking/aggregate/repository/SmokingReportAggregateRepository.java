@@ -1,8 +1,8 @@
 package com.ctasmokers.smoking.aggregate.repository;
 
+import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.aws.config.DynamoDbProperties;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
-import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;

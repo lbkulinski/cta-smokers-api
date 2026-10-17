@@ -1,7 +1,6 @@
 package com.ctasmokers.smoking.report.repository;
 
 import com.ctasmokers.aws.config.DynamoDbProperties;
-import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import org.junit.jupiter.api.BeforeEach;

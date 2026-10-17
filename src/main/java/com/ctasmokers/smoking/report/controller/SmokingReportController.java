@@ -194,7 +194,7 @@ public final class SmokingReportController {
         @Parameter(description = "Unique identifier of the report to retrieve")
         String reportId
     ) {
-        SmokingReport report = this.reportService.getReportById(date, reportId);
+        SmokingReport report = this.reportService.getReportByCarNumberLine(date, reportId);
 
         var reportDto = SmokingReportDto.from(report);
 

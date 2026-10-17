@@ -1,6 +1,6 @@
 package com.ctasmokers.smoking.report.model;
 
-import com.ctasmokers.smoking.common.model.TrainLine;
+import com.cta4j.train.common.model.TrainLine;
 
 public final class SmokingReportKeys {
     private static final String DELIMITER = "#";

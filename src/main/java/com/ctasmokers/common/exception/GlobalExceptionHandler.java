@@ -1,6 +1,7 @@
 package com.ctasmokers.common.exception;
 
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
+import com.ctasmokers.smoking.report.exception.InvalidStationIdException;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.rollbar.notifier.Rollbar;
@@ -23,6 +24,8 @@ import java.net.URI;
 public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    private static final String BAD_REQUEST_TITLE = "Bad Request";
+
     private static final String NOT_FOUND_DETAIL = "The requested resource was not found.";
     private static final String NOT_FOUND_TITLE = "Not Found";
 
@@ -37,6 +40,19 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
     @Autowired
     public GlobalExceptionHandler(Rollbar rollbar) {
         this.rollbar = rollbar;
+    }
+
+    @ExceptionHandler(InvalidStationIdException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidStationIdException(
+        InvalidStationIdException exception,
+        HttpServletRequest request
+    ) {
+        String detail = exception.getMessage();
+
+        ProblemDetail problem = buildProblemDetail(HttpStatus.BAD_REQUEST, detail, BAD_REQUEST_TITLE, request);
+
+        return ResponseEntity.of(problem)
+                             .build();
     }
 
     @ExceptionHandler(SmokingReportNotFoundException.class)

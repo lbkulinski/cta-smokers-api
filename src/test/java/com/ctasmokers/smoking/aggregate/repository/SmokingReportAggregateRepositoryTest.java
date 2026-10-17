@@ -2,7 +2,6 @@ package com.ctasmokers.smoking.aggregate.repository;
 
 import com.ctasmokers.aws.config.DynamoDbProperties;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
-import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

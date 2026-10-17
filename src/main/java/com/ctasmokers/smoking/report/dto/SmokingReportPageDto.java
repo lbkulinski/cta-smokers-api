@@ -13,6 +13,7 @@ public record SmokingReportPageDto(
     @Schema(description = "List of smoking reports", requiredMode = Schema.RequiredMode.REQUIRED)
     List<SmokingReportDto> reports,
 
+    //TODO: Update cursor example
     @Nullable
     @Schema(
         description = "Cursor for fetching the next page of results, or null if there are no more results",

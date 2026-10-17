@@ -3,7 +3,6 @@ package com.ctasmokers.smoking.report.controller;
 import com.ctasmokers.aws.client.SecretsClient;
 import com.ctasmokers.aws.dto.Secret;
 import com.ctasmokers.common.config.properties.CorsProperties;
-import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
@@ -198,7 +197,7 @@ class SmokingReportControllerTest {
 
     @Test
     void getReportById_found_returns200() throws Exception {
-        when(smokingReportService.getReportById(DATE, REPORT_ID)).thenReturn(sampleReport());
+        when(smokingReportService.getReportByCarNumberLine(DATE, REPORT_ID)).thenReturn(sampleReport());
 
         mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}/{reportId}", DATE, REPORT_ID)))
                .andExpect(status().isOk())
@@ -208,7 +207,7 @@ class SmokingReportControllerTest {
 
     @Test
     void getReportById_notFound_returns404WithProblemDetail() throws Exception {
-        when(smokingReportService.getReportById(any(), any()))
+        when(smokingReportService.getReportByCarNumberLine(any(), any()))
             .thenThrow(new SmokingReportNotFoundException(DATE, REPORT_ID));
 
         String path = "/api/cta/reports/smoking/2026-05-10/" + REPORT_ID;
@@ -288,7 +287,7 @@ class SmokingReportControllerTest {
 
     @Test
     void getReportById_unexpectedException_returns500WithProblemDetail() throws Exception {
-        when(smokingReportService.getReportById(any(), any()))
+        when(smokingReportService.getReportByCarNumberLine(any(), any()))
             .thenThrow(new RuntimeException("unexpected"));
 
         String path = "/api/cta/reports/smoking/2026-05-10/" + REPORT_ID;

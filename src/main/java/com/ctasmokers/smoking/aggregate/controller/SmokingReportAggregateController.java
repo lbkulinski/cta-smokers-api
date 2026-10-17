@@ -1,12 +1,12 @@
 package com.ctasmokers.smoking.aggregate.controller;
 
+import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportAggregateDto;
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountDto;
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountsDto;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.service.SmokingReportAggregateService;
-import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

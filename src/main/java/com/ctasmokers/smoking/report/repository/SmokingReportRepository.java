@@ -1,7 +1,7 @@
 package com.ctasmokers.smoking.report.repository;
 
+import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.aws.config.DynamoDbProperties;
-import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
@@ -36,7 +36,7 @@ public final class SmokingReportRepository {
         "attribute_not_exists(carNumberLine) OR expiresAt < :now";
     private static final String ACTIVE_EXPRESSION = "expiresAt > :now";
 
-    private static final String NOW_NAME = "now";
+    private static final String NOW_NAME = ":now";
 
     private static final String REPORT_DATE_KEY = "reportDate";
     private static final String EXPIRES_AT_KEY = "expiresAt";

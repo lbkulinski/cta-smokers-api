@@ -1,10 +1,11 @@
 package com.ctasmokers.smoking.report.service;
 
+import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
-import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
+import com.ctasmokers.smoking.report.exception.InvalidStationIdException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
-import com.ctasmokers.smoking.common.model.TrainLine;
+import com.ctasmokers.smoking.report.model.SmokingReportKeys;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
 import org.jspecify.annotations.NullMarked;
@@ -17,14 +18,14 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
-import java.util.UUID;
+import java.util.Set;
 
 @Service
 @NullMarked
 public final class SmokingReportService {
     private static final ZoneId CHICAGO_ZONE_ID = ZoneId.of("America/Chicago");
-    private static final String REPORT_ID_FORMAT = "%d_%s";
 
+    private final StationService stationService;
     private final SmokingReportRepository reportRepository;
 
     private final int pageSize;
@@ -32,52 +33,57 @@ public final class SmokingReportService {
 
     @Autowired
     public SmokingReportService(
+        StationService stationService,
         SmokingReportRepository reportRepository,
-        CtaReportProperties reportsProperties
+        CtaReportProperties reportProperties
     ) {
+        this.stationService = stationService;
         this.reportRepository = reportRepository;
-        this.pageSize = reportsProperties.pageSize();
-        this.expireAfterMinutes = reportsProperties.expireAfterMinutes();
+        this.pageSize = reportProperties.pageSize();
+        this.expireAfterMinutes = reportProperties.expireAfterMinutes();
     }
 
     public SmokingReport submitReport(
+        String carNumber,
         String line,
         String destinationId,
         String nextStationId,
-        String carNumber,
         @Nullable String runNumber
     ) {
+        Objects.requireNonNull(carNumber);
         Objects.requireNonNull(line);
         Objects.requireNonNull(destinationId);
         Objects.requireNonNull(nextStationId);
-        Objects.requireNonNull(carNumber);
+
+        Set<String> stationIds = this.stationService.getIds();
+
+        if (!stationIds.contains(destinationId)) {
+            throw new InvalidStationIdException("destinationId", destinationId);
+        }
+
+        if (!stationIds.contains(nextStationId)) {
+            throw new InvalidStationIdException("nextStationId", nextStationId);
+        }
 
         var trainLine = TrainLine.valueOf(line);
 
-        if (this.reportRepository.existsActiveByCarNumberAndLine(carNumber, trainLine)) {
-            throw new SmokingReportAlreadyExistsException(carNumber, trainLine);
-        }
+        String carNumberLine = SmokingReportKeys.carNumberLine(carNumber, trainLine);
 
         var now = Instant.now();
-        long epochMillis = now.toEpochMilli();
-        var uuid = UUID.randomUUID().toString();
 
-        var date = now.atZone(CHICAGO_ZONE_ID).toLocalDate();
-        var reportId = REPORT_ID_FORMAT.formatted(epochMillis, uuid);
+        var reportDate = now.atZone(CHICAGO_ZONE_ID).toLocalDate();
 
         long expiresAt = now.plus(this.expireAfterMinutes, ChronoUnit.MINUTES).getEpochSecond();
-        String carNumberLine = SmokingReport.carNumberLineOf(carNumber, trainLine);
 
         var report = SmokingReport.builder()
-                                  .date(date)
-                                  .reportId(reportId)
+                                  .carNumberLine(carNumberLine)
+                                  .carNumber(carNumber)
+                                  .line(trainLine)
+                                  .reportDate(reportDate)
                                   .reportedAt(now)
                                   .expiresAt(expiresAt)
-                                  .line(trainLine)
                                   .destinationId(destinationId)
                                   .nextStationId(nextStationId)
-                                  .carNumber(carNumber)
-                                  .carNumberLine(carNumberLine)
                                   .runNumber(runNumber)
                                   .build();
 
@@ -92,14 +98,14 @@ public final class SmokingReportService {
         return this.reportRepository.findActivePageByReportedDate(date, this.pageSize, nextCursor);
     }
 
-    public SmokingReport getReportById(LocalDate date, String reportId) {
-        Objects.requireNonNull(date);
-        Objects.requireNonNull(reportId);
+    public SmokingReport getReportByCarNumberLine(String carNumber, TrainLine line) {
+        Objects.requireNonNull(carNumber);
+        Objects.requireNonNull(line);
 
-        SmokingReport report = this.reportRepository.findByCarNumberLine(date, reportId);
+        SmokingReport report = this.reportRepository.findByCarNumberLine(carNumber, line);
 
         if (report == null) {
-            throw new SmokingReportNotFoundException(date, reportId);
+            throw new SmokingReportNotFoundException(carNumber, line);
         }
 
         return report;

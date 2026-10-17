@@ -1,6 +1,5 @@
 package com.ctasmokers.smoking.report.service;
 
-import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
@@ -143,7 +142,7 @@ class SmokingReportServiceTest {
 
         when(repository.findByCarNumberLine(DATE, REPORT_ID)).thenReturn(report);
 
-        SmokingReport response = service.getReportById(DATE, REPORT_ID);
+        SmokingReport response = service.getReportByCarNumberLine(DATE, REPORT_ID);
 
         assertThat(response.reportId()).isEqualTo(REPORT_ID);
         assertThat(response.line()).isEqualTo(TrainLine.RED);
@@ -153,7 +152,7 @@ class SmokingReportServiceTest {
     void getReportById_notFound() {
         when(repository.findByCarNumberLine(any(), any())).thenReturn(null);
 
-        assertThatThrownBy(() -> service.getReportById(DATE, REPORT_ID))
+        assertThatThrownBy(() -> service.getReportByCarNumberLine(DATE, REPORT_ID))
             .isInstanceOf(SmokingReportNotFoundException.class);
     }
 }
