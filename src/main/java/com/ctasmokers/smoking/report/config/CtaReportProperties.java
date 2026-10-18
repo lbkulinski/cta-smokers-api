@@ -17,8 +17,18 @@ public record CtaReportProperties(
 
     @Min(1)
     @Max(100)
+    int defaultLimit,
+
+    @Min(1)
+    @Max(100)
     int maxLimit,
 
     @Positive
     long expireAfterMinutes
-) {}
+) {
+    public CtaReportProperties {
+        if (defaultLimit > maxLimit) {
+            throw new IllegalArgumentException("defaultLimit must not exceed maxLimit");
+        }
+    }
+}

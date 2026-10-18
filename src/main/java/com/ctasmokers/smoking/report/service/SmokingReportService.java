@@ -28,7 +28,7 @@ public final class SmokingReportService {
     private final StationService stationService;
     private final SmokingReportRepository reportRepository;
 
-    private final int pageSize;
+    private final int defaultLimit;
     private final long expireAfterMinutes;
 
     @Autowired
@@ -39,7 +39,7 @@ public final class SmokingReportService {
     ) {
         this.stationService = stationService;
         this.reportRepository = reportRepository;
-        this.pageSize = reportProperties.pageSize();
+        this.defaultLimit = reportProperties.defaultLimit();
         this.expireAfterMinutes = reportProperties.expireAfterMinutes();
     }
 
@@ -72,7 +72,6 @@ public final class SmokingReportService {
         var now = Instant.now();
 
         var reportDate = now.atZone(CHICAGO_ZONE_ID).toLocalDate();
-
         long expiresAt = now.plus(this.expireAfterMinutes, ChronoUnit.MINUTES).getEpochSecond();
 
         var report = SmokingReport.builder()
@@ -92,10 +91,18 @@ public final class SmokingReportService {
         return report;
     }
 
-    public SmokingReportPage getReportsByDate(LocalDate date, @Nullable String nextCursor) {
+    public SmokingReportPage getActiveReportsByDate(
+        LocalDate date,
+        @Nullable Integer limit,
+        @Nullable String nextCursor
+    ) {
         Objects.requireNonNull(date);
 
-        return this.reportRepository.findActivePageByReportedDate(date, this.pageSize, nextCursor);
+        int resolvedLimit = limit == null
+            ? this.defaultLimit
+            : limit;
+
+        return this.reportRepository.findActivePageByReportedDate(date, resolvedLimit, nextCursor);
     }
 
     public SmokingReport getReportByCarNumberLine(String carNumber, TrainLine line) {

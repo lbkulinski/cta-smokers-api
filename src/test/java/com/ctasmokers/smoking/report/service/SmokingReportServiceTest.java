@@ -107,7 +107,7 @@ class SmokingReportServiceTest {
 
         when(repository.findActivePageByReportedDate(DATE, PAGE_SIZE, null)).thenReturn(page);
 
-        SmokingReportPage response = service.getReportsByDate(DATE, null);
+        SmokingReportPage response = service.getActiveReportsByDate(DATE, null);
 
         assertThat(response.reports()).hasSize(1);
         assertThat(response.nextCursor()).isNull();
@@ -120,7 +120,7 @@ class SmokingReportServiceTest {
 
         when(repository.findActivePageByReportedDate(DATE, PAGE_SIZE, null)).thenReturn(page);
 
-        SmokingReportPage response = service.getReportsByDate(DATE, null);
+        SmokingReportPage response = service.getActiveReportsByDate(DATE, null);
 
         assertThat(response.nextCursor()).isEqualTo(REPORT_ID);
     }
@@ -131,7 +131,7 @@ class SmokingReportServiceTest {
 
         when(repository.findActivePageByReportedDate(DATE, PAGE_SIZE, REPORT_ID)).thenReturn(page);
 
-        service.getReportsByDate(DATE, REPORT_ID);
+        service.getActiveReportsByDate(DATE, REPORT_ID);
 
         verify(repository).findActivePageByReportedDate(DATE, PAGE_SIZE, REPORT_ID);
     }

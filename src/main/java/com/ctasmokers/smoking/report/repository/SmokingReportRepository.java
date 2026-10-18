@@ -88,7 +88,7 @@ public final class SmokingReportRepository {
         Objects.requireNonNull(reportedDate);
 
         if (limit <= 0 || limit > this.maxLimit) {
-            throw new IllegalArgumentException("limit must be between 1 and %d".formatted(this.maxLimit));
+            throw new IllegalArgumentException("limit must be between 1 and %d (inclusive)".formatted(this.maxLimit));
         }
 
         long now = Instant.now().getEpochSecond();

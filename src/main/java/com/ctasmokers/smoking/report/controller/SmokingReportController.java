@@ -140,7 +140,7 @@ public final class SmokingReportController {
         @Nullable
         String nextCursor
     ) {
-        SmokingReportPage page = this.reportService.getReportsByDate(date, nextCursor);
+        SmokingReportPage page = this.reportService.getActiveReportsByDate(date, nextCursor);
 
         List<SmokingReportDto> reportsDtos = page.reports()
                                                  .stream()
