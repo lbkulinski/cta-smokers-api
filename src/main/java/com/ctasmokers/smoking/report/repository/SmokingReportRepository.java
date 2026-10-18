@@ -2,8 +2,11 @@ package com.ctasmokers.smoking.report.repository;
 
 import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.aws.config.DynamoDbProperties;
+import com.ctasmokers.smoking.report.config.CtaReportProperties;
+import com.ctasmokers.smoking.report.cursor.SmokingReportCursorCodec;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.SmokingReportKeys;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -14,6 +17,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
@@ -29,29 +33,28 @@ import java.util.Objects;
 @Repository
 @NullMarked
 public final class SmokingReportRepository {
-    private static final int MIN_PAGE_SIZE = 1;
-    private static final int MAX_PAGE_SIZE = 100;
-
+    private static final String NOW_PLACEHOLDER = ":now";
     private static final String NOT_EXISTS_OR_EXPIRED_EXPRESSION =
-        "attribute_not_exists(carNumberLine) OR expiresAt < :now";
-    private static final String ACTIVE_EXPRESSION = "expiresAt > :now";
-
-    private static final String NOW_NAME = ":now";
-
-    private static final String REPORT_DATE_KEY = "reportDate";
-    private static final String EXPIRES_AT_KEY = "expiresAt";
+        "attribute_not_exists(carNumberLine) OR expiresAt < %s".formatted(NOW_PLACEHOLDER);
 
     private final DynamoDbTable<@Nullable SmokingReport> smokingReports;
+    private final SmokingReportCursorCodec cursorCodec;
+
+    private final int maxLimit;
 
     @Autowired
     public SmokingReportRepository(
         DynamoDbEnhancedClient dynamoDbClient,
-        DynamoDbProperties dynamoDbProperties
+        SmokingReportCursorCodec cursorCodec,
+        DynamoDbProperties dynamoDbProperties,
+        CtaReportProperties reportProperties
     ) {
         String tableName = dynamoDbProperties.smokingReports();
         var tableSchema = TableSchema.fromImmutableClass(SmokingReport.class);
 
         this.smokingReports = dynamoDbClient.table(tableName, tableSchema);
+        this.cursorCodec = cursorCodec;
+        this.maxLimit = reportProperties.maxLimit();
     }
 
     public void save(SmokingReport report) {
@@ -62,7 +65,7 @@ public final class SmokingReportRepository {
 
         var validExpression = Expression.builder()
                                         .expression(NOT_EXISTS_OR_EXPIRED_EXPRESSION)
-                                        .expressionValues(Map.of(NOW_NAME, AttributeValue.createN(nowString)))
+                                        .expressionValues(Map.of(NOW_PLACEHOLDER, AttributeValue.createN(nowString)))
                                         .build();
 
         var request = PutItemEnhancedRequest.builder(SmokingReport.class)
@@ -79,45 +82,33 @@ public final class SmokingReportRepository {
 
     public SmokingReportPage findActivePageByReportedDate(
         LocalDate reportedDate,
-        int pageSize,
+        int limit,
         @Nullable String nextCursor
     ) {
         Objects.requireNonNull(reportedDate);
 
-        if (pageSize < MIN_PAGE_SIZE || pageSize > MAX_PAGE_SIZE) {
-            throw new IllegalArgumentException(
-                "pageSize must be a positive integer between %d and %d".formatted(MIN_PAGE_SIZE, MAX_PAGE_SIZE));
+        if (limit <= 0 || limit > this.maxLimit) {
+            throw new IllegalArgumentException("limit must be between 1 and %d".formatted(this.maxLimit));
         }
 
-        var reportDateString = reportedDate.toString();
+        long now = Instant.now().getEpochSecond();
 
         var key = Key.builder()
-                     .partitionValue(reportDateString)
+                     .partitionValue(reportedDate.toString())
+                     .sortValue(now)
                      .build();
 
-        var queryConditional = QueryConditional.keyEqualTo(key);
-
-        long now = Instant.now().getEpochSecond();
-        var nowString = Long.toString(now);
-
-        var activeExpression = Expression.builder()
-                                         .expression(ACTIVE_EXPRESSION)
-                                         .expressionValues(Map.of(NOW_NAME, AttributeValue.createN(nowString)))
-                                         .build();
+        var queryConditional = QueryConditional.sortGreaterThan(key);
 
         Map<String, AttributeValue> exclusiveStartKey = null;
 
         if (nextCursor != null) {
-            exclusiveStartKey = Map.of(
-                REPORT_DATE_KEY, AttributeValue.builder().s(reportDateString).build(),
-                EXPIRES_AT_KEY, AttributeValue.builder().s(nextCursor).build()
-            );
+            exclusiveStartKey = this.cursorCodec.decode(nextCursor);
         }
 
         var request = QueryEnhancedRequest.builder()
                                           .queryConditional(queryConditional)
-                                          .filterExpression(activeExpression)
-                                          .limit(pageSize)
+                                          .limit(limit)
                                           .exclusiveStartKey(exclusiveStartKey)
                                           .scanIndexForward(false)
                                           .build();
@@ -126,14 +117,7 @@ public final class SmokingReportRepository {
                                   .query(request)
                                   .stream()
                                   .findFirst()
-                                  .map(page -> new SmokingReportPage(
-                                      page.items() == null
-                                          ? List.of()
-                                          : List.copyOf(page.items()),
-                                      page.lastEvaluatedKey() == null
-                                          ? null
-                                          : page.lastEvaluatedKey().get(EXPIRES_AT_KEY).s()
-                                  ))
+                                  .map(this::toPage)
                                   .orElseGet(() -> new SmokingReportPage(List.of(), null));
     }
 
@@ -141,11 +125,32 @@ public final class SmokingReportRepository {
         Objects.requireNonNull(carNumber);
         Objects.requireNonNull(line);
 
+        String partitionKey = SmokingReportKeys.carNumberLine(carNumber, line);
+
         var key = Key.builder()
-                     .partitionValue(carNumber)
-                     .sortValue(line.name())
+                     .partitionValue(partitionKey)
                      .build();
 
         return this.smokingReports.getItem(key);
+    }
+
+    private SmokingReportPage toPage(Page<SmokingReport> page) {
+        List<SmokingReport> reports = List.copyOf(page.items());
+
+        Map<String, AttributeValue> lastEvaluatedKey = page.lastEvaluatedKey();
+
+        if (lastEvaluatedKey == null) {
+            return new SmokingReportPage(reports, null);
+        }
+
+        String nextCursor;
+
+        try {
+            nextCursor = this.cursorCodec.encode(lastEvaluatedKey);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("Failed to encode cursor", e);
+        }
+
+        return new SmokingReportPage(reports, nextCursor);
     }
 }

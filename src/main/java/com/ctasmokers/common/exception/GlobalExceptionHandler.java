@@ -24,6 +24,7 @@ import java.net.URI;
 public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    private static final String BAD_REQUEST_DETAIL = "The request was invalid.";
     private static final String BAD_REQUEST_TITLE = "Bad Request";
 
     private static final String NOT_FOUND_DETAIL = "The requested resource was not found.";
@@ -40,6 +41,18 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
     @Autowired
     public GlobalExceptionHandler(Rollbar rollbar) {
         this.rollbar = rollbar;
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ProblemDetail> handleIllegalArgumentException(HttpServletRequest request) {
+        ProblemDetail problem = buildProblemDetail(
+            HttpStatus.BAD_REQUEST,
+            BAD_REQUEST_DETAIL,
+            BAD_REQUEST_TITLE,
+            request);
+
+        return ResponseEntity.of(problem)
+                             .build();
     }
 
     @ExceptionHandler(InvalidStationIdException.class)

@@ -33,7 +33,7 @@ app:
   cta:
     reports:
       base-url: ${APP_CTA_REPORTS_BASE_URL}
-      page-size: ${APP_AWS_CTA_REPORTS_PAGE_SIZE:25}
+      max-limit: ${APP_AWS_CTA_REPORTS_MAX_LIMIT:100}
       expire-after-minutes: ${APP_AWS_CTA_REPORTS_EXPIRE_AFTER_MINUTES:30}
   openapi:
     info:
