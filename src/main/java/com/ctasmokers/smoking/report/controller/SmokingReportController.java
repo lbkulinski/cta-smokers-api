@@ -193,7 +193,8 @@ public final class SmokingReportController {
         String carNumber,
 
         @PathVariable
-        @Parameter(description = "Train line of the report to retrieve (e.g. RED)")
+        @Parameter(description = "Train line of the report to retrieve")
+        @Schema(type = "string", example = "RED")
         TrainLine line
     ) {
         SmokingReport report = this.reportService.getReportByCarNumberLine(carNumber, line);
