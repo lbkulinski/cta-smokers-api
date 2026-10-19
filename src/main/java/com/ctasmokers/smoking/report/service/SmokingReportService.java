@@ -6,6 +6,7 @@ import com.ctasmokers.smoking.report.exception.InvalidStationIdException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.report.model.SmokingReportKeys;
+import com.ctasmokers.smoking.report.model.SmokingReportLimits;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
 import org.jspecify.annotations.NullMarked;
@@ -28,7 +29,6 @@ public final class SmokingReportService {
     private final StationService stationService;
     private final SmokingReportRepository reportRepository;
 
-    private final int defaultLimit;
     private final long expireAfterMinutes;
 
     @Autowired
@@ -39,7 +39,6 @@ public final class SmokingReportService {
     ) {
         this.stationService = stationService;
         this.reportRepository = reportRepository;
-        this.defaultLimit = reportProperties.defaultLimit();
         this.expireAfterMinutes = reportProperties.expireAfterMinutes();
     }
 
@@ -99,7 +98,7 @@ public final class SmokingReportService {
         Objects.requireNonNull(date);
 
         int resolvedLimit = limit == null
-            ? this.defaultLimit
+            ? SmokingReportLimits.DEFAULT_LIMIT
             : limit;
 
         return this.reportRepository.findActivePageByReportedDate(date, resolvedLimit, nextCursor);
@@ -111,7 +110,9 @@ public final class SmokingReportService {
 
         SmokingReport report = this.reportRepository.findByCarNumberLine(carNumber, line);
 
-        if (report == null) {
+        long now = Instant.now().getEpochSecond();
+
+        if (report == null || report.expiresAt() <= now) {
             throw new SmokingReportNotFoundException(carNumber, line);
         }
 

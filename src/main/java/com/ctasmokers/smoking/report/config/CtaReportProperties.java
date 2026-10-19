@@ -1,7 +1,5 @@
 package com.ctasmokers.smoking.report.config;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import org.jspecify.annotations.NullMarked;
@@ -12,23 +10,6 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 @NullMarked
 public record CtaReportProperties(
-    @NotBlank
-    String baseUrl,
-
-    @Min(1)
-    @Max(100)
-    int defaultLimit,
-
-    @Min(1)
-    @Max(100)
-    int maxLimit,
-
-    @Positive
-    long expireAfterMinutes
-) {
-    public CtaReportProperties {
-        if (defaultLimit > maxLimit) {
-            throw new IllegalArgumentException("defaultLimit must not exceed maxLimit");
-        }
-    }
-}
+    @NotBlank String baseUrl,
+    @Positive long expireAfterMinutes
+) {}

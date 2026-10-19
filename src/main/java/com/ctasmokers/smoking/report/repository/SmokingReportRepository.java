@@ -2,11 +2,11 @@ package com.ctasmokers.smoking.report.repository;
 
 import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.aws.config.DynamoDbProperties;
-import com.ctasmokers.smoking.report.config.CtaReportProperties;
 import com.ctasmokers.smoking.report.cursor.SmokingReportCursorCodec;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.report.model.SmokingReportKeys;
+import com.ctasmokers.smoking.report.model.SmokingReportLimits;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -35,26 +35,22 @@ import java.util.Objects;
 public final class SmokingReportRepository {
     private static final String NOW_PLACEHOLDER = ":now";
     private static final String NOT_EXISTS_OR_EXPIRED_EXPRESSION =
-        "attribute_not_exists(carNumberLine) OR expiresAt < %s".formatted(NOW_PLACEHOLDER);
+        "attribute_not_exists(carNumberLine) OR expiresAt <= %s".formatted(NOW_PLACEHOLDER);
 
     private final DynamoDbTable<@Nullable SmokingReport> smokingReports;
     private final SmokingReportCursorCodec cursorCodec;
-
-    private final int maxLimit;
 
     @Autowired
     public SmokingReportRepository(
         DynamoDbEnhancedClient dynamoDbClient,
         SmokingReportCursorCodec cursorCodec,
-        DynamoDbProperties dynamoDbProperties,
-        CtaReportProperties reportProperties
+        DynamoDbProperties dynamoDbProperties
     ) {
         String tableName = dynamoDbProperties.smokingReports();
         var tableSchema = TableSchema.fromImmutableClass(SmokingReport.class);
 
         this.smokingReports = dynamoDbClient.table(tableName, tableSchema);
         this.cursorCodec = cursorCodec;
-        this.maxLimit = reportProperties.maxLimit();
     }
 
     public void save(SmokingReport report) {
@@ -87,8 +83,9 @@ public final class SmokingReportRepository {
     ) {
         Objects.requireNonNull(reportedDate);
 
-        if (limit <= 0 || limit > this.maxLimit) {
-            throw new IllegalArgumentException("limit must be between 1 and %d (inclusive)".formatted(this.maxLimit));
+        if (limit <= 0 || limit > SmokingReportLimits.MAX_LIMIT) {
+            throw new IllegalArgumentException("limit must be between 1 and %d (inclusive)".formatted(
+                SmokingReportLimits.MAX_LIMIT));
         }
 
         long now = Instant.now().getEpochSecond();
