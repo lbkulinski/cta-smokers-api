@@ -1,5 +1,6 @@
 package com.ctasmokers.smoking.report.controller;
 
+import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
 import com.ctasmokers.smoking.report.dto.SmokingReportDto;
 import com.ctasmokers.smoking.report.dto.SmokingReportPageDto;
@@ -7,7 +8,6 @@ import com.ctasmokers.smoking.report.dto.SubmitReportDto;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.service.SmokingReportService;
-import com.ctasmokers.smoking.report.validator.ValidReportId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -39,7 +39,7 @@ import java.util.List;
 @Tag(name = "Smoking Reports", description = "Submit and retrieve smoking reports on CTA trains")
 @NullMarked
 public final class SmokingReportController {
-    private static final String LOCATION_HEADER_FORMAT = "%s/api/cta/reports/smoking/{date}/{reportId}";
+    private static final String LOCATION_HEADER_FORMAT = "%s/api/cta/reports/smoking/{carNumber}/{line}";
 
     private final SmokingReportService reportService;
 
@@ -98,7 +98,7 @@ public final class SmokingReportController {
         var reportDto = SmokingReportDto.from(report);
 
         var location = UriComponentsBuilder.fromUriString(LOCATION_HEADER_FORMAT.formatted(this.baseUrl))
-                                           .buildAndExpand(report.date(), report.reportId())
+                                           .buildAndExpand(report.carNumber(), report.line())
                                            .encode()
                                            .toUri();
 
@@ -135,12 +135,16 @@ public final class SmokingReportController {
         LocalDate date,
 
         @RequestParam(required = false)
-        @ValidReportId
+        @Parameter(description = "Maximum number of results on the page")
+        @Nullable
+        Integer limit,
+
+        @RequestParam(required = false)
         @Parameter(description = "Cursor for fetching the next page of results")
         @Nullable
         String nextCursor
     ) {
-        SmokingReportPage page = this.reportService.getActiveReportsByDate(date, nextCursor);
+        SmokingReportPage page = this.reportService.getActiveReportsByDate(date, limit, nextCursor);
 
         List<SmokingReportDto> reportsDtos = page.reports()
                                                  .stream()
@@ -152,10 +156,10 @@ public final class SmokingReportController {
         return ResponseEntity.ok(pageDto);
     }
 
-    @GetMapping("/{date}/{reportId}")
+    @GetMapping("/{carNumber}/{line}")
     @Operation(
-        summary = "Get a smoking report by ID",
-        description = "Retrieve a specific smoking report by its ID and date"
+        summary = "Get a smoking report by car number and line",
+        description = "Retrieve a specific smoking report by its car number and line"
     )
     @ApiResponses({
         @ApiResponse(
@@ -183,18 +187,16 @@ public final class SmokingReportController {
             )
         )
     })
-    public ResponseEntity<SmokingReportDto> getReportById(
+    public ResponseEntity<SmokingReportDto> getReportByCarNumberLine(
         @PathVariable
-        @Parameter(description = "Date of the report to retrieve (e.g. 2026-02-21)")
-        @Schema(type = "string", example = "2026-02-21")
-        LocalDate date,
+        @Parameter(description = "Car number of the report to retrieve (e.g. 2435)")
+        String carNumber,
 
         @PathVariable
-        @ValidReportId
-        @Parameter(description = "Unique identifier of the report to retrieve")
-        String reportId
+        @Parameter(description = "Train line of the report to retrieve (e.g. RED)")
+        TrainLine line
     ) {
-        SmokingReport report = this.reportService.getReportByCarNumberLine(date, reportId);
+        SmokingReport report = this.reportService.getReportByCarNumberLine(carNumber, line);
 
         var reportDto = SmokingReportDto.from(report);
 
