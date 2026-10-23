@@ -50,8 +50,11 @@ Register each record in `@EnableConfigurationProperties` on `Application.java`.
 ## DynamoDB Conventions
 
 Table: `cta-smoking-reports`
-- PK: `date` (e.g. `2026-05-10`)
-- SK: `reportId` (e.g. `1771710202399_uuid`)
+- PK: `carNumberLine` (e.g. `2435#RED`, built with `SmokingReportKeys.carNumberLine`), no sort key
+- GSI `gsiPk-expiresAt-index`: PK `gsiPk` (constant `SmokingReportKeys.GSI_PK`), SK `expiresAt` (epoch seconds), projection ALL
+- Submit is a single conditional `putItem` (`attribute_not_exists` or expired), so a car and line has at most one item
+- Expired items can linger until TTL deletes them, so active reads use an `expiresAt` condition at query time, never TTL
+- Paging cursors are opaque base64 tokens built by `SmokingReportCursorCodec`
 
 Table: `cta-smoking-report-aggregates`
 - PK: `LINE#<TrainLine>` (e.g. `LINE#RED`)

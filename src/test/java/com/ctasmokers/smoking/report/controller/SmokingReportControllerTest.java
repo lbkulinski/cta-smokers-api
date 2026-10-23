@@ -158,7 +158,7 @@ class SmokingReportControllerTest {
     @Test
     void getReportsByDate_returns200WithReports() throws Exception {
         SmokingReportPage page = new SmokingReportPage(List.of(sampleReport()), null);
-        when(smokingReportService.getActiveReportsByDate(DATE, null)).thenReturn(page);
+        when(smokingReportService.getActiveReports(DATE, null)).thenReturn(page);
 
         mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}", DATE)))
                .andExpect(status().isOk())
@@ -169,19 +169,19 @@ class SmokingReportControllerTest {
     @Test
     void getReportsByDate_withValidCursor_passesItToService() throws Exception {
         SmokingReportPage page = new SmokingReportPage(List.of(), null);
-        when(smokingReportService.getActiveReportsByDate(DATE, REPORT_ID)).thenReturn(page);
+        when(smokingReportService.getActiveReports(DATE, REPORT_ID)).thenReturn(page);
 
         mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}", DATE))
                    .param("nextCursor", REPORT_ID))
                .andExpect(status().isOk());
 
-        verify(smokingReportService).getActiveReportsByDate(DATE, REPORT_ID);
+        verify(smokingReportService).getActiveReports(DATE, REPORT_ID);
     }
 
     @Test
     void getReportsByDate_returnsNextCursorFromService() throws Exception {
         SmokingReportPage page = new SmokingReportPage(List.of(sampleReport()), REPORT_ID);
-        when(smokingReportService.getActiveReportsByDate(DATE, null)).thenReturn(page);
+        when(smokingReportService.getActiveReports(DATE, null)).thenReturn(page);
 
         mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}", DATE)))
                .andExpect(status().isOk())

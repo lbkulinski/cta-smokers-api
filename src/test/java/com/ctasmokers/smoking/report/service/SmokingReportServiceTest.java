@@ -105,9 +105,9 @@ class SmokingReportServiceTest {
         SmokingReport report = report();
         SmokingReportPage page = new SmokingReportPage(List.of(report), null);
 
-        when(repository.findActivePageByReportedDate(DATE, PAGE_SIZE, null)).thenReturn(page);
+        when(repository.findActivePage(DATE, PAGE_SIZE, null)).thenReturn(page);
 
-        SmokingReportPage response = service.getActiveReportsByDate(DATE, null);
+        SmokingReportPage response = service.getActiveReports(DATE, null);
 
         assertThat(response.reports()).hasSize(1);
         assertThat(response.nextCursor()).isNull();
@@ -118,9 +118,9 @@ class SmokingReportServiceTest {
         SmokingReport report = report();
         SmokingReportPage page = new SmokingReportPage(List.of(report), REPORT_ID);
 
-        when(repository.findActivePageByReportedDate(DATE, PAGE_SIZE, null)).thenReturn(page);
+        when(repository.findActivePage(DATE, PAGE_SIZE, null)).thenReturn(page);
 
-        SmokingReportPage response = service.getActiveReportsByDate(DATE, null);
+        SmokingReportPage response = service.getActiveReports(DATE, null);
 
         assertThat(response.nextCursor()).isEqualTo(REPORT_ID);
     }
@@ -129,11 +129,11 @@ class SmokingReportServiceTest {
     void getReportsByDate_withCursor_forwardsCursorToRepository() {
         SmokingReportPage page = new SmokingReportPage(List.of(), null);
 
-        when(repository.findActivePageByReportedDate(DATE, PAGE_SIZE, REPORT_ID)).thenReturn(page);
+        when(repository.findActivePage(DATE, PAGE_SIZE, REPORT_ID)).thenReturn(page);
 
-        service.getActiveReportsByDate(DATE, REPORT_ID);
+        service.getActiveReports(DATE, REPORT_ID);
 
-        verify(repository).findActivePageByReportedDate(DATE, PAGE_SIZE, REPORT_ID);
+        verify(repository).findActivePage(DATE, PAGE_SIZE, REPORT_ID);
     }
 
     @Test

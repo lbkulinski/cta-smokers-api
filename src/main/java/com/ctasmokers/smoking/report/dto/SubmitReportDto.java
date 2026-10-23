@@ -21,12 +21,18 @@ public record SubmitReportDto(
 
     @NotNull
     @Pattern(regexp = ID_REGEX, message = ID_MESSAGE)
-    @Schema(description = "Destination station ID (1-10 digit numeric string)", example = "40900")
+    @Schema(
+        description = "CTA map ID of the destination station (1-10 digit numeric string); must be a known station",
+        example = "40900"
+    )
     String destinationId,
 
     @NotNull
     @Pattern(regexp = ID_REGEX, message = ID_MESSAGE)
-    @Schema(description = "Next station ID (1-10 digit numeric string)", example = "41220")
+    @Schema(
+        description = "CTA map ID of the next station (1-10 digit numeric string); must be a known station",
+        example = "41220"
+    )
     String nextStationId,
 
     @Pattern(regexp = RUN_NUMBER_REGEX, message = RUN_NUMBER_MESSAGE)

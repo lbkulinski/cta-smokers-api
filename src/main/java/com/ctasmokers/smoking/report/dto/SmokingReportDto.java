@@ -41,14 +41,14 @@ public record SmokingReportDto(
     Instant expiresAt,
 
     @Schema(
-        description = "Destination station ID",
+        description = "CTA map ID of the destination station",
         example = "40900",
         requiredMode = Schema.RequiredMode.REQUIRED
     )
     String destinationId,
 
     @Schema(
-        description = "Next station ID",
+        description = "CTA map ID of the next station",
         example = "41220",
         requiredMode = Schema.RequiredMode.REQUIRED
     )

@@ -136,7 +136,7 @@ class SmokingReportRepositoryTest {
         when(page.items()).thenReturn(List.of(report));
         when(page.lastEvaluatedKey()).thenReturn(null);
 
-        SmokingReportPage result = repository.findActivePageByReportedDate(DATE, 10, null);
+        SmokingReportPage result = repository.findActivePage(DATE, 10, null);
 
         assertThat(result.reports()).containsExactly(report);
         assertThat(result.nextCursor()).isNull();
@@ -149,7 +149,7 @@ class SmokingReportRepositoryTest {
         when(page.items()).thenReturn(null);
         when(page.lastEvaluatedKey()).thenReturn(null);
 
-        SmokingReportPage result = repository.findActivePageByReportedDate(DATE, 10, null);
+        SmokingReportPage result = repository.findActivePage(DATE, 10, null);
 
         assertThat(result.reports()).isEmpty();
         assertThat(result.nextCursor()).isNull();
@@ -162,7 +162,7 @@ class SmokingReportRepositoryTest {
         when(page.items()).thenReturn(List.of());
         when(page.lastEvaluatedKey()).thenReturn(null);
 
-        repository.findActivePageByReportedDate(DATE, 10, REPORT_ID);
+        repository.findActivePage(DATE, 10, REPORT_ID);
 
         ArgumentCaptor<QueryEnhancedRequest> requestCaptor = ArgumentCaptor.forClass(QueryEnhancedRequest.class);
         verify(smokingReports).query(requestCaptor.capture());
@@ -182,17 +182,17 @@ class SmokingReportRepositoryTest {
         when(page.items()).thenReturn(List.of());
         when(page.lastEvaluatedKey()).thenReturn(lastKey);
 
-        SmokingReportPage result = repository.findActivePageByReportedDate(DATE, 10, null);
+        SmokingReportPage result = repository.findActivePage(DATE, 10, null);
 
         assertThat(result.nextCursor()).isEqualTo(REPORT_ID);
     }
 
     @Test
     void findPageByDate_invalidPageSize_throws() {
-        assertThatThrownBy(() -> repository.findActivePageByReportedDate(DATE, 0, null))
+        assertThatThrownBy(() -> repository.findActivePage(DATE, 0, null))
             .isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> repository.findActivePageByReportedDate(DATE, 101, null))
+        assertThatThrownBy(() -> repository.findActivePage(DATE, 101, null))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -201,7 +201,7 @@ class SmokingReportRepositoryTest {
         when(smokingReports.query(any(QueryEnhancedRequest.class))).thenReturn(pageIterable);
         when(pageIterable.stream()).thenReturn(Stream.empty());
 
-        SmokingReportPage result = repository.findActivePageByReportedDate(DATE, 10, null);
+        SmokingReportPage result = repository.findActivePage(DATE, 10, null);
 
         assertThat(result.reports()).isEmpty();
         assertThat(result.nextCursor()).isNull();
@@ -209,7 +209,7 @@ class SmokingReportRepositoryTest {
 
     @Test
     void existsActiveByCarNumberAndLine_activeReportExists_returnsTrue() {
-        when(smokingReports.index(SmokingReport.REPORT_DATE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
+        when(smokingReports.index(SmokingReport.GSI_PK_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
         when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
         when(indexResults.stream()).thenReturn(Stream.of(page));
         when(page.count()).thenReturn(1);
@@ -232,7 +232,7 @@ class SmokingReportRepositoryTest {
 
         TableSchema<SmokingReport> tableSchema = TableSchema.fromImmutableClass(SmokingReport.class);
         Expression expression = request.queryConditional()
-                                       .expression(tableSchema, SmokingReport.REPORT_DATE_EXPIRES_AT_INDEX);
+                                       .expression(tableSchema, SmokingReport.GSI_PK_EXPIRES_AT_INDEX);
 
         assertThat(expression.expression()).contains(" >= ");
         assertThat(expression.expressionValues().values())
@@ -246,7 +246,7 @@ class SmokingReportRepositoryTest {
 
     @Test
     void existsActiveByCarNumberAndLine_noActiveReport_returnsFalse() {
-        when(smokingReports.index(SmokingReport.REPORT_DATE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
+        when(smokingReports.index(SmokingReport.GSI_PK_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
         when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
         when(indexResults.stream()).thenReturn(Stream.of(page));
         when(page.count()).thenReturn(0);
@@ -258,7 +258,7 @@ class SmokingReportRepositoryTest {
 
     @Test
     void existsActiveByCarNumberAndLine_noResults_returnsFalse() {
-        when(smokingReports.index(SmokingReport.REPORT_DATE_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
+        when(smokingReports.index(SmokingReport.GSI_PK_EXPIRES_AT_INDEX)).thenReturn(carNumberLineIndex);
         when(carNumberLineIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
         when(indexResults.stream()).thenReturn(Stream.empty());
 

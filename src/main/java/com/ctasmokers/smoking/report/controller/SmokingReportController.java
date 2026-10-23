@@ -6,6 +6,7 @@ import com.ctasmokers.smoking.report.dto.SmokingReportDto;
 import com.ctasmokers.smoking.report.dto.SmokingReportPageDto;
 import com.ctasmokers.smoking.report.dto.SubmitReportDto;
 import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.SmokingReportLimits;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.service.SmokingReportService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,8 +17,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -31,7 +33,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -72,7 +73,7 @@ public final class SmokingReportController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid request data",
+            description = "Invalid request data, such as an unknown station ID",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
@@ -105,10 +106,10 @@ public final class SmokingReportController {
         return ResponseEntity.created(location).body(reportDto);
     }
 
-    @GetMapping("/{date}")
+    @GetMapping("/active")
     @Operation(
-        summary = "Get smoking reports by date",
-        description = "Retrieve all smoking reports for a specific date"
+        summary = "Get active smoking reports",
+        description = "Retrieve a page of active smoking reports, newest first"
     )
     @ApiResponses({
         @ApiResponse(
@@ -121,30 +122,25 @@ public final class SmokingReportController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid request data",
+            description = "Invalid limit or cursor",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
             )
         )
     })
-    public ResponseEntity<SmokingReportPageDto> getReportsByDate(
-        @PathVariable
-        @Parameter(description = "Date to retrieve reports for (e.g. 2026-02-21)")
-        @Schema(type = "string", example = "2026-02-21")
-        LocalDate date,
-
+    public ResponseEntity<SmokingReportPageDto> getActiveReports(
         @RequestParam(required = false)
-        @Parameter(description = "Maximum number of results on the page")
-        @Nullable
+        @Parameter(description = "Maximum number of reports to return (defaults to 25)")
+        @Min(1)
+        @Max(SmokingReportLimits.MAX_LIMIT)
         Integer limit,
 
         @RequestParam(required = false)
-        @Parameter(description = "Cursor for fetching the next page of results")
-        @Nullable
+        @Parameter(description = "The nextCursor value from the previous page, passed back unchanged")
         String nextCursor
     ) {
-        SmokingReportPage page = this.reportService.getActiveReportsByDate(date, limit, nextCursor);
+        SmokingReportPage page = this.reportService.getActiveReports(limit, nextCursor);
 
         List<SmokingReportDto> reportsDtos = page.reports()
                                                  .stream()
@@ -158,8 +154,8 @@ public final class SmokingReportController {
 
     @GetMapping("/{carNumber}/{line}")
     @Operation(
-        summary = "Get a smoking report by car number and line",
-        description = "Retrieve a specific smoking report by its car number and line"
+        summary = "Get the active smoking report for a car number and line",
+        description = "Retrieve the active smoking report for a car number and line"
     )
     @ApiResponses({
         @ApiResponse(
@@ -180,7 +176,7 @@ public final class SmokingReportController {
         ),
         @ApiResponse(
             responseCode = "404",
-            description = "Report not found",
+            description = "No active report found",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
@@ -193,7 +189,7 @@ public final class SmokingReportController {
         String carNumber,
 
         @PathVariable
-        @Parameter(description = "Train line of the report to retrieve")
+        @Parameter(description = "CTA train line")
         @Schema(type = "string", example = "RED")
         TrainLine line
     ) {

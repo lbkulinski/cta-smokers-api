@@ -15,8 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Set;
@@ -24,8 +22,6 @@ import java.util.Set;
 @Service
 @NullMarked
 public final class SmokingReportService {
-    private static final ZoneId CHICAGO_ZONE_ID = ZoneId.of("America/Chicago");
-
     private final StationService stationService;
     private final SmokingReportRepository reportRepository;
 
@@ -70,14 +66,13 @@ public final class SmokingReportService {
 
         var now = Instant.now();
 
-        var reportDate = now.atZone(CHICAGO_ZONE_ID).toLocalDate();
         long expiresAt = now.plus(this.expireAfterMinutes, ChronoUnit.MINUTES).getEpochSecond();
 
         var report = SmokingReport.builder()
                                   .carNumberLine(carNumberLine)
                                   .carNumber(carNumber)
                                   .line(trainLine)
-                                  .reportDate(reportDate)
+                                  .gsiPk(SmokingReportKeys.GSI_PK)
                                   .reportedAt(now)
                                   .expiresAt(expiresAt)
                                   .destinationId(destinationId)
@@ -90,18 +85,15 @@ public final class SmokingReportService {
         return report;
     }
 
-    public SmokingReportPage getActiveReportsByDate(
-        LocalDate date,
+    public SmokingReportPage getActiveReports(
         @Nullable Integer limit,
         @Nullable String nextCursor
     ) {
-        Objects.requireNonNull(date);
-
         int resolvedLimit = limit == null
             ? SmokingReportLimits.DEFAULT_LIMIT
             : limit;
 
-        return this.reportRepository.findActivePageByReportedDate(date, resolvedLimit, nextCursor);
+        return this.reportRepository.findActivePage(resolvedLimit, nextCursor);
     }
 
     public SmokingReport getReportByCarNumberLine(String carNumber, TrainLine line) {

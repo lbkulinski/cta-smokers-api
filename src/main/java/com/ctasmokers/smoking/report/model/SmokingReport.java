@@ -10,7 +10,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecon
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondarySortKey;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.Objects;
 
 @Builder
@@ -24,12 +23,12 @@ public record SmokingReport(
 
     TrainLine line,
 
-    @DynamoDbSecondaryPartitionKey(indexNames = REPORT_DATE_EXPIRES_AT_INDEX)
-    LocalDate reportDate,
+    @DynamoDbSecondaryPartitionKey(indexNames = GSI_PK_EXPIRES_AT_INDEX)
+    String gsiPk,
 
     Instant reportedAt,
 
-    @DynamoDbSecondarySortKey(indexNames = REPORT_DATE_EXPIRES_AT_INDEX)
+    @DynamoDbSecondarySortKey(indexNames = GSI_PK_EXPIRES_AT_INDEX)
     long expiresAt,
 
     String destinationId,
@@ -39,13 +38,13 @@ public record SmokingReport(
     @Nullable
     String runNumber
 ) {
-    public static final String REPORT_DATE_EXPIRES_AT_INDEX = "reportDate-expiresAt-index";
+    public static final String GSI_PK_EXPIRES_AT_INDEX = "gsiPk-expiresAt-index";
 
     public SmokingReport {
         Objects.requireNonNull(carNumberLine);
         Objects.requireNonNull(carNumber);
         Objects.requireNonNull(line);
-        Objects.requireNonNull(reportDate);
+        Objects.requireNonNull(gsiPk);
         Objects.requireNonNull(reportedAt);
         Objects.requireNonNull(destinationId);
         Objects.requireNonNull(nextStationId);

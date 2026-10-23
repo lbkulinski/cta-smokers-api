@@ -25,7 +25,6 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -76,13 +75,7 @@ public final class SmokingReportRepository {
         }
     }
 
-    public SmokingReportPage findActivePageByReportedDate(
-        LocalDate reportedDate,
-        int limit,
-        @Nullable String nextCursor
-    ) {
-        Objects.requireNonNull(reportedDate);
-
+    public SmokingReportPage findActivePage(int limit, @Nullable String nextCursor) {
         if (limit <= 0 || limit > SmokingReportLimits.MAX_LIMIT) {
             throw new IllegalArgumentException("limit must be between 1 and %d (inclusive)".formatted(
                 SmokingReportLimits.MAX_LIMIT));
@@ -91,7 +84,7 @@ public final class SmokingReportRepository {
         long now = Instant.now().getEpochSecond();
 
         var key = Key.builder()
-                     .partitionValue(reportedDate.toString())
+                     .partitionValue(SmokingReportKeys.GSI_PK)
                      .sortValue(now)
                      .build();
 
@@ -110,7 +103,7 @@ public final class SmokingReportRepository {
                                           .scanIndexForward(false)
                                           .build();
 
-        return this.smokingReports.index(SmokingReport.REPORT_DATE_EXPIRES_AT_INDEX)
+        return this.smokingReports.index(SmokingReport.GSI_PK_EXPIRES_AT_INDEX)
                                   .query(request)
                                   .stream()
                                   .findFirst()

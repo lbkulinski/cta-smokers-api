@@ -8,8 +8,6 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
@@ -18,7 +16,7 @@ import java.util.Objects;
 @NullMarked
 public final class SmokingReportCursorCodec {
     private static final String CAR_NUMBER_LINE_ATTRIBUTE = "carNumberLine";
-    private static final String REPORT_DATE_ATTRIBUTE = "reportDate";
+    private static final String GSI_PK_ATTRIBUTE = "gsiPk";
     private static final String EXPIRES_AT_ATTRIBUTE = "expiresAt";
 
     private final JsonMapper jsonMapper;
@@ -68,30 +66,19 @@ public final class SmokingReportCursorCodec {
 
     private ReportPageCursor toCursor(Map<String, AttributeValue> lastEvaluatedKey) {
         String carNumberLine = this.getRequiredStringAttribute(lastEvaluatedKey, CAR_NUMBER_LINE_ATTRIBUTE);
-        String reportDateString = this.getRequiredStringAttribute(lastEvaluatedKey, REPORT_DATE_ATTRIBUTE);
+        String gsiPk = this.getRequiredStringAttribute(lastEvaluatedKey, GSI_PK_ATTRIBUTE);
         long expiresAt = this.getRequiredExpiresAtAttribute(lastEvaluatedKey);
 
-        LocalDate reportDate;
-
-        try {
-            reportDate = LocalDate.parse(reportDateString);
-        } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException(
-                "%s is not parseable as a LocalDate: %s".formatted(REPORT_DATE_ATTRIBUTE, reportDateString), e);
-        }
-
-        return new ReportPageCursor(carNumberLine, reportDate, expiresAt);
+        return new ReportPageCursor(carNumberLine, gsiPk, expiresAt);
     }
 
     private Map<String, AttributeValue> toKey(ReportPageCursor cursor) {
-        var reportDateString = cursor.reportDate().toString();
         var expiresAtString = Long.toString(cursor.expiresAt());
 
         return Map.of(
             CAR_NUMBER_LINE_ATTRIBUTE, AttributeValue.createS(cursor.carNumberLine()),
-            REPORT_DATE_ATTRIBUTE, AttributeValue.createS(reportDateString),
-            EXPIRES_AT_ATTRIBUTE, AttributeValue.createN(expiresAtString)
-        );
+            GSI_PK_ATTRIBUTE, AttributeValue.createS(cursor.gsiPk()),
+            EXPIRES_AT_ATTRIBUTE, AttributeValue.createN(expiresAtString));
     }
 
     private String getRequiredStringAttribute(Map<String, AttributeValue> key, String attribute) {
