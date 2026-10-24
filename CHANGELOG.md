@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `GET /api/cta/reports/smoking/active` — returns a page of active (unexpired) smoking reports, newest first. Accepts optional `limit` (1 to 100, default 25) and `nextCursor` query parameters.
 - `400 Bad Request` response when submitting a report with a destination or next station ID that is not a known CTA station.
-- Station lookups are cached in memory (Caffeine, one hour) and retried with exponential backoff when the CTA API fails.
+- Station lookups are cached in memory (Caffeine, 24 hours) and retried with exponential backoff when the CTA API fails.
 
 ### Changed
 

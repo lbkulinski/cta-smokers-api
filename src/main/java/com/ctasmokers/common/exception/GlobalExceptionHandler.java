@@ -1,6 +1,7 @@
 package com.ctasmokers.common.exception;
 
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
+import com.ctasmokers.smoking.report.exception.InvalidCursorException;
 import com.ctasmokers.smoking.report.exception.InvalidStationIdException;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
@@ -22,7 +23,6 @@ import java.net.URI;
 @Slf4j
 @NullMarked
 public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-    private static final String BAD_REQUEST_DETAIL = "The request was invalid.";
     private static final String BAD_REQUEST_TITLE = "Bad Request";
 
     private static final String NOT_FOUND_DETAIL = "The requested resource was not found.";
@@ -41,21 +41,22 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
         this.rollbar = rollbar;
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ProblemDetail> handleIllegalArgumentException(HttpServletRequest request) {
-        ProblemDetail problem = buildProblemDetail(
-            HttpStatus.BAD_REQUEST,
-            BAD_REQUEST_DETAIL,
-            BAD_REQUEST_TITLE,
-            request);
+    @ExceptionHandler(InvalidStationIdException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidStationIdException(
+        InvalidStationIdException exception,
+        HttpServletRequest request
+    ) {
+        String detail = exception.getMessage();
+
+        ProblemDetail problem = buildProblemDetail(HttpStatus.BAD_REQUEST, detail, BAD_REQUEST_TITLE, request);
 
         return ResponseEntity.of(problem)
                              .build();
     }
 
-    @ExceptionHandler(InvalidStationIdException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidStationIdException(
-        InvalidStationIdException exception,
+    @ExceptionHandler(InvalidCursorException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidCursorException(
+        InvalidCursorException exception,
         HttpServletRequest request
     ) {
         String detail = exception.getMessage();

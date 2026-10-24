@@ -1,5 +1,6 @@
 package com.ctasmokers.smoking.aggregate.service;
 
+import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportDailyCount;

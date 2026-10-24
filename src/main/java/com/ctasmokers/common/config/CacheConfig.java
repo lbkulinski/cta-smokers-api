@@ -15,9 +15,9 @@ import java.util.concurrent.TimeUnit;
 @EnableResilientMethods
 public class CacheConfig {
     @Bean
-    public Caffeine<Object, Object> caffeineOneWeek() {
+    public Caffeine<Object, Object> caffeineOneDay() {
         return Caffeine.newBuilder()
-                       .expireAfterAccess(7L, TimeUnit.DAYS);
+                       .expireAfterWrite(24L, TimeUnit.HOURS);
     }
 
     @Bean

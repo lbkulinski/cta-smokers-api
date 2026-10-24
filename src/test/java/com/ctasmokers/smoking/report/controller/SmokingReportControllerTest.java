@@ -1,12 +1,16 @@
 package com.ctasmokers.smoking.report.controller;
 
+import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.aws.client.SecretsClient;
 import com.ctasmokers.aws.dto.Secret;
 import com.ctasmokers.common.config.properties.CorsProperties;
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
+import com.ctasmokers.smoking.report.exception.InvalidCursorException;
+import com.ctasmokers.smoking.report.exception.InvalidStationIdException;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.SmokingReportKeys;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.service.SmokingReportService;
 import com.rollbar.notifier.Rollbar;
@@ -25,10 +29,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -44,8 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class SmokingReportControllerTest {
     private static final String CF_IP = "1.2.3.4";
     private static final String ORIGIN_VERIFY = "test-origin-verify";
-    private static final LocalDate DATE = LocalDate.of(2026, 5, 10);
-    private static final String REPORT_ID = "1771710202399_7a8dcb0d-aea9-4c37-89d6-fc79fe3ba77f";
+    private static final String CURSOR = "c2FtcGxlLWN1cnNvcg";
 
     @Autowired
     private MockMvc mockMvc;
@@ -81,40 +85,58 @@ class SmokingReportControllerTest {
 
     private SmokingReport sampleReport() {
         return SmokingReport.builder()
-                            .date(DATE)
-                            .reportId(REPORT_ID)
+                            .carNumberLine("2435#RED")
+                            .carNumber("2435")
+                            .line(TrainLine.RED)
+                            .gsiPk(SmokingReportKeys.GSI_PK)
                             .reportedAt(Instant.parse("2026-05-10T12:00:00Z"))
                             .expiresAt(Instant.parse("2026-05-10T12:30:00Z").getEpochSecond())
-                            .line(TrainLine.RED)
                             .destinationId("40900")
                             .nextStationId("41220")
-                            .carNumber("2435")
-                            .carNumberLine("2435#RED")
+                            .runNumber("902")
                             .build();
     }
+
+    private static final String SUBMIT_BODY = """
+    {"carNumber":"2435","line":"RED","destinationId":"40900","nextStationId":"41220","runNumber":"902"}
+    """;
 
     @Test
     void submitReport_validRequest_returns201WithLocationAndBody() throws Exception {
         when(smokingReportService.submitReport(any(), any(), any(), any(), any())).thenReturn(sampleReport());
 
-        String body = """
-        {"line":"RED","destinationId":"40900","nextStationId":"41220","carNumber":"2435","runNumber":null}
-        """;
+        mockMvc.perform(withRequiredHeaders(post("/api/cta/reports/smoking"))
+                   .contentType(MediaType.APPLICATION_JSON)
+                   .content(SUBMIT_BODY))
+               .andExpect(status().isCreated())
+               .andExpect(header().string("Location", "https://api.ctasmokers.com/api/cta/reports/smoking/2435/RED"))
+               .andExpect(jsonPath("$.carNumber").value("2435"))
+               .andExpect(jsonPath("$.line").value("RED"))
+               .andExpect(jsonPath("$.reportedAt").value("2026-05-10T12:00:00Z"))
+               .andExpect(jsonPath("$.expiresAt").value("2026-05-10T12:30:00Z"))
+               .andExpect(jsonPath("$.destinationId").value("40900"))
+               .andExpect(jsonPath("$.nextStationId").value("41220"))
+               .andExpect(jsonPath("$.runNumber").value("902"))
+               .andExpect(jsonPath("$.reportId").doesNotExist())
+               .andExpect(jsonPath("$.date").doesNotExist());
+    }
+
+    @Test
+    void submitReport_passesRequestFieldsToServiceInServiceParameterOrder() throws Exception {
+        when(smokingReportService.submitReport(any(), any(), any(), any(), any())).thenReturn(sampleReport());
 
         mockMvc.perform(withRequiredHeaders(post("/api/cta/reports/smoking"))
                    .contentType(MediaType.APPLICATION_JSON)
-                   .content(body))
-               .andExpect(status().isCreated())
-               .andExpect(header().string("Location",
-                   "https://api.ctasmokers.com/api/cta/reports/smoking/2026-05-10/" + REPORT_ID))
-               .andExpect(jsonPath("$.reportId").value(REPORT_ID))
-               .andExpect(jsonPath("$.line").value("RED"));
+                   .content(SUBMIT_BODY))
+               .andExpect(status().isCreated());
+
+        verify(smokingReportService).submitReport("2435", "RED", "40900", "41220", "902");
     }
 
     @Test
     void submitReport_invalidLineValue_returns400() throws Exception {
         String body = """
-        {"line":"INVALID","destinationId":"40900","nextStationId":"41220","carNumber":"2435","runNumber":null}
+        {"carNumber":"2435","line":"INVALID","destinationId":"40900","nextStationId":"41220"}
         """;
 
         mockMvc.perform(withRequiredHeaders(post("/api/cta/reports/smoking"))
@@ -126,13 +148,29 @@ class SmokingReportControllerTest {
     @Test
     void submitReport_missingLine_returns400() throws Exception {
         String body = """
-        {"destinationId":"40900","nextStationId":"41220","carNumber":"2435"}
+        {"carNumber":"2435","destinationId":"40900","nextStationId":"41220"}
         """;
 
         mockMvc.perform(withRequiredHeaders(post("/api/cta/reports/smoking"))
                    .contentType(MediaType.APPLICATION_JSON)
                    .content(body))
                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void submitReport_unknownStation_returns400WithProblemDetail() throws Exception {
+        when(smokingReportService.submitReport(any(), any(), any(), any(), any()))
+            .thenThrow(new InvalidStationIdException("destinationId", "40900"));
+
+        mockMvc.perform(withRequiredHeaders(post("/api/cta/reports/smoking"))
+                   .contentType(MediaType.APPLICATION_JSON)
+                   .content(SUBMIT_BODY))
+               .andExpect(status().isBadRequest())
+               .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+               .andExpect(jsonPath("$.status").value(400))
+               .andExpect(jsonPath("$.title").value("Bad Request"))
+               .andExpect(jsonPath("$.detail").value("40900 is not a valid destinationId"))
+               .andExpect(jsonPath("$.instance").value("/api/cta/reports/smoking"));
     }
 
     @Test
@@ -140,124 +178,162 @@ class SmokingReportControllerTest {
         when(smokingReportService.submitReport(any(), any(), any(), any(), any()))
             .thenThrow(new SmokingReportAlreadyExistsException("2435", TrainLine.RED));
 
-        String body = """
-        {"line":"RED","destinationId":"40900","nextStationId":"41220","carNumber":"2435","runNumber":null}
-        """;
-
         mockMvc.perform(withRequiredHeaders(post("/api/cta/reports/smoking"))
                    .contentType(MediaType.APPLICATION_JSON)
-                   .content(body))
+                   .content(SUBMIT_BODY))
                .andExpect(status().isConflict())
                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                .andExpect(jsonPath("$.status").value(409))
                .andExpect(jsonPath("$.title").value("Conflict"))
                .andExpect(jsonPath("$.detail").value("The requested resource already exists."))
                .andExpect(jsonPath("$.instance").value("/api/cta/reports/smoking"));
+
+        verify(rollbar).warning(any(String.class));
     }
 
     @Test
-    void getReportsByDate_returns200WithReports() throws Exception {
-        SmokingReportPage page = new SmokingReportPage(List.of(sampleReport()), null);
-        when(smokingReportService.getActiveReports(DATE, null)).thenReturn(page);
+    void getActiveReports_noParams_returns200AndPassesNulls() throws Exception {
+        var page = new SmokingReportPage(List.of(sampleReport()), null);
+        when(smokingReportService.getActiveReports(null, null)).thenReturn(page);
 
-        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}", DATE)))
+        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/active")))
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.reports").isArray())
-               .andExpect(jsonPath("$.reports[0].reportId").value(REPORT_ID));
+               .andExpect(jsonPath("$.reports[0].carNumber").value("2435"))
+               .andExpect(jsonPath("$.nextCursor").doesNotExist());
     }
 
     @Test
-    void getReportsByDate_withValidCursor_passesItToService() throws Exception {
-        SmokingReportPage page = new SmokingReportPage(List.of(), null);
-        when(smokingReportService.getActiveReports(DATE, REPORT_ID)).thenReturn(page);
+    void getActiveReports_withLimitAndCursor_passesThemToService() throws Exception {
+        var page = new SmokingReportPage(List.of(), null);
+        when(smokingReportService.getActiveReports(10, CURSOR)).thenReturn(page);
 
-        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}", DATE))
-                   .param("nextCursor", REPORT_ID))
-               .andExpect(status().isOk());
-
-        verify(smokingReportService).getActiveReports(DATE, REPORT_ID);
-    }
-
-    @Test
-    void getReportsByDate_returnsNextCursorFromService() throws Exception {
-        SmokingReportPage page = new SmokingReportPage(List.of(sampleReport()), REPORT_ID);
-        when(smokingReportService.getActiveReports(DATE, null)).thenReturn(page);
-
-        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}", DATE)))
+        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/active"))
+                   .param("limit", "10")
+                   .param("nextCursor", CURSOR))
                .andExpect(status().isOk())
-               .andExpect(jsonPath("$.nextCursor").value(REPORT_ID));
+               .andExpect(jsonPath("$.reports").isEmpty());
+
+        verify(smokingReportService).getActiveReports(10, CURSOR);
     }
 
     @Test
-    void getReportsByDate_withInvalidCursor_returns400() throws Exception {
-        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}", DATE))
-                   .param("nextCursor", "not-a-valid-cursor"))
+    void getActiveReports_returnsNextCursorFromService() throws Exception {
+        var page = new SmokingReportPage(List.of(sampleReport()), CURSOR);
+        when(smokingReportService.getActiveReports(null, null)).thenReturn(page);
+
+        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/active")))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.nextCursor").value(CURSOR));
+    }
+
+    @Test
+    void getActiveReports_maxLimit_isAccepted() throws Exception {
+        var page = new SmokingReportPage(List.of(), null);
+        when(smokingReportService.getActiveReports(100, null)).thenReturn(page);
+
+        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/active")).param("limit", "100"))
+               .andExpect(status().isOk());
+    }
+
+    @Test
+    void getActiveReports_limitBelowMinimum_returns400WithoutCallingService() throws Exception {
+        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/active")).param("limit", "0"))
+               .andExpect(status().isBadRequest());
+
+        verify(smokingReportService, never()).getActiveReports(any(), any());
+    }
+
+    @Test
+    void getActiveReports_limitAboveMaximum_returns400WithoutCallingService() throws Exception {
+        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/active")).param("limit", "101"))
+               .andExpect(status().isBadRequest());
+
+        verify(smokingReportService, never()).getActiveReports(any(), any());
+    }
+
+    @Test
+    void getActiveReports_nonNumericLimit_returns400() throws Exception {
+        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/active")).param("limit", "many"))
                .andExpect(status().isBadRequest());
     }
 
     @Test
-    void getReportById_found_returns200() throws Exception {
-        when(smokingReportService.getReportByCarNumberLine(DATE, REPORT_ID)).thenReturn(sampleReport());
+    void getActiveReports_invalidCursor_returns400WithProblemDetail() throws Exception {
+        when(smokingReportService.getActiveReports(eq(null), eq("not-a-valid-cursor")))
+            .thenThrow(new InvalidCursorException("not-a-valid-cursor"));
 
-        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}/{reportId}", DATE, REPORT_ID)))
+        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/active"))
+                   .param("nextCursor", "not-a-valid-cursor"))
+               .andExpect(status().isBadRequest())
+               .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+               .andExpect(jsonPath("$.status").value(400))
+               .andExpect(jsonPath("$.detail").value("not-a-valid-cursor is not a valid cursor"));
+    }
+
+    @Test
+    void getReportByCarNumberLine_found_returns200() throws Exception {
+        when(smokingReportService.getReportByCarNumberLine("2435", TrainLine.RED)).thenReturn(sampleReport());
+
+        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{carNumber}/{line}", "2435", "RED")))
                .andExpect(status().isOk())
-               .andExpect(jsonPath("$.reportId").value(REPORT_ID))
+               .andExpect(jsonPath("$.carNumber").value("2435"))
                .andExpect(jsonPath("$.line").value("RED"));
     }
 
     @Test
-    void getReportById_notFound_returns404WithProblemDetail() throws Exception {
+    void getReportByCarNumberLine_notFound_returns404WithProblemDetail() throws Exception {
         when(smokingReportService.getReportByCarNumberLine(any(), any()))
-            .thenThrow(new SmokingReportNotFoundException(DATE, REPORT_ID));
+            .thenThrow(new SmokingReportNotFoundException("2435", TrainLine.RED));
 
-        String path = "/api/cta/reports/smoking/2026-05-10/" + REPORT_ID;
-
-        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}/{reportId}", DATE, REPORT_ID)))
+        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{carNumber}/{line}", "2435", "RED")))
                .andExpect(status().isNotFound())
                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                .andExpect(jsonPath("$.status").value(404))
                .andExpect(jsonPath("$.title").value("Not Found"))
                .andExpect(jsonPath("$.detail").value("The requested resource was not found."))
-               .andExpect(jsonPath("$.instance").value(path));
+               .andExpect(jsonPath("$.instance").value("/api/cta/reports/smoking/2435/RED"));
     }
 
     @Test
-    void getReportById_invalidReportIdFormat_returns400() throws Exception {
-        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}/{reportId}", DATE, "not-valid")))
+    void getReportByCarNumberLine_invalidLine_returns400() throws Exception {
+        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{carNumber}/{line}", "2435", "SILVER")))
                .andExpect(status().isBadRequest());
+
+        verify(smokingReportService, never()).getReportByCarNumberLine(any(), any());
     }
 
     @Test
-    void getReportsByDate_cursorWithInvalidTimestamp_returns400() throws Exception {
-        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}", DATE))
-                   .param("nextCursor", "not-a-timestamp_7a8dcb0d-aea9-4c37-89d6-fc79fe3ba77f"))
-               .andExpect(status().isBadRequest());
-    }
+    void getReportByCarNumberLine_unexpectedException_returns500WithProblemDetail() throws Exception {
+        when(smokingReportService.getReportByCarNumberLine(any(), any()))
+            .thenThrow(new RuntimeException("unexpected"));
 
-    @Test
-    void getReportsByDate_cursorWithInvalidUuid_returns400() throws Exception {
-        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}", DATE))
-                   .param("nextCursor", "1771710202399_not-a-uuid"))
-               .andExpect(status().isBadRequest());
+        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{carNumber}/{line}", "2435", "RED")))
+               .andExpect(status().isInternalServerError())
+               .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+               .andExpect(jsonPath("$.status").value(500))
+               .andExpect(jsonPath("$.title").value("Internal Server Error"))
+               .andExpect(jsonPath("$.detail").value("An unexpected error occurred."))
+               .andExpect(jsonPath("$.instance").value("/api/cta/reports/smoking/2435/RED"));
     }
 
     @Test
     void request_missingOriginVerifyHeader_returns403() throws Exception {
-        mockMvc.perform(get("/api/cta/reports/smoking/{date}", DATE)
+        mockMvc.perform(get("/api/cta/reports/smoking/active")
                    .header("CF-Connecting-IP", CF_IP))
                .andExpect(status().isForbidden());
     }
 
     @Test
     void request_missingCfConnectingIpHeader_returns403() throws Exception {
-        mockMvc.perform(get("/api/cta/reports/smoking/{date}", DATE)
+        mockMvc.perform(get("/api/cta/reports/smoking/active")
                    .header("X-Origin-Verify", ORIGIN_VERIFY))
                .andExpect(status().isForbidden());
     }
 
     @Test
     void request_blankCfConnectingIpHeader_returns403() throws Exception {
-        mockMvc.perform(get("/api/cta/reports/smoking/{date}", DATE)
+        mockMvc.perform(get("/api/cta/reports/smoking/active")
                    .header("CF-Connecting-IP", "   ")
                    .header("X-Origin-Verify", ORIGIN_VERIFY))
                .andExpect(status().isForbidden());
@@ -265,7 +341,7 @@ class SmokingReportControllerTest {
 
     @Test
     void request_invalidIpInCfConnectingIpHeader_returns403() throws Exception {
-        mockMvc.perform(get("/api/cta/reports/smoking/{date}", DATE)
+        mockMvc.perform(get("/api/cta/reports/smoking/active")
                    .header("CF-Connecting-IP", "not-an-ip")
                    .header("X-Origin-Verify", ORIGIN_VERIFY))
                .andExpect(status().isForbidden());
@@ -273,7 +349,7 @@ class SmokingReportControllerTest {
 
     @Test
     void request_wrongOriginVerifyValue_returns403() throws Exception {
-        mockMvc.perform(get("/api/cta/reports/smoking/{date}", DATE)
+        mockMvc.perform(get("/api/cta/reports/smoking/active")
                    .header("CF-Connecting-IP", CF_IP)
                    .header("X-Origin-Verify", "wrong-value"))
                .andExpect(status().isForbidden());
@@ -283,21 +359,5 @@ class SmokingReportControllerTest {
     void request_healthCheckPath_bypassesFilter() throws Exception {
         mockMvc.perform(get("/actuator/health"))
                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void getReportById_unexpectedException_returns500WithProblemDetail() throws Exception {
-        when(smokingReportService.getReportByCarNumberLine(any(), any()))
-            .thenThrow(new RuntimeException("unexpected"));
-
-        String path = "/api/cta/reports/smoking/2026-05-10/" + REPORT_ID;
-
-        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{date}/{reportId}", DATE, REPORT_ID)))
-               .andExpect(status().isInternalServerError())
-               .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-               .andExpect(jsonPath("$.status").value(500))
-               .andExpect(jsonPath("$.title").value("Internal Server Error"))
-               .andExpect(jsonPath("$.detail").value("An unexpected error occurred."))
-               .andExpect(jsonPath("$.instance").value(path));
     }
 }

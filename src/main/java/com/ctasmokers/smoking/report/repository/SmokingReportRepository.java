@@ -133,13 +133,7 @@ public final class SmokingReportRepository {
             return new SmokingReportPage(reports, null);
         }
 
-        String nextCursor;
-
-        try {
-            nextCursor = this.cursorCodec.encode(lastEvaluatedKey);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalStateException("Failed to encode cursor", e);
-        }
+        String nextCursor = this.cursorCodec.encode(lastEvaluatedKey);
 
         return new SmokingReportPage(reports, nextCursor);
     }

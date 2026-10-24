@@ -1,5 +1,6 @@
 package com.ctasmokers.smoking.report.cursor;
 
+import com.ctasmokers.smoking.report.exception.InvalidCursorException;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -49,7 +50,13 @@ public final class SmokingReportCursorCodec {
     public Map<String, AttributeValue> decode(String cursor) {
         Objects.requireNonNull(cursor);
 
-        byte[] cursorBytes = Base64.getUrlDecoder().decode(cursor);
+        byte[] cursorBytes;
+
+        try {
+            cursorBytes = Base64.getUrlDecoder().decode(cursor);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidCursorException(cursor);
+        }
 
         var cursorJson = new String(cursorBytes, StandardCharsets.UTF_8);
 
@@ -58,7 +65,7 @@ public final class SmokingReportCursorCodec {
         try {
             pageCursor = this.jsonMapper.readValue(cursorJson, ReportPageCursor.class);
         } catch (JacksonException e) {
-            throw new IllegalArgumentException("Could not deserialize cursor from JSON", e);
+            throw new InvalidCursorException(cursor);
         }
 
         return this.toKey(pageCursor);
@@ -85,13 +92,13 @@ public final class SmokingReportCursorCodec {
         AttributeValue attributeValue = key.get(attribute);
 
         if (attributeValue == null) {
-            throw new IllegalArgumentException("No %s found".formatted(attribute));
+            throw new IllegalStateException("No %s found".formatted(attribute));
         }
 
         String value = attributeValue.s();
 
         if (value == null) {
-            throw new IllegalArgumentException("%s is not a string".formatted(attribute));
+            throw new IllegalStateException("%s is not a string".formatted(attribute));
         }
 
         return value;
@@ -101,19 +108,19 @@ public final class SmokingReportCursorCodec {
         AttributeValue attributeValue = key.get(EXPIRES_AT_ATTRIBUTE);
 
         if (attributeValue == null) {
-            throw new IllegalArgumentException("No %s found".formatted(EXPIRES_AT_ATTRIBUTE));
+            throw new IllegalStateException("No %s found".formatted(EXPIRES_AT_ATTRIBUTE));
         }
 
         String value = attributeValue.n();
 
         if (value == null) {
-            throw new IllegalArgumentException("%s is not a number".formatted(EXPIRES_AT_ATTRIBUTE));
+            throw new IllegalStateException("%s is not a number".formatted(EXPIRES_AT_ATTRIBUTE));
         }
 
         try {
             return Long.parseLong(value);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(
+            throw new IllegalStateException(
                 "%s is not parseable as a long: %s".formatted(EXPIRES_AT_ATTRIBUTE, value), e);
         }
     }

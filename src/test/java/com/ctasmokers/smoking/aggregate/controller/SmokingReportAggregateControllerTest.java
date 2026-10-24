@@ -1,5 +1,6 @@
 package com.ctasmokers.smoking.aggregate.controller;
 
+import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.aws.client.SecretsClient;
 import com.ctasmokers.aws.dto.Secret;
 import com.ctasmokers.common.config.properties.CorsProperties;

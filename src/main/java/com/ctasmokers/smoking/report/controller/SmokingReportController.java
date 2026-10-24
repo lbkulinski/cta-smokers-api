@@ -90,10 +90,10 @@ public final class SmokingReportController {
     })
     public ResponseEntity<SmokingReportDto> submitReport(@Valid @RequestBody SubmitReportDto request) {
         SmokingReport report = this.reportService.submitReport(
+            request.carNumber(),
             request.line(),
             request.destinationId(),
             request.nextStationId(),
-            request.carNumber(),
             request.runNumber());
 
         var reportDto = SmokingReportDto.from(report);

@@ -1,9 +1,13 @@
 package com.ctasmokers.smoking.report.service;
 
+import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
+import com.ctasmokers.smoking.report.exception.InvalidStationIdException;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.SmokingReportKeys;
+import com.ctasmokers.smoking.report.model.SmokingReportLimits;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,145 +18,181 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SmokingReportServiceTest {
-    private static final int PAGE_SIZE = 10;
-    private static final long EXPIRE_AFTER_MINUTES = 30;
-    private static final LocalDate DATE = LocalDate.of(2026, 5, 10);
-    private static final String REPORT_ID = "1234567890_abc-def";
+    private static final long EXPIRE_AFTER_MINUTES = 30L;
+    private static final String CURSOR = "c2FtcGxlLWN1cnNvcg";
+
+    @Mock
+    private StationService stationService;
 
     @Mock
     private SmokingReportRepository repository;
-
-    @Mock
-    private CtaReportProperties reportProperties;
 
     private SmokingReportService service;
 
     @BeforeEach
     void setUp() {
-        when(reportProperties.pageSize()).thenReturn(PAGE_SIZE);
-        when(reportProperties.expireAfterMinutes()).thenReturn(EXPIRE_AFTER_MINUTES);
+        var reportProperties = new CtaReportProperties("https://api.ctasmokers.com", EXPIRE_AFTER_MINUTES);
 
-        service = new SmokingReportService(repository, reportProperties);
+        service = new SmokingReportService(stationService, repository, reportProperties);
     }
 
-    private SmokingReport report() {
+    private SmokingReport report(long expiresAt) {
         return SmokingReport.builder()
-                            .date(DATE)
-                            .reportId(REPORT_ID)
-                            .reportedAt(Instant.now())
-                            .expiresAt(Instant.now().getEpochSecond() + 1800)
+                            .carNumberLine("2435#RED")
+                            .carNumber("2435")
                             .line(TrainLine.RED)
+                            .gsiPk(SmokingReportKeys.GSI_PK)
+                            .reportedAt(Instant.now())
+                            .expiresAt(expiresAt)
                             .destinationId("40900")
                             .nextStationId("41220")
-                            .carNumber("2435")
-                            .carNumberLine("2435#RED")
                             .build();
     }
 
     @Test
-    void submitReport_savesReportAndReturnsResponse() {
-        SmokingReport response = service.submitReport("RED", "40900", "41220", "2435", null);
+    void submitReport_savesReportAndReturnsIt() {
+        when(stationService.getIds()).thenReturn(Set.of("40900", "41220"));
+
+        long before = Instant.now().plusSeconds(EXPIRE_AFTER_MINUTES * 60L).getEpochSecond();
+
+        SmokingReport response = service.submitReport("2435", "RED", "40900", "41220", null);
+
+        long after = Instant.now().plusSeconds(EXPIRE_AFTER_MINUTES * 60L).getEpochSecond();
 
         ArgumentCaptor<SmokingReport> reportCaptor = ArgumentCaptor.forClass(SmokingReport.class);
         verify(repository).save(reportCaptor.capture());
 
         SmokingReport saved = reportCaptor.getValue();
+        assertThat(saved).isSameAs(response);
+        assertThat(saved.carNumberLine()).isEqualTo("2435#RED");
+        assertThat(saved.carNumber()).isEqualTo("2435");
         assertThat(saved.line()).isEqualTo(TrainLine.RED);
+        assertThat(saved.gsiPk()).isEqualTo(SmokingReportKeys.GSI_PK);
         assertThat(saved.destinationId()).isEqualTo("40900");
         assertThat(saved.nextStationId()).isEqualTo("41220");
-        assertThat(saved.carNumber()).isEqualTo("2435");
-        assertThat(saved.carNumberLine()).isEqualTo("2435#RED");
         assertThat(saved.runNumber()).isNull();
-
-        assertThat(response.line()).isEqualTo(TrainLine.RED);
-        assertThat(response.destinationId()).isEqualTo("40900");
+        assertThat(saved.expiresAt()).isBetween(before, after);
+        assertThat(saved.reportedAt().getEpochSecond() + EXPIRE_AFTER_MINUTES * 60L).isEqualTo(saved.expiresAt());
     }
 
     @Test
     void submitReport_withRunNumber_includesRunNumber() {
-        service.submitReport("BLUE", "40900", "41220", "2435", "902");
+        when(stationService.getIds()).thenReturn(Set.of("40900", "41220"));
+
+        service.submitReport("2435", "BLUE", "40900", "41220", "902");
 
         ArgumentCaptor<SmokingReport> reportCaptor = ArgumentCaptor.forClass(SmokingReport.class);
         verify(repository).save(reportCaptor.capture());
+
         assertThat(reportCaptor.getValue().runNumber()).isEqualTo("902");
         assertThat(reportCaptor.getValue().carNumberLine()).isEqualTo("2435#BLUE");
     }
 
     @Test
-    void submitReport_whenActiveReportExists_throwsExceptionAndDoesNotSave() {
-        when(repository.existsActiveByCarNumberAndLine("2435", TrainLine.RED)).thenReturn(true);
+    void submitReport_unknownDestination_throwsAndDoesNotSave() {
+        when(stationService.getIds()).thenReturn(Set.of("41220"));
 
-        assertThatThrownBy(() -> service.submitReport("RED", "40900", "41220", "2435", null))
-            .isInstanceOf(SmokingReportAlreadyExistsException.class);
+        assertThatThrownBy(() -> service.submitReport("2435", "RED", "40900", "41220", null))
+            .isInstanceOf(InvalidStationIdException.class)
+            .hasMessageContaining("destinationId")
+            .hasMessageContaining("40900");
 
         verify(repository, never()).save(any());
     }
 
     @Test
-    void getReportsByDate_returnsResponse() {
-        SmokingReport report = report();
-        SmokingReportPage page = new SmokingReportPage(List.of(report), null);
+    void submitReport_unknownNextStation_throwsAndDoesNotSave() {
+        when(stationService.getIds()).thenReturn(Set.of("40900"));
 
-        when(repository.findActivePage(DATE, PAGE_SIZE, null)).thenReturn(page);
+        assertThatThrownBy(() -> service.submitReport("2435", "RED", "40900", "41220", null))
+            .isInstanceOf(InvalidStationIdException.class)
+            .hasMessageContaining("nextStationId")
+            .hasMessageContaining("41220");
 
-        SmokingReportPage response = service.getActiveReports(DATE, null);
-
-        assertThat(response.reports()).hasSize(1);
-        assertThat(response.nextCursor()).isNull();
+        verify(repository, never()).save(any());
     }
 
     @Test
-    void getReportsByDate_withNextPage_returnsCursor() {
-        SmokingReport report = report();
-        SmokingReportPage page = new SmokingReportPage(List.of(report), REPORT_ID);
+    void submitReport_whenRepositoryRejectsDuplicate_propagatesException() {
+        when(stationService.getIds()).thenReturn(Set.of("40900", "41220"));
+        doThrow(new SmokingReportAlreadyExistsException("2435", TrainLine.RED)).when(repository).save(any());
 
-        when(repository.findActivePage(DATE, PAGE_SIZE, null)).thenReturn(page);
-
-        SmokingReportPage response = service.getActiveReports(DATE, null);
-
-        assertThat(response.nextCursor()).isEqualTo(REPORT_ID);
+        assertThatThrownBy(() -> service.submitReport("2435", "RED", "40900", "41220", null))
+            .isInstanceOf(SmokingReportAlreadyExistsException.class);
     }
 
     @Test
-    void getReportsByDate_withCursor_forwardsCursorToRepository() {
-        SmokingReportPage page = new SmokingReportPage(List.of(), null);
+    void submitReport_invalidLine_throwsIllegalArgument() {
+        when(stationService.getIds()).thenReturn(Set.of("40900", "41220"));
 
-        when(repository.findActivePage(DATE, PAGE_SIZE, REPORT_ID)).thenReturn(page);
+        assertThatThrownBy(() -> service.submitReport("2435", "NOPE", "40900", "41220", null))
+            .isInstanceOf(IllegalArgumentException.class);
 
-        service.getActiveReports(DATE, REPORT_ID);
-
-        verify(repository).findActivePage(DATE, PAGE_SIZE, REPORT_ID);
+        verify(repository, never()).save(any());
     }
 
     @Test
-    void getReportById_found() {
-        SmokingReport report = report();
+    void getActiveReports_nullLimit_usesDefaultLimit() {
+        var page = new SmokingReportPage(List.of(report(Long.MAX_VALUE)), null);
 
-        when(repository.findByCarNumberLine(DATE, REPORT_ID)).thenReturn(report);
+        when(repository.findActivePage(SmokingReportLimits.DEFAULT_LIMIT, null)).thenReturn(page);
 
-        SmokingReport response = service.getReportByCarNumberLine(DATE, REPORT_ID);
+        SmokingReportPage response = service.getActiveReports(null, null);
 
-        assertThat(response.reportId()).isEqualTo(REPORT_ID);
-        assertThat(response.line()).isEqualTo(TrainLine.RED);
+        assertThat(response).isSameAs(page);
     }
 
     @Test
-    void getReportById_notFound() {
-        when(repository.findByCarNumberLine(any(), any())).thenReturn(null);
+    void getActiveReports_withLimitAndCursor_forwardsBothToRepository() {
+        var page = new SmokingReportPage(List.of(), CURSOR);
 
-        assertThatThrownBy(() -> service.getReportByCarNumberLine(DATE, REPORT_ID))
+        when(repository.findActivePage(5, CURSOR)).thenReturn(page);
+
+        SmokingReportPage response = service.getActiveReports(5, CURSOR);
+
+        assertThat(response.nextCursor()).isEqualTo(CURSOR);
+        verify(repository).findActivePage(5, CURSOR);
+    }
+
+    @Test
+    void getReportByCarNumberLine_activeReport_returnsIt() {
+        SmokingReport report = report(Instant.now().getEpochSecond() + 600L);
+
+        when(repository.findByCarNumberLine("2435", TrainLine.RED)).thenReturn(report);
+
+        SmokingReport response = service.getReportByCarNumberLine("2435", TrainLine.RED);
+
+        assertThat(response).isSameAs(report);
+    }
+
+    @Test
+    void getReportByCarNumberLine_missing_throwsNotFound() {
+        when(repository.findByCarNumberLine("2435", TrainLine.RED)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.getReportByCarNumberLine("2435", TrainLine.RED))
+            .isInstanceOf(SmokingReportNotFoundException.class);
+    }
+
+    @Test
+    void getReportByCarNumberLine_expiredReportStillInTable_throwsNotFound() {
+        SmokingReport expired = report(Instant.now().getEpochSecond() - 1L);
+
+        when(repository.findByCarNumberLine("2435", TrainLine.RED)).thenReturn(expired);
+
+        assertThatThrownBy(() -> service.getReportByCarNumberLine("2435", TrainLine.RED))
             .isInstanceOf(SmokingReportNotFoundException.class);
     }
 }
