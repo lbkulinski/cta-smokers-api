@@ -1,6 +1,7 @@
 package com.ctasmokers.smoking.report.cursor;
 
 import com.ctasmokers.smoking.report.exception.InvalidCursorException;
+import com.ctasmokers.smoking.report.model.SmokingReportSchema;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,10 +17,6 @@ import java.util.Objects;
 @Component
 @NullMarked
 public final class SmokingReportCursorCodec {
-    private static final String CAR_NUMBER_LINE_ATTRIBUTE = "carNumberLine";
-    private static final String GSI_PK_ATTRIBUTE = "gsiPk";
-    private static final String EXPIRES_AT_ATTRIBUTE = "expiresAt";
-
     private final JsonMapper jsonMapper;
 
     @Autowired
@@ -47,7 +44,7 @@ public final class SmokingReportCursorCodec {
         return Base64.getUrlEncoder().encodeToString(cursorBytes);
     }
 
-    public Map<String, AttributeValue> decode(String cursor) {
+    public ReportPageCursor decode(String cursor) {
         Objects.requireNonNull(cursor);
 
         byte[] cursorBytes;
@@ -68,24 +65,22 @@ public final class SmokingReportCursorCodec {
             throw new InvalidCursorException(cursor);
         }
 
-        return this.toKey(pageCursor);
+        if (!Objects.equals(pageCursor.gsiPk(), SmokingReportSchema.GSI_PK_VALUE)) {
+            throw new InvalidCursorException(cursor);
+        }
+
+        return pageCursor;
     }
 
     private ReportPageCursor toCursor(Map<String, AttributeValue> lastEvaluatedKey) {
-        String carNumberLine = this.getRequiredStringAttribute(lastEvaluatedKey, CAR_NUMBER_LINE_ATTRIBUTE);
-        String gsiPk = this.getRequiredStringAttribute(lastEvaluatedKey, GSI_PK_ATTRIBUTE);
+        String carNumberLine = this.getRequiredStringAttribute(
+            lastEvaluatedKey,
+            SmokingReportSchema.CAR_NUMBER_LINE_ATTRIBUTE);
+
+        String gsiPk = this.getRequiredStringAttribute(lastEvaluatedKey, SmokingReportSchema.GSI_PK_ATTRIBUTE);
         long expiresAt = this.getRequiredExpiresAtAttribute(lastEvaluatedKey);
 
         return new ReportPageCursor(carNumberLine, gsiPk, expiresAt);
-    }
-
-    private Map<String, AttributeValue> toKey(ReportPageCursor cursor) {
-        var expiresAtString = Long.toString(cursor.expiresAt());
-
-        return Map.of(
-            CAR_NUMBER_LINE_ATTRIBUTE, AttributeValue.createS(cursor.carNumberLine()),
-            GSI_PK_ATTRIBUTE, AttributeValue.createS(cursor.gsiPk()),
-            EXPIRES_AT_ATTRIBUTE, AttributeValue.createN(expiresAtString));
     }
 
     private String getRequiredStringAttribute(Map<String, AttributeValue> key, String attribute) {
@@ -105,23 +100,23 @@ public final class SmokingReportCursorCodec {
     }
 
     private long getRequiredExpiresAtAttribute(Map<String, AttributeValue> key) {
-        AttributeValue attributeValue = key.get(EXPIRES_AT_ATTRIBUTE);
+        AttributeValue attributeValue = key.get(SmokingReportSchema.EXPIRES_AT_ATTRIBUTE);
 
         if (attributeValue == null) {
-            throw new IllegalStateException("No %s found".formatted(EXPIRES_AT_ATTRIBUTE));
+            throw new IllegalStateException("No %s found".formatted(SmokingReportSchema.EXPIRES_AT_ATTRIBUTE));
         }
 
         String value = attributeValue.n();
 
         if (value == null) {
-            throw new IllegalStateException("%s is not a number".formatted(EXPIRES_AT_ATTRIBUTE));
+            throw new IllegalStateException("%s is not a number".formatted(SmokingReportSchema.EXPIRES_AT_ATTRIBUTE));
         }
 
         try {
             return Long.parseLong(value);
         } catch (NumberFormatException e) {
             throw new IllegalStateException(
-                "%s is not parseable as a long: %s".formatted(EXPIRES_AT_ATTRIBUTE, value), e);
+                "%s is not parseable as a long: %s".formatted(SmokingReportSchema.EXPIRES_AT_ATTRIBUTE, value), e);
         }
     }
 }

@@ -6,7 +6,7 @@ import com.ctasmokers.smoking.report.exception.InvalidStationIdException;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
-import com.ctasmokers.smoking.report.model.SmokingReportKeys;
+import com.ctasmokers.smoking.report.model.SmokingReportSchema;
 import com.ctasmokers.smoking.report.model.SmokingReportLimits;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
@@ -54,7 +54,7 @@ class SmokingReportServiceTest {
                             .carNumberLine("2435#RED")
                             .carNumber("2435")
                             .line(TrainLine.RED)
-                            .gsiPk(SmokingReportKeys.GSI_PK)
+                            .gsiPk(SmokingReportSchema.GSI_PK_VALUE)
                             .reportedAt(Instant.now())
                             .expiresAt(expiresAt)
                             .destinationId("40900")
@@ -80,7 +80,7 @@ class SmokingReportServiceTest {
         assertThat(saved.carNumberLine()).isEqualTo("2435#RED");
         assertThat(saved.carNumber()).isEqualTo("2435");
         assertThat(saved.line()).isEqualTo(TrainLine.RED);
-        assertThat(saved.gsiPk()).isEqualTo(SmokingReportKeys.GSI_PK);
+        assertThat(saved.gsiPk()).isEqualTo(SmokingReportSchema.GSI_PK_VALUE);
         assertThat(saved.destinationId()).isEqualTo("40900");
         assertThat(saved.nextStationId()).isEqualTo("41220");
         assertThat(saved.runNumber()).isNull();

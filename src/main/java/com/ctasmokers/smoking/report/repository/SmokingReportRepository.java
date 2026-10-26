@@ -2,10 +2,11 @@ package com.ctasmokers.smoking.report.repository;
 
 import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.aws.config.DynamoDbProperties;
+import com.ctasmokers.smoking.report.cursor.ReportPageCursor;
 import com.ctasmokers.smoking.report.cursor.SmokingReportCursorCodec;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
-import com.ctasmokers.smoking.report.model.SmokingReportKeys;
+import com.ctasmokers.smoking.report.model.SmokingReportSchema;
 import com.ctasmokers.smoking.report.model.SmokingReportLimits;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import org.jspecify.annotations.NullMarked;
@@ -34,7 +35,9 @@ import java.util.Objects;
 public final class SmokingReportRepository {
     private static final String NOW_PLACEHOLDER = ":now";
     private static final String NOT_EXISTS_OR_EXPIRED_EXPRESSION =
-        "attribute_not_exists(carNumberLine) OR expiresAt <= %s".formatted(NOW_PLACEHOLDER);
+        "attribute_not_exists(%s) OR expiresAt <= %s".formatted(
+            SmokingReportSchema.CAR_NUMBER_LINE_ATTRIBUTE,
+            NOW_PLACEHOLDER);
 
     private final DynamoDbTable<@Nullable SmokingReport> smokingReports;
     private final SmokingReportCursorCodec cursorCodec;
@@ -84,7 +87,7 @@ public final class SmokingReportRepository {
         long now = Instant.now().getEpochSecond();
 
         var key = Key.builder()
-                     .partitionValue(SmokingReportKeys.GSI_PK)
+                     .partitionValue(SmokingReportSchema.GSI_PK_VALUE)
                      .sortValue(now)
                      .build();
 
@@ -93,7 +96,13 @@ public final class SmokingReportRepository {
         Map<String, AttributeValue> exclusiveStartKey = null;
 
         if (nextCursor != null) {
-            exclusiveStartKey = this.cursorCodec.decode(nextCursor);
+            ReportPageCursor cursor = this.cursorCodec.decode(nextCursor);
+
+            if (cursor.expiresAt() <= now) {
+                return new SmokingReportPage(List.of(), null);
+            }
+
+            exclusiveStartKey = cursor.toKey();
         }
 
         var request = QueryEnhancedRequest.builder()
@@ -103,7 +112,7 @@ public final class SmokingReportRepository {
                                           .scanIndexForward(false)
                                           .build();
 
-        return this.smokingReports.index(SmokingReport.GSI_PK_EXPIRES_AT_INDEX)
+        return this.smokingReports.index(SmokingReportSchema.GSI_PK_EXPIRES_AT_INDEX)
                                   .query(request)
                                   .stream()
                                   .findFirst()
@@ -115,7 +124,7 @@ public final class SmokingReportRepository {
         Objects.requireNonNull(carNumber);
         Objects.requireNonNull(line);
 
-        String partitionKey = SmokingReportKeys.carNumberLine(carNumber, line);
+        String partitionKey = SmokingReportSchema.carNumberLine(carNumber, line);
 
         var key = Key.builder()
                      .partitionValue(partitionKey)

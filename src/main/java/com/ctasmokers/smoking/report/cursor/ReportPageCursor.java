@@ -1,7 +1,10 @@
 package com.ctasmokers.smoking.report.cursor;
 
+import com.ctasmokers.smoking.report.model.SmokingReportSchema;
 import org.jspecify.annotations.NullMarked;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+import java.util.Map;
 import java.util.Objects;
 
 @NullMarked
@@ -17,5 +20,14 @@ public record ReportPageCursor(
         if (expiresAt < 0L) {
             throw new IllegalArgumentException("expiresAt must be non-negative");
         }
+    }
+
+    public Map<String, AttributeValue> toKey() {
+        var expiresAtString = Long.toString(this.expiresAt);
+
+        return Map.of(
+            SmokingReportSchema.CAR_NUMBER_LINE_ATTRIBUTE, AttributeValue.createS(this.carNumberLine),
+            SmokingReportSchema.GSI_PK_ATTRIBUTE, AttributeValue.createS(this.gsiPk),
+            SmokingReportSchema.EXPIRES_AT_ATTRIBUTE, AttributeValue.createN(expiresAtString));
     }
 }

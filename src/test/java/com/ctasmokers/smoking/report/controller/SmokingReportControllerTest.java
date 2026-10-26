@@ -10,7 +10,7 @@ import com.ctasmokers.smoking.report.exception.InvalidStationIdException;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
-import com.ctasmokers.smoking.report.model.SmokingReportKeys;
+import com.ctasmokers.smoking.report.model.SmokingReportSchema;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.service.SmokingReportService;
 import com.rollbar.notifier.Rollbar;
@@ -88,7 +88,7 @@ class SmokingReportControllerTest {
                             .carNumberLine("2435#RED")
                             .carNumber("2435")
                             .line(TrainLine.RED)
-                            .gsiPk(SmokingReportKeys.GSI_PK)
+                            .gsiPk(SmokingReportSchema.GSI_PK_VALUE)
                             .reportedAt(Instant.parse("2026-05-10T12:00:00Z"))
                             .expiresAt(Instant.parse("2026-05-10T12:30:00Z").getEpochSecond())
                             .destinationId("40900")

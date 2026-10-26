@@ -14,7 +14,7 @@ class SmokingReportTest {
                             .carNumberLine("2435#RED")
                             .carNumber("2435")
                             .line(TrainLine.RED)
-                            .gsiPk(SmokingReportKeys.GSI_PK)
+                            .gsiPk(SmokingReportSchema.GSI_PK_VALUE)
                             .reportedAt(Instant.parse("2026-05-10T12:00:00Z"))
                             .expiresAt(1778416800L)
                             .destinationId("40900")
@@ -33,7 +33,7 @@ class SmokingReportTest {
 
     @Test
     void indexName_matchesTableDefinition() {
-        assertThat(SmokingReport.GSI_PK_EXPIRES_AT_INDEX).isEqualTo("gsiPk-expiresAt-index");
+        assertThat(SmokingReportSchema.GSI_PK_EXPIRES_AT_INDEX).isEqualTo("gsiPk-expiresAt-index");
     }
 
     @Test

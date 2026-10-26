@@ -23,12 +23,12 @@ public record SmokingReport(
 
     TrainLine line,
 
-    @DynamoDbSecondaryPartitionKey(indexNames = GSI_PK_EXPIRES_AT_INDEX)
+    @DynamoDbSecondaryPartitionKey(indexNames = SmokingReportSchema.GSI_PK_EXPIRES_AT_INDEX)
     String gsiPk,
 
     Instant reportedAt,
 
-    @DynamoDbSecondarySortKey(indexNames = GSI_PK_EXPIRES_AT_INDEX)
+    @DynamoDbSecondarySortKey(indexNames = SmokingReportSchema.GSI_PK_EXPIRES_AT_INDEX)
     long expiresAt,
 
     String destinationId,
@@ -38,8 +38,6 @@ public record SmokingReport(
     @Nullable
     String runNumber
 ) {
-    public static final String GSI_PK_EXPIRES_AT_INDEX = "gsiPk-expiresAt-index";
-
     public SmokingReport {
         Objects.requireNonNull(carNumberLine);
         Objects.requireNonNull(carNumber);

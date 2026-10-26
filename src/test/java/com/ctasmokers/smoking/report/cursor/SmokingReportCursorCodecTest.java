@@ -40,7 +40,14 @@ class SmokingReportCursorCodecTest {
     void encodeThenDecode_roundTripsKey() {
         String cursor = codec.encode(key());
 
-        assertThat(codec.decode(cursor)).isEqualTo(key());
+        assertThat(codec.decode(cursor).toKey()).isEqualTo(key());
+    }
+
+    @Test
+    void decode_returnsCursorFields() {
+        ReportPageCursor cursor = codec.decode(codec.encode(key()));
+
+        assertThat(cursor).isEqualTo(new ReportPageCursor("2435#RED", "REPORT", 1771712002L));
     }
 
     @Test
@@ -60,7 +67,7 @@ class SmokingReportCursorCodecTest {
         var withExtra = new java.util.HashMap<>(key());
         withExtra.put("other", AttributeValue.fromS("ignored"));
 
-        assertThat(codec.decode(codec.encode(withExtra))).isEqualTo(key());
+        assertThat(codec.decode(codec.encode(withExtra)).toKey()).isEqualTo(key());
     }
 
     @Test
@@ -144,6 +151,14 @@ class SmokingReportCursorCodecTest {
     @Test
     void decode_negativeExpiresAt_throwsInvalidCursor() {
         String json = "{\"carNumberLine\":\"2435#RED\",\"gsiPk\":\"REPORT\",\"expiresAt\":-1}";
+
+        assertThatThrownBy(() -> codec.decode(encodeJson(json)))
+            .isInstanceOf(InvalidCursorException.class);
+    }
+
+    @Test
+    void decode_wrongGsiPk_throwsInvalidCursor() {
+        String json = "{\"carNumberLine\":\"2435#RED\",\"gsiPk\":\"OTHER\",\"expiresAt\":1771712002}";
 
         assertThatThrownBy(() -> codec.decode(encodeJson(json)))
             .isInstanceOf(InvalidCursorException.class);

@@ -9,21 +9,21 @@ import java.lang.reflect.InvocationTargetException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class SmokingReportKeysTest {
+class SmokingReportSchemaTest {
     @Test
     void carNumberLine_joinsCarNumberAndLineWithHash() {
-        assertThat(SmokingReportKeys.carNumberLine("2435", TrainLine.RED)).isEqualTo("2435#RED");
-        assertThat(SmokingReportKeys.carNumberLine("5001", TrainLine.BLUE)).isEqualTo("5001#BLUE");
+        assertThat(SmokingReportSchema.carNumberLine("2435", TrainLine.RED)).isEqualTo("2435#RED");
+        assertThat(SmokingReportSchema.carNumberLine("5001", TrainLine.BLUE)).isEqualTo("5001#BLUE");
     }
 
     @Test
     void gsiPk_isConstant() {
-        assertThat(SmokingReportKeys.GSI_PK).isEqualTo("REPORT");
+        assertThat(SmokingReportSchema.GSI_PK_VALUE).isEqualTo("REPORT");
     }
 
     @Test
     void constructor_isNotInstantiable() throws NoSuchMethodException {
-        Constructor<SmokingReportKeys> constructor = SmokingReportKeys.class.getDeclaredConstructor();
+        Constructor<SmokingReportSchema> constructor = SmokingReportSchema.class.getDeclaredConstructor();
         constructor.setAccessible(true);
 
         assertThatThrownBy(constructor::newInstance)

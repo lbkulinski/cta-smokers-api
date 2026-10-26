@@ -5,7 +5,7 @@ import com.ctasmokers.smoking.report.config.CtaReportProperties;
 import com.ctasmokers.smoking.report.exception.InvalidStationIdException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
-import com.ctasmokers.smoking.report.model.SmokingReportKeys;
+import com.ctasmokers.smoking.report.model.SmokingReportSchema;
 import com.ctasmokers.smoking.report.model.SmokingReportLimits;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
@@ -62,7 +62,7 @@ public final class SmokingReportService {
 
         var trainLine = TrainLine.valueOf(line);
 
-        String carNumberLine = SmokingReportKeys.carNumberLine(carNumber, trainLine);
+        String carNumberLine = SmokingReportSchema.carNumberLine(carNumber, trainLine);
 
         var now = Instant.now();
 
@@ -72,7 +72,7 @@ public final class SmokingReportService {
                                   .carNumberLine(carNumberLine)
                                   .carNumber(carNumber)
                                   .line(trainLine)
-                                  .gsiPk(SmokingReportKeys.GSI_PK)
+                                  .gsiPk(SmokingReportSchema.GSI_PK_VALUE)
                                   .reportedAt(now)
                                   .expiresAt(expiresAt)
                                   .destinationId(destinationId)

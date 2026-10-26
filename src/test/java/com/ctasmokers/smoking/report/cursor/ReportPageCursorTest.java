@@ -1,6 +1,9 @@
 package com.ctasmokers.smoking.report.cursor;
 
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -31,5 +34,15 @@ class ReportPageCursorTest {
     void constructor_negativeExpiresAt_throws() {
         assertThatThrownBy(() -> new ReportPageCursor("2435#RED", "REPORT", -1L))
             .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void toKey_buildsDynamoKeyFromCursor() {
+        var cursor = new ReportPageCursor("2435#RED", "REPORT", 1771712002L);
+
+        assertThat(cursor.toKey()).isEqualTo(Map.of(
+            "carNumberLine", AttributeValue.fromS("2435#RED"),
+            "gsiPk", AttributeValue.fromS("REPORT"),
+            "expiresAt", AttributeValue.fromN("1771712002")));
     }
 }

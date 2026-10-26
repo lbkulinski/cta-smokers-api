@@ -2,11 +2,12 @@ package com.ctasmokers.smoking.report.repository;
 
 import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.aws.config.DynamoDbProperties;
+import com.ctasmokers.smoking.report.cursor.ReportPageCursor;
 import com.ctasmokers.smoking.report.cursor.SmokingReportCursorCodec;
 import com.ctasmokers.smoking.report.exception.InvalidCursorException;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
-import com.ctasmokers.smoking.report.model.SmokingReportKeys;
+import com.ctasmokers.smoking.report.model.SmokingReportSchema;
 import com.ctasmokers.smoking.report.model.SmokingReportLimits;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,7 +89,7 @@ class SmokingReportRepositoryTest {
                             .carNumberLine("2435#RED")
                             .carNumber("2435")
                             .line(TrainLine.RED)
-                            .gsiPk(SmokingReportKeys.GSI_PK)
+                            .gsiPk(SmokingReportSchema.GSI_PK_VALUE)
                             .reportedAt(Instant.now())
                             .expiresAt(Instant.now().getEpochSecond() + 3600L)
                             .destinationId("40900")
@@ -97,7 +98,7 @@ class SmokingReportRepositoryTest {
     }
 
     private void stubIndexQuery(Stream<Page<SmokingReport>> pages) {
-        when(smokingReports.index(SmokingReport.GSI_PK_EXPIRES_AT_INDEX)).thenReturn(activeIndex);
+        when(smokingReports.index(SmokingReportSchema.GSI_PK_EXPIRES_AT_INDEX)).thenReturn(activeIndex);
         when(activeIndex.query(any(QueryEnhancedRequest.class))).thenReturn(indexResults);
         when(indexResults.stream()).thenReturn(pages);
     }
@@ -195,12 +196,12 @@ class SmokingReportRepositoryTest {
 
         TableSchema<SmokingReport> tableSchema = TableSchema.fromImmutableClass(SmokingReport.class);
         Expression expression = request.queryConditional()
-                                       .expression(tableSchema, SmokingReport.GSI_PK_EXPIRES_AT_INDEX);
+                                       .expression(tableSchema, SmokingReportSchema.GSI_PK_EXPIRES_AT_INDEX);
 
         assertThat(expression.expression()).contains(" > ");
         assertThat(expression.expressionValues().values())
             .extracting(AttributeValue::s)
-            .contains(SmokingReportKeys.GSI_PK);
+            .contains(SmokingReportSchema.GSI_PK_VALUE);
         assertThat(expression.expressionValues().values())
             .filteredOn(value -> value.n() != null)
             .extracting(value -> Long.parseLong(value.n()))
@@ -209,17 +210,32 @@ class SmokingReportRepositoryTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void findActivePage_withCursor_decodesIntoExclusiveStartKey() {
-        Map<String, AttributeValue> startKey = Map.of("carNumberLine", AttributeValue.fromS("2435#RED"));
+    void findActivePage_withCursor_usesCursorKeyAsExclusiveStartKey() {
+        long expiresAt = Instant.now().getEpochSecond() + 600L;
+        var cursor = new ReportPageCursor("2435#RED", SmokingReportSchema.GSI_PK_VALUE, expiresAt);
 
-        when(cursorCodec.decode(CURSOR)).thenReturn(startKey);
+        when(cursorCodec.decode(CURSOR)).thenReturn(cursor);
         stubIndexQuery(Stream.of(page));
         when(page.items()).thenReturn(List.of());
         when(page.lastEvaluatedKey()).thenReturn(null);
 
         repository.findActivePage(10, CURSOR);
 
-        assertThat(capturedQueryRequest().exclusiveStartKey()).isEqualTo(startKey);
+        assertThat(capturedQueryRequest().exclusiveStartKey()).isEqualTo(cursor.toKey());
+    }
+
+    @Test
+    void findActivePage_cursorAlreadyExpired_returnsEmptyPageWithoutQuerying() {
+        long expiresAt = Instant.now().getEpochSecond() - 1L;
+        var cursor = new ReportPageCursor("2435#RED", SmokingReportSchema.GSI_PK_VALUE, expiresAt);
+
+        when(cursorCodec.decode(CURSOR)).thenReturn(cursor);
+
+        SmokingReportPage result = repository.findActivePage(10, CURSOR);
+
+        assertThat(result.reports()).isEmpty();
+        assertThat(result.nextCursor()).isNull();
+        verify(smokingReports, never()).index(any());
     }
 
     @Test
