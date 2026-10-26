@@ -79,7 +79,7 @@ public final class SmokingReportAggregateController {
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "Day to retrieve the aggregate for (e.g. 2026-02-21)")
+        @Parameter(description = "Day to retrieve the aggregate for")
         @Schema(type = "string", example = "2026-02-21")
         LocalDate date
     ) {
@@ -127,7 +127,7 @@ public final class SmokingReportAggregateController {
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "ISO week to retrieve the aggregate for (e.g. 2026-W13)")
+        @Parameter(description = "ISO week to retrieve the aggregate for")
         @Schema(type = "string", example = "2026-W13")
         YearWeek yearWeek
     ) {
@@ -175,7 +175,7 @@ public final class SmokingReportAggregateController {
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "Month to retrieve the aggregate for (e.g. 2026-03)")
+        @Parameter(description = "Month to retrieve the aggregate for")
         @Schema(type = "string", example = "2026-03")
         YearMonth yearMonth
     ) {
@@ -223,7 +223,7 @@ public final class SmokingReportAggregateController {
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "Year to retrieve the aggregate for (e.g. 2026)")
+        @Parameter(description = "Year to retrieve the aggregate for")
         @Schema(type = "string", example = "2026")
         Year year
     ) {
@@ -306,7 +306,7 @@ public final class SmokingReportAggregateController {
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "Month to retrieve daily counts for (e.g. 2026-03)")
+        @Parameter(description = "Month to retrieve daily counts for")
         @Schema(type = "string", example = "2026-03")
         YearMonth yearMonth
     ) {

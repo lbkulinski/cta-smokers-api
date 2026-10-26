@@ -185,7 +185,8 @@ public final class SmokingReportController {
     })
     public ResponseEntity<SmokingReportDto> getReportByCarNumberLine(
         @PathVariable
-        @Parameter(description = "Car number of the report to retrieve (e.g. 2435)")
+        @Parameter(description = "Car number of the report to retrieve")
+        @Schema(type = "string", example = "2345")
         String carNumber,
 
         @PathVariable
