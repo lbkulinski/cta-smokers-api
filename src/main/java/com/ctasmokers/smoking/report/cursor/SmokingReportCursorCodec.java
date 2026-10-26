@@ -65,7 +65,8 @@ public final class SmokingReportCursorCodec {
             throw new InvalidCursorException(cursor);
         }
 
-        if (!Objects.equals(pageCursor.gsiPk(), SmokingReportSchema.GSI_PK_VALUE)) {
+        //noinspection ConstantValue (Jackson returns null for the JSON literal null)
+        if (pageCursor == null || !Objects.equals(pageCursor.gsiPk(), SmokingReportSchema.GSI_PK_VALUE)) {
             throw new InvalidCursorException(cursor);
         }
 

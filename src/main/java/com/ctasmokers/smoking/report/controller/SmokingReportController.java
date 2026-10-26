@@ -20,6 +20,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -134,10 +135,12 @@ public final class SmokingReportController {
         @Parameter(description = "Maximum number of reports to return (defaults to 25)")
         @Min(1)
         @Max(SmokingReportLimits.MAX_LIMIT)
+        @Nullable
         Integer limit,
 
         @RequestParam(required = false)
         @Parameter(description = "The nextCursor value from the previous page, passed back unchanged")
+        @Nullable
         String nextCursor
     ) {
         SmokingReportPage page = this.reportService.getActiveReports(limit, nextCursor);

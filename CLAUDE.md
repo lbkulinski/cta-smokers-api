@@ -56,6 +56,7 @@ Table: `cta-smoking-reports`
 - Submit is a single conditional `putItem` (`attribute_not_exists` or expired), so a car and line has at most one item
 - Expired items can linger until TTL deletes them, so active reads use an `expiresAt` condition at query time, never TTL
 - Paging cursors are opaque base64url tokens: `SmokingReportCursorCodec` encodes a DynamoDB `lastEvaluatedKey` and decodes a token to a `ReportPageCursor`, and `ReportPageCursor.toKey()` builds the `exclusiveStartKey`
+- Cursors are not signed, so a well-formed cursor built by a client is accepted; it only picks a start position in already public data
 - Malformed cursors, including one whose `gsiPk` is not `GSI_PK_VALUE`, throw `InvalidCursorException` (400). A cursor whose `expiresAt` is at or before now returns an empty page without querying, because DynamoDB rejects a start key outside the query's `expiresAt` condition
 - `limit` is 1 to `SmokingReportLimits.MAX_LIMIT`; the controller validates it and the repository re-checks it
 

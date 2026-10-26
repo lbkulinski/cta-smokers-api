@@ -63,7 +63,7 @@ public final class SmokingReportRepository {
 
         var validExpression = Expression.builder()
                                         .expression(NOT_EXISTS_OR_EXPIRED_EXPRESSION)
-                                        .expressionValues(Map.of(NOW_PLACEHOLDER, AttributeValue.createN(nowString)))
+                                        .expressionValues(Map.of(NOW_PLACEHOLDER, AttributeValue.fromN(nowString)))
                                         .build();
 
         var request = PutItemEnhancedRequest.builder(SmokingReport.class)

@@ -143,6 +143,12 @@ class SmokingReportCursorCodecTest {
     }
 
     @Test
+    void decode_jsonNull_throwsInvalidCursor() {
+        assertThatThrownBy(() -> codec.decode(encodeJson("null")))
+            .isInstanceOf(InvalidCursorException.class);
+    }
+
+    @Test
     void decode_missingFields_throwsInvalidCursor() {
         assertThatThrownBy(() -> codec.decode(encodeJson("{\"carNumberLine\":\"2435#RED\"}")))
             .isInstanceOf(InvalidCursorException.class);

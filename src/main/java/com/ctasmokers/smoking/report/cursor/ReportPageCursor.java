@@ -26,8 +26,8 @@ public record ReportPageCursor(
         var expiresAtString = Long.toString(this.expiresAt);
 
         return Map.of(
-            SmokingReportSchema.CAR_NUMBER_LINE_ATTRIBUTE, AttributeValue.createS(this.carNumberLine),
-            SmokingReportSchema.GSI_PK_ATTRIBUTE, AttributeValue.createS(this.gsiPk),
-            SmokingReportSchema.EXPIRES_AT_ATTRIBUTE, AttributeValue.createN(expiresAtString));
+            SmokingReportSchema.CAR_NUMBER_LINE_ATTRIBUTE, AttributeValue.fromS(this.carNumberLine),
+            SmokingReportSchema.GSI_PK_ATTRIBUTE, AttributeValue.fromS(this.gsiPk),
+            SmokingReportSchema.EXPIRES_AT_ATTRIBUTE, AttributeValue.fromN(expiresAtString));
     }
 }
