@@ -17,7 +17,7 @@ public record SmokingReportPageDto(
     List<SmokingReportDto> reports,
 
     @Schema(
-        description = "Opaque cursor to pass as nextCursor for the next page, or null if there are no more results",
+        description = "Opaque cursor for the next page, or null on the last page. May be set before a final empty page",
         example = "c2FtcGxlLWN1cnNvcg",
         nullable = true
     )

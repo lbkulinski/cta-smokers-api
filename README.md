@@ -76,6 +76,8 @@ To get the next page, pass the `nextCursor` value from the response back unchang
 curl -s "https://api.ctasmokers.com/api/cta/reports/smoking/active?limit=10&nextCursor=$CURSOR" | jq '.'
 ```
 
+Keep requesting pages until `nextCursor` is `null`. When the last page holds exactly `limit` reports, `nextCursor` can still be non-null, and the next request returns an empty page with `nextCursor` set to `null`.
+
 ### Fetch the active report for a car
 
 ``` bash
