@@ -3,6 +3,8 @@ package com.ctasmokers.smoking.report.cursor;
 import com.ctasmokers.smoking.report.exception.InvalidCursorException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
@@ -165,6 +167,24 @@ class SmokingReportCursorCodecTest {
     @Test
     void decode_wrongGsiPk_throwsInvalidCursor() {
         String json = "{\"carNumberLine\":\"2435#RED\",\"gsiPk\":\"OTHER\",\"expiresAt\":1771712002}";
+
+        assertThatThrownBy(() -> codec.decode(encodeJson(json)))
+            .isInstanceOf(InvalidCursorException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "garbage", "2435", "243#RED", "2435#red", "2435#SILVER"})
+    void decode_malformedCarNumberLine_throwsInvalidCursor(String carNumberLine) {
+        String json = "{\"carNumberLine\":\"%s\",\"gsiPk\":\"REPORT\",\"expiresAt\":1771712002}".formatted(carNumberLine);
+
+        assertThatThrownBy(() -> codec.decode(encodeJson(json)))
+            .isInstanceOf(InvalidCursorException.class);
+    }
+
+    @Test
+    void decode_veryLongCarNumberLine_throwsInvalidCursor() {
+        String json = "{\"carNumberLine\":\"2435#%s\",\"gsiPk\":\"REPORT\",\"expiresAt\":1771712002}".formatted(
+            "R".repeat(3000));
 
         assertThatThrownBy(() -> codec.decode(encodeJson(json)))
             .isInstanceOf(InvalidCursorException.class);

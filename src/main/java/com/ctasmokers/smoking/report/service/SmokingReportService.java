@@ -9,6 +9,7 @@ import com.ctasmokers.smoking.report.model.SmokingReportSchema;
 import com.ctasmokers.smoking.report.model.SmokingReportLimits;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
+import com.ctasmokers.smoking.report.repository.StationRepository;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,31 +17,39 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
 
 @Service
 @NullMarked
 public final class SmokingReportService {
-    private final StationService stationService;
+    private static final String LOOP_STATION_ID = "0";
+    private static final Set<TrainLine> LOOP_TRAIN_LINES = EnumSet.of(
+        TrainLine.BROWN,
+        TrainLine.ORANGE,
+        TrainLine.PURPLE,
+        TrainLine.PINK);
+
+    private final StationRepository stationRepository;
     private final SmokingReportRepository reportRepository;
 
     private final long expireAfterMinutes;
 
     @Autowired
     public SmokingReportService(
-        StationService stationService,
+        StationRepository stationRepository,
         SmokingReportRepository reportRepository,
         CtaReportProperties reportProperties
     ) {
-        this.stationService = stationService;
+        this.stationRepository = stationRepository;
         this.reportRepository = reportRepository;
         this.expireAfterMinutes = reportProperties.expireAfterMinutes();
     }
 
     public SmokingReport submitReport(
         String carNumber,
-        String line,
+        TrainLine line,
         String destinationId,
         String nextStationId,
         @Nullable String runNumber
@@ -50,19 +59,15 @@ public final class SmokingReportService {
         Objects.requireNonNull(destinationId);
         Objects.requireNonNull(nextStationId);
 
-        Set<String> stationIds = this.stationService.getIds();
-
-        if (!stationIds.contains(destinationId)) {
+        if (!this.isValidDestination(destinationId, line)) {
             throw new InvalidStationIdException("destinationId", destinationId);
         }
 
-        if (!stationIds.contains(nextStationId)) {
+        if (!this.stationRepository.existsByMapId(nextStationId)) {
             throw new InvalidStationIdException("nextStationId", nextStationId);
         }
 
-        var trainLine = TrainLine.valueOf(line);
-
-        String carNumberLine = SmokingReportSchema.carNumberLine(carNumber, trainLine);
+        String carNumberLine = SmokingReportSchema.carNumberLine(carNumber, line);
 
         var now = Instant.now();
 
@@ -71,7 +76,7 @@ public final class SmokingReportService {
         var report = SmokingReport.builder()
                                   .carNumberLine(carNumberLine)
                                   .carNumber(carNumber)
-                                  .line(trainLine)
+                                  .line(line)
                                   .gsiPk(SmokingReportSchema.GSI_PK_VALUE)
                                   .reportedAt(now)
                                   .expiresAt(expiresAt)
@@ -109,5 +114,13 @@ public final class SmokingReportService {
         }
 
         return report;
+    }
+
+    private boolean isValidDestination(String destinationId, TrainLine trainLine) {
+        if (Objects.equals(destinationId, LOOP_STATION_ID)) {
+            return LOOP_TRAIN_LINES.contains(trainLine);
+        }
+
+        return this.stationRepository.existsByMapId(destinationId);
     }
 }

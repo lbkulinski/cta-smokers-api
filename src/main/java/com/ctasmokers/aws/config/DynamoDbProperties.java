@@ -12,6 +12,10 @@ import org.springframework.validation.annotation.Validated;
 public record DynamoDbProperties(
     @NotBlank
     @Pattern(regexp = TABLE_NAME_PATTERN, message = TABLE_NAME_PATTERN_MESSAGE)
+    String stations,
+
+    @NotBlank
+    @Pattern(regexp = TABLE_NAME_PATTERN, message = TABLE_NAME_PATTERN_MESSAGE)
     String smokingReports,
 
     @NotBlank

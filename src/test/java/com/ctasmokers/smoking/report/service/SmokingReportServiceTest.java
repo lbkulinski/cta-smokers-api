@@ -10,16 +10,18 @@ import com.ctasmokers.smoking.report.model.SmokingReportSchema;
 import com.ctasmokers.smoking.report.model.SmokingReportLimits;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
+import com.ctasmokers.smoking.report.repository.StationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -35,7 +37,7 @@ class SmokingReportServiceTest {
     private static final String CURSOR = "c2FtcGxlLWN1cnNvcg";
 
     @Mock
-    private StationService stationService;
+    private StationRepository stationRepository;
 
     @Mock
     private SmokingReportRepository repository;
@@ -46,7 +48,7 @@ class SmokingReportServiceTest {
     void setUp() {
         var reportProperties = new CtaReportProperties("https://api.ctasmokers.com", EXPIRE_AFTER_MINUTES);
 
-        service = new SmokingReportService(stationService, repository, reportProperties);
+        service = new SmokingReportService(stationRepository, repository, reportProperties);
     }
 
     private SmokingReport report(long expiresAt) {
@@ -64,11 +66,12 @@ class SmokingReportServiceTest {
 
     @Test
     void submitReport_savesReportAndReturnsIt() {
-        when(stationService.getIds()).thenReturn(Set.of("40900", "41220"));
+        when(stationRepository.existsByMapId("40900")).thenReturn(true);
+        when(stationRepository.existsByMapId("41220")).thenReturn(true);
 
         long before = Instant.now().plusSeconds(EXPIRE_AFTER_MINUTES * 60L).getEpochSecond();
 
-        SmokingReport response = service.submitReport("2435", "RED", "40900", "41220", null);
+        SmokingReport response = service.submitReport("2435", TrainLine.RED, "40900", "41220", null);
 
         long after = Instant.now().plusSeconds(EXPIRE_AFTER_MINUTES * 60L).getEpochSecond();
 
@@ -90,9 +93,10 @@ class SmokingReportServiceTest {
 
     @Test
     void submitReport_withRunNumber_includesRunNumber() {
-        when(stationService.getIds()).thenReturn(Set.of("40900", "41220"));
+        when(stationRepository.existsByMapId("40900")).thenReturn(true);
+        when(stationRepository.existsByMapId("41220")).thenReturn(true);
 
-        service.submitReport("2435", "BLUE", "40900", "41220", "902");
+        service.submitReport("2435", TrainLine.BLUE, "40900", "41220", "902");
 
         ArgumentCaptor<SmokingReport> reportCaptor = ArgumentCaptor.forClass(SmokingReport.class);
         verify(repository).save(reportCaptor.capture());
@@ -103,21 +107,20 @@ class SmokingReportServiceTest {
 
     @Test
     void submitReport_unknownDestination_throwsAndDoesNotSave() {
-        when(stationService.getIds()).thenReturn(Set.of("41220"));
-
-        assertThatThrownBy(() -> service.submitReport("2435", "RED", "40900", "41220", null))
+        assertThatThrownBy(() -> service.submitReport("2435", TrainLine.RED, "40900", "41220", null))
             .isInstanceOf(InvalidStationIdException.class)
             .hasMessageContaining("destinationId")
             .hasMessageContaining("40900");
 
+        verify(stationRepository, never()).existsByMapId("41220");
         verify(repository, never()).save(any());
     }
 
     @Test
     void submitReport_unknownNextStation_throwsAndDoesNotSave() {
-        when(stationService.getIds()).thenReturn(Set.of("40900"));
+        when(stationRepository.existsByMapId("40900")).thenReturn(true);
 
-        assertThatThrownBy(() -> service.submitReport("2435", "RED", "40900", "41220", null))
+        assertThatThrownBy(() -> service.submitReport("2435", TrainLine.RED, "40900", "41220", null))
             .isInstanceOf(InvalidStationIdException.class)
             .hasMessageContaining("nextStationId")
             .hasMessageContaining("41220");
@@ -125,23 +128,49 @@ class SmokingReportServiceTest {
         verify(repository, never()).save(any());
     }
 
-    @Test
-    void submitReport_whenRepositoryRejectsDuplicate_propagatesException() {
-        when(stationService.getIds()).thenReturn(Set.of("40900", "41220"));
-        doThrow(new SmokingReportAlreadyExistsException("2435", TrainLine.RED)).when(repository).save(any());
+    @ParameterizedTest
+    @EnumSource(value = TrainLine.class, names = {"BROWN", "ORANGE", "PURPLE", "PINK"})
+    void submitReport_loopDestinationOnLoopLine_savesWithoutLookingUpDestination(TrainLine line) {
+        when(stationRepository.existsByMapId("41220")).thenReturn(true);
 
-        assertThatThrownBy(() -> service.submitReport("2435", "RED", "40900", "41220", null))
-            .isInstanceOf(SmokingReportAlreadyExistsException.class);
+        SmokingReport response = service.submitReport("2435", line, "0", "41220", null);
+
+        assertThat(response.destinationId()).isEqualTo("0");
+        assertThat(response.line()).isEqualTo(line);
+
+        verify(stationRepository, never()).existsByMapId("0");
+        verify(repository).save(response);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = TrainLine.class, names = {"BROWN", "ORANGE", "PURPLE", "PINK"}, mode = EnumSource.Mode.EXCLUDE)
+    void submitReport_loopDestinationOnNonLoopLine_throwsWithoutLookingUpDestination(TrainLine line) {
+        assertThatThrownBy(() -> service.submitReport("2435", line, "0", "41220", null))
+            .isInstanceOf(InvalidStationIdException.class)
+            .hasMessageContaining("destinationId")
+            .hasMessageContaining("0");
+
+        verify(stationRepository, never()).existsByMapId(any());
+        verify(repository, never()).save(any());
     }
 
     @Test
-    void submitReport_invalidLine_throwsIllegalArgument() {
-        when(stationService.getIds()).thenReturn(Set.of("40900", "41220"));
-
-        assertThatThrownBy(() -> service.submitReport("2435", "NOPE", "40900", "41220", null))
-            .isInstanceOf(IllegalArgumentException.class);
+    void submitReport_loopAsNextStation_throwsAndDoesNotSave() {
+        assertThatThrownBy(() -> service.submitReport("2435", TrainLine.BROWN, "0", "0", null))
+            .isInstanceOf(InvalidStationIdException.class)
+            .hasMessageContaining("nextStationId");
 
         verify(repository, never()).save(any());
+    }
+
+    @Test
+    void submitReport_whenRepositoryRejectsDuplicate_propagatesException() {
+        when(stationRepository.existsByMapId("40900")).thenReturn(true);
+        when(stationRepository.existsByMapId("41220")).thenReturn(true);
+        doThrow(new SmokingReportAlreadyExistsException("2435", TrainLine.RED)).when(repository).save(any());
+
+        assertThatThrownBy(() -> service.submitReport("2435", TrainLine.RED, "40900", "41220", null))
+            .isInstanceOf(SmokingReportAlreadyExistsException.class);
     }
 
     @Test

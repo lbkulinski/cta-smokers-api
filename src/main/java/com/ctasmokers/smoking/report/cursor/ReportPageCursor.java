@@ -17,6 +17,10 @@ public record ReportPageCursor(
         Objects.requireNonNull(carNumberLine);
         Objects.requireNonNull(gsiPk);
 
+        if (!SmokingReportSchema.isValidCarNumberLine(carNumberLine)) {
+            throw new IllegalArgumentException("%s is not a valid carNumberLine".formatted(carNumberLine));
+        }
+
         if (expiresAt < 0L) {
             throw new IllegalArgumentException("expiresAt must be non-negative");
         }

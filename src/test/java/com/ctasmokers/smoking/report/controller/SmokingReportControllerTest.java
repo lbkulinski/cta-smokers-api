@@ -130,7 +130,7 @@ class SmokingReportControllerTest {
                    .content(SUBMIT_BODY))
                .andExpect(status().isCreated());
 
-        verify(smokingReportService).submitReport("2435", "RED", "40900", "41220", "902");
+        verify(smokingReportService).submitReport("2435", TrainLine.RED, "40900", "41220", "902");
     }
 
     @Test

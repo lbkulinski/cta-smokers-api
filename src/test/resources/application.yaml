@@ -8,6 +8,7 @@ app:
       id: test/cta-smokers
     dynamodb:
       tables:
+        stations: cta-train-stations
         smoking-reports: cta-smoking-reports
         smoking-report-aggregates: cta-smoking-report-aggregates
   rollbar:

@@ -71,7 +71,12 @@ Table: `cta-smoking-report-aggregates`
 
 ## Stations
 
-`StationService.getIds()` returns the set of valid CTA station map IDs from `cta4j-java-sdk`. It is cached in Caffeine (`stationIds`, `expireAfterWrite` 24 hours, `@Cacheable(sync = true)`) and retried with exponential backoff on `Cta4jTrainException` (`@Retryable`, enabled with `@EnableResilientMethods`). Unknown destination or next-station IDs throw `InvalidStationIdException` (400).
+Table: `cta-train-stations` (configured as `app.aws.dynamodb.tables.stations`)
+- PK: `mapId`, SK: `stationId`
+- `StationRepository.existsByMapId` queries the `mapId` partition with a limit of 1 and checks the returned items, not the pages, since an empty result still comes back as a page
+- Results are cached in Caffeine (`stationMapIds`, `expireAfterWrite` 24 hours). Only `true` is cached (`unless = "!#result"`), so a station added later is found on the next request
+- Unknown destination or next-station IDs throw `InvalidStationIdException` (400)
+- Destination `0` is the Loop: it is accepted without a lookup on Brown, Orange, Pink, and Purple, and rejected on other lines. `nextStationId` is always looked up
 
 ## Error Handling
 
@@ -84,7 +89,7 @@ Table: `cta-smoking-report-aggregates`
 
 - Unit tests use `@ExtendWith(MockitoExtension.class)` — no Spring context
 - Controller tests use `@WebMvcTest` with `@MockitoBean` for services
-- Use a small `@SpringJUnitConfig` (with `@DirtiesContext`) only to test Spring behavior such as caching and retry, as in `StationServiceCachingTest`
+- Use a small `@SpringJUnitConfig` (with `@DirtiesContext`) only to test Spring behavior such as caching, as in `StationRepositoryCachingTest`
 - Assertions use AssertJ (`assertThat`, `assertThatThrownBy`)
 - Use `ArgumentCaptor` to verify what was passed to mocks, not just that a method was called
 - Raw `DynamoDbTable<T>` mocks require `@SuppressWarnings("rawtypes")` on the field and `@SuppressWarnings("unchecked")` on methods that use them
