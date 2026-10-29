@@ -8,6 +8,7 @@ import com.ctasmokers.smoking.report.dto.SubmitReportDto;
 import com.ctasmokers.smoking.report.model.SmokingReport;
 import com.ctasmokers.smoking.report.model.SmokingReportLimits;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
+import com.ctasmokers.smoking.report.model.SmokingReportSchema;
 import com.ctasmokers.smoking.report.service.SmokingReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,6 +20,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -132,9 +134,9 @@ public final class SmokingReportController {
     })
     public ResponseEntity<SmokingReportPageDto> getActiveReports(
         @RequestParam(required = false)
-        @Parameter(description = "Maximum number of reports to return (defaults to 25)")
         @Min(1)
         @Max(SmokingReportLimits.MAX_LIMIT)
+        @Parameter(description = "Maximum number of reports to return (defaults to 25)")
         @Nullable
         Integer limit,
 
@@ -188,6 +190,7 @@ public final class SmokingReportController {
     })
     public ResponseEntity<SmokingReportDto> getReportByCarNumberLine(
         @PathVariable
+        @Pattern(regexp = SmokingReportSchema.CAR_NUMBER_REGEX)
         @Parameter(description = "Car number of the report to retrieve")
         @Schema(type = "string", example = "2345")
         String carNumber,

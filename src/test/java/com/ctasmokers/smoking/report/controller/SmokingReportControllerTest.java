@@ -15,6 +15,8 @@ import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.service.SmokingReportService;
 import com.rollbar.notifier.Rollbar;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -299,6 +301,18 @@ class SmokingReportControllerTest {
     void getReportByCarNumberLine_invalidLine_returns400() throws Exception {
         mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{carNumber}/{line}", "2435", "SILVER")))
                .andExpect(status().isBadRequest());
+
+        verify(smokingReportService, never()).getReportByCarNumberLine(any(), any());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"243", "24355", "abcd", "24a5"})
+    void getReportByCarNumberLine_malformedCarNumber_returns400WithoutCallingService(String carNumber)
+        throws Exception {
+        mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/{carNumber}/{line}", carNumber, "RED")))
+               .andExpect(status().isBadRequest())
+               .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+               .andExpect(jsonPath("$.status").value(400));
 
         verify(smokingReportService, never()).getReportByCarNumberLine(any(), any());
     }

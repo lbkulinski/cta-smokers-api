@@ -26,12 +26,13 @@ public final class SmokingReportSchema {
                                                     .collect(Collectors.joining("|"));
 
     public static final String CAR_NUMBER_REGEX = "^" + CAR_NUMBER_STRING + "$";
-
-    private static final Pattern CAR_NUMBER_PATTERN = Pattern.compile(CAR_NUMBER_REGEX);
-    private static final Pattern CAR_NUMBER_LINE_PATTERN = Pattern.compile("^%s%s(%s)$".formatted(
+    private static final String CAR_NUMBER_LINE_REGEX = "^%s%s(%s)$".formatted(
         CAR_NUMBER_STRING,
         DELIMITER,
-        LINE_STRING));
+        LINE_STRING);
+
+    private static final Pattern CAR_NUMBER_PATTERN = Pattern.compile(CAR_NUMBER_REGEX);
+    private static final Pattern CAR_NUMBER_LINE_PATTERN = Pattern.compile(CAR_NUMBER_LINE_REGEX);
 
     private SmokingReportSchema() {
         throw new UnsupportedOperationException("Utility class");

@@ -15,7 +15,7 @@ Package layout: feature (`smoking.report`, `smoking.aggregate`) then layer (`con
 
 ## Annotation Ordering
 
-Always apply annotations in this order: **Spring → OpenAPI/other → JSpecify**
+Always apply annotations in this order: **Spring → Jakarta Validation → OpenAPI/other → JSpecify**
 
 ```java
 @RestController
@@ -24,6 +24,19 @@ Always apply annotations in this order: **Spring → OpenAPI/other → JSpecify*
 @NullMarked
 public final class MyController { }
 ```
+
+Constraints go before OpenAPI annotations on parameters and record components:
+
+```java
+@RequestParam(required = false)
+@Min(1)
+@Max(100)
+@Parameter(description = "...")
+@Nullable
+Integer limit
+```
+
+The one exception is `@Valid` on a request body, which comes first: `@Valid @RequestBody SubmitReportDto request`.
 
 ## Null Safety
 
