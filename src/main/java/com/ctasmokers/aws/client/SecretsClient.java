@@ -12,14 +12,14 @@ import tools.jackson.databind.json.JsonMapper;
 
 @Component
 @NullMarked
-public final class AwsSecretsClient {
+public final class SecretsClient {
     private final SecretCache secretCache;
     private final JsonMapper jsonMapper;
 
     private final String appSecretId;
 
     @Autowired
-    public AwsSecretsClient(
+    public SecretsClient(
         SecretCache secretCache,
         JsonMapper jsonMapper,
         @Value("${app.aws.secrets-manager.id}") String appSecretId
@@ -32,14 +32,10 @@ public final class AwsSecretsClient {
     public Secret getAppSecret() {
         String secretString = this.secretCache.getSecretString(this.appSecretId);
 
-        Secret secret;
-
         try {
-            secret = this.jsonMapper.readValue(secretString, Secret.class);
+            return this.jsonMapper.readValue(secretString, Secret.class);
         } catch (JacksonException e) {
             throw new SecretsClientException("Failed to parse application secret JSON", e);
         }
-
-        return secret;
     }
 }

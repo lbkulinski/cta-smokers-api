@@ -8,6 +8,7 @@ app:
       id: test/cta-smokers
     dynamodb:
       tables:
+        stations: cta-train-stations
         smoking-reports: cta-smoking-reports
         smoking-report-aggregates: cta-smoking-report-aggregates
   rollbar:
@@ -32,7 +33,6 @@ app:
   cta:
     reports:
       base-url: https://api.ctasmokers.com
-      page-size: 25
       expire-after-minutes: 30
   openapi:
     info:

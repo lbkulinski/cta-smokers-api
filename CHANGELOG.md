@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `GET /api/cta/reports/smoking/active` — returns a page of active (unexpired) smoking reports, newest first. Accepts optional `limit` (1 to 100, default 25) and `nextCursor` query parameters. A `nextCursor` whose last report has since expired returns an empty page.
+- `400 Bad Request` response when submitting a report with a destination or next station ID that is not a known CTA station. A destination ID of `0` means the Loop and is accepted only for the Brown, Orange, Pink, and Purple lines.
+- `400 Bad Request` response when `nextCursor` cannot be decoded as a cursor.
+
+### Changed
+
+- **Breaking:** `GET /api/cta/reports/smoking/{carNumber}/{line}` replaces `GET /api/cta/reports/smoking/{date}/{reportId}` and returns the active report for a car number and line, or `404 Not Found` if it has expired. The `Location` header on `POST` points to this endpoint.
+- **Breaking:** `date` and `reportId` are removed from report responses.
+- **Breaking:** `nextCursor` values are now opaque tokens, and cursors issued by earlier versions are rejected with `400 Bad Request`.
+- **Breaking:** the smoking reports table is now keyed on `carNumberLine` (partition key, no sort key) with a `gsiPk-expiresAt-index` global secondary index. This requires a new table, so `APP_AWS_DYNAMODB_TABLES_SMOKING_REPORTS` must point to it.
+- **Breaking:** a stations table is now required for station ID validation, so `APP_AWS_DYNAMODB_TABLES_STATIONS` must be set to its name.
+- Train lines now use the `TrainLine` type from `cta4j-java-sdk`.
+- Page size is no longer configurable through `app.cta.reports.page-size`; use the `limit` query parameter instead.
+- Add `com.cta4j:cta4j-java-sdk` `8.0.0`.
+
+### Removed
+
+- `GET /api/cta/reports/smoking/{date}` — use `GET /api/cta/reports/smoking/active`, or the aggregate endpoints for history.
+- `GET /api/cta/reports/smoking/{date}/{reportId}`.
+
+### Fixed
+
+- Concurrent submissions for the same car number and line can no longer both succeed; the duplicate check is now a single conditional write.
+
 ## [4.0.0] - 2026-08-06
 
 ### Added

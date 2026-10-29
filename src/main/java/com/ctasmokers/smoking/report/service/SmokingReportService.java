@@ -1,102 +1,126 @@
 package com.ctasmokers.smoking.report.service;
 
+import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
-import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
+import com.ctasmokers.smoking.report.exception.InvalidStationIdException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
-import com.ctasmokers.smoking.common.model.TrainLine;
+import com.ctasmokers.smoking.report.model.SmokingReportSchema;
+import com.ctasmokers.smoking.report.model.SmokingReportLimits;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import com.ctasmokers.smoking.report.repository.SmokingReportRepository;
+import com.ctasmokers.smoking.report.repository.StationRepository;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.EnumSet;
 import java.util.Objects;
-import java.util.UUID;
+import java.util.Set;
 
 @Service
 @NullMarked
 public final class SmokingReportService {
-    private static final ZoneId CHICAGO_ZONE_ID = ZoneId.of("America/Chicago");
-    private static final String REPORT_ID_FORMAT = "%d_%s";
+    private static final String LOOP_STATION_ID = "0";
+    private static final Set<TrainLine> LOOP_TRAIN_LINES = EnumSet.of(
+        TrainLine.BROWN,
+        TrainLine.ORANGE,
+        TrainLine.PURPLE,
+        TrainLine.PINK);
 
+    private final StationRepository stationRepository;
     private final SmokingReportRepository reportRepository;
 
-    private final int pageSize;
     private final long expireAfterMinutes;
 
     @Autowired
     public SmokingReportService(
+        StationRepository stationRepository,
         SmokingReportRepository reportRepository,
-        CtaReportProperties reportsProperties
+        CtaReportProperties reportProperties
     ) {
+        this.stationRepository = stationRepository;
         this.reportRepository = reportRepository;
-        this.pageSize = reportsProperties.pageSize();
-        this.expireAfterMinutes = reportsProperties.expireAfterMinutes();
+        this.expireAfterMinutes = reportProperties.expireAfterMinutes();
     }
 
     public SmokingReport submitReport(
-        String line,
+        String carNumber,
+        TrainLine line,
         String destinationId,
         String nextStationId,
-        String carNumber,
         @Nullable String runNumber
     ) {
+        Objects.requireNonNull(carNumber);
         Objects.requireNonNull(line);
         Objects.requireNonNull(destinationId);
         Objects.requireNonNull(nextStationId);
-        Objects.requireNonNull(carNumber);
 
-        TrainLine trainLine = TrainLine.valueOf(line);
-
-        if (this.reportRepository.existsActiveByCarNumberAndLine(carNumber, trainLine)) {
-            throw new SmokingReportAlreadyExistsException(carNumber, trainLine);
+        if (!this.isValidDestination(destinationId, line)) {
+            throw new InvalidStationIdException("destinationId", destinationId);
         }
 
-        Instant now = Instant.now();
-        long epochMillis = now.toEpochMilli();
-        String uuid = UUID.randomUUID().toString();
+        if (!this.stationRepository.existsByMapId(nextStationId)) {
+            throw new InvalidStationIdException("nextStationId", nextStationId);
+        }
 
-        LocalDate date = now.atZone(CHICAGO_ZONE_ID).toLocalDate();
-        String reportId = REPORT_ID_FORMAT.formatted(epochMillis, uuid);
+        String carNumberLine = SmokingReportSchema.carNumberLine(carNumber, line);
+
+        var now = Instant.now();
 
         long expiresAt = now.plus(this.expireAfterMinutes, ChronoUnit.MINUTES).getEpochSecond();
-        String carNumberLine = SmokingReport.carNumberLineOf(carNumber, trainLine);
 
-        SmokingReport report = SmokingReport.builder()
-                                            .date(date)
-                                            .reportId(reportId)
-                                            .reportedAt(now)
-                                            .expiresAt(expiresAt)
-                                            .line(trainLine)
-                                            .destinationId(destinationId)
-                                            .nextStationId(nextStationId)
-                                            .carNumber(carNumber)
-                                            .carNumberLine(carNumberLine)
-                                            .runNumber(runNumber)
-                                            .build();
+        var report = SmokingReport.builder()
+                                  .carNumberLine(carNumberLine)
+                                  .carNumber(carNumber)
+                                  .line(line)
+                                  .gsiPk(SmokingReportSchema.GSI_PK_VALUE)
+                                  .reportedAt(now)
+                                  .expiresAt(expiresAt)
+                                  .destinationId(destinationId)
+                                  .nextStationId(nextStationId)
+                                  .runNumber(runNumber)
+                                  .build();
 
         this.reportRepository.save(report);
 
         return report;
     }
 
-    public SmokingReportPage getReportsByDate(LocalDate date, @Nullable String nextCursor) {
-        Objects.requireNonNull(date);
+    public SmokingReportPage getActiveReports(
+        @Nullable Integer limit,
+        @Nullable String nextCursor
+    ) {
+        int resolvedLimit = limit == null
+            ? SmokingReportLimits.DEFAULT_LIMIT
+            : limit;
 
-        return this.reportRepository.findPageByDate(date, this.pageSize, nextCursor);
+        return this.reportRepository.findActivePage(resolvedLimit, nextCursor);
     }
 
-    public SmokingReport getReportById(LocalDate date, String reportId) {
-        Objects.requireNonNull(date);
-        Objects.requireNonNull(reportId);
+    public SmokingReport getReportByCarNumberLine(String carNumber, TrainLine line) {
+        Objects.requireNonNull(carNumber);
+        Objects.requireNonNull(line);
 
-        return this.reportRepository.findById(date, reportId)
-                                    .orElseThrow(() -> new SmokingReportNotFoundException(date, reportId));
+        SmokingReport report = this.reportRepository.findByCarNumberLine(carNumber, line);
+
+        long now = Instant.now().getEpochSecond();
+
+        if (report == null || report.expiresAt() <= now) {
+            throw new SmokingReportNotFoundException(carNumber, line);
+        }
+
+        return report;
+    }
+
+    private boolean isValidDestination(String destinationId, TrainLine trainLine) {
+        if (Objects.equals(destinationId, LOOP_STATION_ID)) {
+            return LOOP_TRAIN_LINES.contains(trainLine);
+        }
+
+        return this.stationRepository.existsByMapId(destinationId);
     }
 }

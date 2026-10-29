@@ -1,6 +1,6 @@
 package com.ctasmokers;
 
-import com.ctasmokers.aws.client.AwsSecretsClient;
+import com.ctasmokers.aws.client.SecretsClient;
 import com.ctasmokers.aws.dto.Secret;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -17,8 +17,8 @@ class ApplicationContextTest {
     static class TestConfig {
         @Bean
         @Primary
-        AwsSecretsClient awsSecretsClient() {
-            AwsSecretsClient client = Mockito.mock(AwsSecretsClient.class);
+        SecretsClient awsSecretsClient() {
+            SecretsClient client = Mockito.mock(SecretsClient.class);
 
             Mockito.when(client.getAppSecret())
                    .thenReturn(new Secret(

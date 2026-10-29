@@ -1,8 +1,8 @@
 package com.ctasmokers.smoking.aggregate.repository;
 
-import com.ctasmokers.aws.config.DynamoDbTableProperties;
+import com.cta4j.train.common.model.TrainLine;
+import com.ctasmokers.aws.config.DynamoDbProperties;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
-import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,6 @@ import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,7 +51,7 @@ class SmokingReportAggregateRepositoryTest {
     private SdkIterable items;
 
     @Mock
-    private DynamoDbTableProperties tableProperties;
+    private DynamoDbProperties tableProperties;
 
     private SmokingReportAggregateRepository repository;
 
@@ -76,9 +75,9 @@ class SmokingReportAggregateRepositoryTest {
 
         when(smokingReportAggregates.getItem(any(Key.class))).thenReturn(aggregate);
 
-        Optional<SmokingReportAggregate> result = repository.findByLineAndDay(LINE, day);
+        SmokingReportAggregate result = repository.findByLineAndDay(LINE, day);
 
-        assertThat(result).contains(aggregate);
+        assertThat(result).isEqualTo(aggregate);
 
         ArgumentCaptor<Key> keyCaptor = ArgumentCaptor.forClass(Key.class);
         verify(smokingReportAggregates).getItem(keyCaptor.capture());
@@ -90,9 +89,9 @@ class SmokingReportAggregateRepositoryTest {
     void findByLineAndDay_notFound() {
         when(smokingReportAggregates.getItem(any(Key.class))).thenReturn(null);
 
-        Optional<SmokingReportAggregate> result = repository.findByLineAndDay(LINE, LocalDate.of(2026, 5, 10));
+        SmokingReportAggregate result = repository.findByLineAndDay(LINE, LocalDate.of(2026, 5, 10));
 
-        assertThat(result).isEmpty();
+        assertThat(result).isNull();
     }
 
     @Test
@@ -106,9 +105,9 @@ class SmokingReportAggregateRepositoryTest {
 
         when(smokingReportAggregates.getItem(any(Key.class))).thenReturn(aggregate);
 
-        Optional<SmokingReportAggregate> result = repository.findByLineAndWeek(LINE, yearWeek);
+        SmokingReportAggregate result = repository.findByLineAndWeek(LINE, yearWeek);
 
-        assertThat(result).contains(aggregate);
+        assertThat(result).isEqualTo(aggregate);
 
         ArgumentCaptor<Key> keyCaptor = ArgumentCaptor.forClass(Key.class);
         verify(smokingReportAggregates).getItem(keyCaptor.capture());
@@ -120,9 +119,9 @@ class SmokingReportAggregateRepositoryTest {
     void findByLineAndWeek_notFound() {
         when(smokingReportAggregates.getItem(any(Key.class))).thenReturn(null);
 
-        Optional<SmokingReportAggregate> result = repository.findByLineAndWeek(LINE, new YearWeek(2026, 13));
+        SmokingReportAggregate result = repository.findByLineAndWeek(LINE, new YearWeek(2026, 13));
 
-        assertThat(result).isEmpty();
+        assertThat(result).isNull();
     }
 
     @Test
@@ -136,9 +135,9 @@ class SmokingReportAggregateRepositoryTest {
 
         when(smokingReportAggregates.getItem(any(Key.class))).thenReturn(aggregate);
 
-        Optional<SmokingReportAggregate> result = repository.findByLineAndMonth(LINE, yearMonth);
+        SmokingReportAggregate result = repository.findByLineAndMonth(LINE, yearMonth);
 
-        assertThat(result).contains(aggregate);
+        assertThat(result).isEqualTo(aggregate);
 
         ArgumentCaptor<Key> keyCaptor = ArgumentCaptor.forClass(Key.class);
         verify(smokingReportAggregates).getItem(keyCaptor.capture());
@@ -150,9 +149,9 @@ class SmokingReportAggregateRepositoryTest {
     void findByLineAndMonth_notFound() {
         when(smokingReportAggregates.getItem(any(Key.class))).thenReturn(null);
 
-        Optional<SmokingReportAggregate> result = repository.findByLineAndMonth(LINE, YearMonth.of(2026, 3));
+        SmokingReportAggregate result = repository.findByLineAndMonth(LINE, YearMonth.of(2026, 3));
 
-        assertThat(result).isEmpty();
+        assertThat(result).isNull();
     }
 
     @Test
@@ -166,9 +165,9 @@ class SmokingReportAggregateRepositoryTest {
 
         when(smokingReportAggregates.getItem(any(Key.class))).thenReturn(aggregate);
 
-        Optional<SmokingReportAggregate> result = repository.findByLineAndYear(LINE, year);
+        SmokingReportAggregate result = repository.findByLineAndYear(LINE, year);
 
-        assertThat(result).contains(aggregate);
+        assertThat(result).isEqualTo(aggregate);
 
         ArgumentCaptor<Key> keyCaptor = ArgumentCaptor.forClass(Key.class);
         verify(smokingReportAggregates).getItem(keyCaptor.capture());
@@ -180,9 +179,9 @@ class SmokingReportAggregateRepositoryTest {
     void findByLineAndYear_notFound() {
         when(smokingReportAggregates.getItem(any(Key.class))).thenReturn(null);
 
-        Optional<SmokingReportAggregate> result = repository.findByLineAndYear(LINE, Year.of(2026));
+        SmokingReportAggregate result = repository.findByLineAndYear(LINE, Year.of(2026));
 
-        assertThat(result).isEmpty();
+        assertThat(result).isNull();
     }
 
     @Test
@@ -195,9 +194,9 @@ class SmokingReportAggregateRepositoryTest {
 
         when(smokingReportAggregates.getItem(any(Key.class))).thenReturn(aggregate);
 
-        Optional<SmokingReportAggregate> result = repository.findByLineAllTime(LINE);
+        SmokingReportAggregate result = repository.findByLineAllTime(LINE);
 
-        assertThat(result).contains(aggregate);
+        assertThat(result).isEqualTo(aggregate);
 
         ArgumentCaptor<Key> keyCaptor = ArgumentCaptor.forClass(Key.class);
         verify(smokingReportAggregates).getItem(keyCaptor.capture());
@@ -209,9 +208,9 @@ class SmokingReportAggregateRepositoryTest {
     void findByLineAllTime_notFound() {
         when(smokingReportAggregates.getItem(any(Key.class))).thenReturn(null);
 
-        Optional<SmokingReportAggregate> result = repository.findByLineAllTime(LINE);
+        SmokingReportAggregate result = repository.findByLineAllTime(LINE);
 
-        assertThat(result).isEmpty();
+        assertThat(result).isNull();
     }
 
     @Test
@@ -252,5 +251,22 @@ class SmokingReportAggregateRepositoryTest {
         List<SmokingReportAggregate> result = repository.findDayAggregatesByLineAndMonth(LINE, yearMonth);
 
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    void findDayAggregatesByLineAndMonth_filtersNullItems() {
+        SmokingReportAggregate aggregate = SmokingReportAggregate.builder()
+                                                                 .pk(EXPECTED_PK)
+                                                                 .sk("DAY#2026-05-10")
+                                                                 .reportCount(7)
+                                                                 .build();
+
+        when(smokingReportAggregates.query(any(QueryConditional.class))).thenReturn(pageIterable);
+        when(pageIterable.items()).thenReturn(items);
+        when(items.stream()).thenReturn(Stream.of(aggregate, null));
+
+        List<SmokingReportAggregate> result = repository.findDayAggregatesByLineAndMonth(LINE, YearMonth.of(2026, 5));
+
+        assertThat(result).containsExactly(aggregate);
     }
 }

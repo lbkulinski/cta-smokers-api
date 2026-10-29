@@ -1,10 +1,10 @@
 package com.ctasmokers.smoking.aggregate.service;
 
+import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.repository.SmokingReportAggregateRepository;
-import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +19,8 @@ import java.util.Objects;
 @Service
 @NullMarked
 public final class SmokingReportAggregateService {
+    private static final String SK_PREFIX_DAY = "DAY#";
+
     private final SmokingReportAggregateRepository aggregateRepository;
 
     @Autowired
@@ -30,39 +32,64 @@ public final class SmokingReportAggregateService {
         Objects.requireNonNull(line);
         Objects.requireNonNull(day);
 
-        return this.aggregateRepository.findByLineAndDay(line, day)
-                                       .orElseThrow(() -> new SmokingReportAggregateNotFoundException(line, day));
+        SmokingReportAggregate aggregate = this.aggregateRepository.findByLineAndDay(line, day);
+
+        if (aggregate == null) {
+            throw new SmokingReportAggregateNotFoundException(line, day);
+        }
+
+        return aggregate;
     }
 
     public SmokingReportAggregate getWeekAggregate(TrainLine line, YearWeek yearWeek) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(yearWeek);
 
-        return this.aggregateRepository.findByLineAndWeek(line, yearWeek)
-                                       .orElseThrow(() -> new SmokingReportAggregateNotFoundException(line, yearWeek));
+        SmokingReportAggregate aggregate = this.aggregateRepository.findByLineAndWeek(line, yearWeek);
+
+        if (aggregate == null) {
+            throw new SmokingReportAggregateNotFoundException(line, yearWeek);
+        }
+
+        return aggregate;
     }
 
     public SmokingReportAggregate getMonthAggregate(TrainLine line, YearMonth yearMonth) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(yearMonth);
 
-        return this.aggregateRepository.findByLineAndMonth(line, yearMonth)
-                                       .orElseThrow(() -> new SmokingReportAggregateNotFoundException(line, yearMonth));
+        SmokingReportAggregate aggregate = this.aggregateRepository.findByLineAndMonth(line, yearMonth);
+
+        if (aggregate == null) {
+            throw new SmokingReportAggregateNotFoundException(line, yearMonth);
+        }
+
+        return aggregate;
     }
 
     public SmokingReportAggregate getYearAggregate(TrainLine line, Year year) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(year);
 
-        return this.aggregateRepository.findByLineAndYear(line, year)
-                                       .orElseThrow(() -> new SmokingReportAggregateNotFoundException(line, year));
+        SmokingReportAggregate aggregate = this.aggregateRepository.findByLineAndYear(line, year);
+
+        if (aggregate == null) {
+            throw new SmokingReportAggregateNotFoundException(line, year);
+        }
+
+        return aggregate;
     }
 
     public SmokingReportAggregate getAllTimeAggregate(TrainLine line) {
         Objects.requireNonNull(line);
 
-        return this.aggregateRepository.findByLineAllTime(line)
-                                       .orElseThrow(() -> new SmokingReportAggregateNotFoundException(line));
+        SmokingReportAggregate aggregate = this.aggregateRepository.findByLineAllTime(line);
+
+        if (aggregate == null) {
+            throw new SmokingReportAggregateNotFoundException(line);
+        }
+
+        return aggregate;
     }
 
     public List<SmokingReportDailyCount> getDailyCounts(TrainLine line, YearMonth yearMonth) {
@@ -71,17 +98,14 @@ public final class SmokingReportAggregateService {
 
         List<SmokingReportAggregate> aggregates = this.aggregateRepository.findDayAggregatesByLineAndMonth(
             line,
-            yearMonth
-        );
+            yearMonth);
 
         return aggregates.stream()
                          .map(aggregate -> {
-                             String dateString = aggregate.sk().substring("DAY#".length());
+                             var dateString = aggregate.sk().substring(SK_PREFIX_DAY.length());
+                             var date = LocalDate.parse(dateString);
 
-                             return new SmokingReportDailyCount(
-                                 LocalDate.parse(dateString),
-                                 aggregate.reportCount()
-                             );
+                             return new SmokingReportDailyCount(date, aggregate.reportCount());
                          })
                          .toList();
     }

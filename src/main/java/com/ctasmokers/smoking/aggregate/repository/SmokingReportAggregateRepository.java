@@ -1,10 +1,11 @@
 package com.ctasmokers.smoking.aggregate.repository;
 
-import com.ctasmokers.aws.config.DynamoDbTableProperties;
+import com.cta4j.train.common.model.TrainLine;
+import com.ctasmokers.aws.config.DynamoDbProperties;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
-import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -18,7 +19,6 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Repository
 @NullMarked
@@ -31,118 +31,110 @@ public final class SmokingReportAggregateRepository {
     private static final String SK_YEAR_TEMPLATE = "YEAR#%s";
     private static final String SK_ALL_TIME = "ALL_TIME";
 
-    private final DynamoDbTable<SmokingReportAggregate> smokingReportAggregates;
+    private final DynamoDbTable<@Nullable SmokingReportAggregate> smokingReportAggregates;
 
     @Autowired
     public SmokingReportAggregateRepository(
         DynamoDbEnhancedClient dynamoDbClient,
-        DynamoDbTableProperties tableProperties
+        DynamoDbProperties tableProperties
     ) {
-        TableSchema<SmokingReportAggregate> tableSchema = TableSchema.fromImmutableClass(SmokingReportAggregate.class);
+        String tableName = tableProperties.smokingReportAggregates();
+        var tableSchema = TableSchema.fromImmutableClass(SmokingReportAggregate.class);
 
-        this.smokingReportAggregates = dynamoDbClient.table(tableProperties.smokingReportAggregates(), tableSchema);
+        this.smokingReportAggregates = dynamoDbClient.table(tableName, tableSchema);
     }
 
-    public Optional<SmokingReportAggregate> findByLineAndDay(TrainLine line, LocalDate day) {
+    public @Nullable SmokingReportAggregate findByLineAndDay(TrainLine line, LocalDate day) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(day);
 
-        String pk = PK_TEMPLATE.formatted(line);
-        String sk = SK_DAY_TEMPLATE.formatted(day);
+        var pk = PK_TEMPLATE.formatted(line);
+        var sk = SK_DAY_TEMPLATE.formatted(day);
 
-        Key key = Key.builder()
+        var key = Key.builder()
                      .partitionValue(pk)
                      .sortValue(sk)
                      .build();
 
-        SmokingReportAggregate aggregate = this.smokingReportAggregates.getItem(key);
-
-        return Optional.ofNullable(aggregate);
+        return this.smokingReportAggregates.getItem(key);
     }
 
-    public Optional<SmokingReportAggregate> findByLineAndWeek(TrainLine line, YearWeek yearWeek) {
+    public @Nullable SmokingReportAggregate findByLineAndWeek(TrainLine line, YearWeek yearWeek) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(yearWeek);
 
-        String pk = PK_TEMPLATE.formatted(line);
-        String sk = SK_WEEK_TEMPLATE.formatted(yearWeek);
+        var pk = PK_TEMPLATE.formatted(line);
+        var sk = SK_WEEK_TEMPLATE.formatted(yearWeek);
 
-        Key key = Key.builder()
+        var key = Key.builder()
                      .partitionValue(pk)
                      .sortValue(sk)
                      .build();
 
-        SmokingReportAggregate aggregate = this.smokingReportAggregates.getItem(key);
-
-        return Optional.ofNullable(aggregate);
+        return this.smokingReportAggregates.getItem(key);
     }
 
-    public Optional<SmokingReportAggregate> findByLineAndMonth(TrainLine line, YearMonth yearMonth) {
+    public @Nullable SmokingReportAggregate findByLineAndMonth(TrainLine line, YearMonth yearMonth) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(yearMonth);
 
-        String pk = PK_TEMPLATE.formatted(line);
-        String sk = SK_MONTH_TEMPLATE.formatted(yearMonth);
+        var pk = PK_TEMPLATE.formatted(line);
+        var sk = SK_MONTH_TEMPLATE.formatted(yearMonth);
 
-        Key key = Key.builder()
+        var key = Key.builder()
                      .partitionValue(pk)
                      .sortValue(sk)
                      .build();
 
-        SmokingReportAggregate aggregate = this.smokingReportAggregates.getItem(key);
-
-        return Optional.ofNullable(aggregate);
+        return this.smokingReportAggregates.getItem(key);
     }
 
-    public Optional<SmokingReportAggregate> findByLineAndYear(TrainLine line, Year year) {
+    public @Nullable SmokingReportAggregate findByLineAndYear(TrainLine line, Year year) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(year);
 
-        String pk = PK_TEMPLATE.formatted(line);
-        String sk = SK_YEAR_TEMPLATE.formatted(year);
+        var pk = PK_TEMPLATE.formatted(line);
+        var sk = SK_YEAR_TEMPLATE.formatted(year);
 
-        Key key = Key.builder()
+        var key = Key.builder()
                      .partitionValue(pk)
                      .sortValue(sk)
                      .build();
 
-        SmokingReportAggregate aggregate = this.smokingReportAggregates.getItem(key);
-
-        return Optional.ofNullable(aggregate);
+        return this.smokingReportAggregates.getItem(key);
     }
 
-    public Optional<SmokingReportAggregate> findByLineAllTime(TrainLine line) {
+    public @Nullable SmokingReportAggregate findByLineAllTime(TrainLine line) {
         Objects.requireNonNull(line);
 
-        String pk = PK_TEMPLATE.formatted(line);
+        var pk = PK_TEMPLATE.formatted(line);
 
-        Key key = Key.builder()
+        var key = Key.builder()
                      .partitionValue(pk)
                      .sortValue(SK_ALL_TIME)
                      .build();
 
-        SmokingReportAggregate aggregate = this.smokingReportAggregates.getItem(key);
-
-        return Optional.ofNullable(aggregate);
+        return this.smokingReportAggregates.getItem(key);
     }
 
     public List<SmokingReportAggregate> findDayAggregatesByLineAndMonth(TrainLine line, YearMonth yearMonth) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(yearMonth);
 
-        String pk = PK_TEMPLATE.formatted(line);
-        String skPrefix = SK_DAY_TEMPLATE.formatted(yearMonth);
+        var pk = PK_TEMPLATE.formatted(line);
+        var skPrefix = SK_DAY_TEMPLATE.formatted(yearMonth);
 
-        Key key = Key.builder()
+        var key = Key.builder()
                      .partitionValue(pk)
                      .sortValue(skPrefix)
                      .build();
 
-        QueryConditional queryConditional = QueryConditional.sortBeginsWith(key);
+        var queryConditional = QueryConditional.sortBeginsWith(key);
 
         return this.smokingReportAggregates.query(queryConditional)
                                            .items()
                                            .stream()
+                                           .filter(Objects::nonNull)
                                            .toList();
     }
 }

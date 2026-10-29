@@ -15,7 +15,7 @@ The API provides structured access to community-submitted smoking
 reports:
 
 - Submit reports with line, car number, run number, and direction
-- Retrieve recent reports by date
+- Retrieve currently active reports, newest first
 - ISO-8601 timestamps and predictable JSON schema
 - Designed for dashboards, mobile apps, and data analysis
 
@@ -64,10 +64,24 @@ curl -X POST https://api.ctasmokers.com/api/cta/reports/smoking -H "Content-Type
 }'
 ```
 
-### Fetch today's reports
+### Fetch active reports
 
 ``` bash
-curl -s https://api.ctasmokers.com/api/cta/reports/smoking/$(date +%F) | jq '[.reports[] | {line, destinationId, carNumber, reportedAt}]'
+curl -s "https://api.ctasmokers.com/api/cta/reports/smoking/active?limit=10" | jq '[.reports[] | {line, destinationId, carNumber, reportedAt}]'
+```
+
+To get the next page, pass the `nextCursor` value from the response back unchanged:
+
+``` bash
+curl -s "https://api.ctasmokers.com/api/cta/reports/smoking/active?limit=10&nextCursor=$CURSOR" | jq '.'
+```
+
+Keep requesting pages until `nextCursor` is `null`. When the last page holds exactly `limit` reports, `nextCursor` can still be non-null, and the next request returns an empty page with `nextCursor` set to `null`.
+
+### Fetch the active report for a car
+
+``` bash
+curl -s https://api.ctasmokers.com/api/cta/reports/smoking/2435/RED | jq '.'
 ```
 
 ### Fetch the Red Line report count for a given week
@@ -89,8 +103,8 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/month/
 ### Smoking Reports
 
 - `POST /api/cta/reports/smoking` — Submit a new smoking report.
-- `GET /api/cta/reports/smoking/{date}` — List reports by date.
-- `GET /api/cta/reports/smoking/{date}/{reportId}` — Retrieve a specific report.
+- `GET /api/cta/reports/smoking/active` — List active reports, newest first (`limit` 1 to 100, default 25, and `nextCursor`).
+- `GET /api/cta/reports/smoking/{carNumber}/{line}` — Retrieve the active report for a car number and line.
 
 ### Smoking Report Aggregates
 
@@ -109,15 +123,22 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/month/
 
 ``` json
 {
-  "reportId": "1771710202399_7a8dcb0d-aea9-4c37-89d6-fc79fe3ba77f",
   "reportedAt": "2026-02-21T21:00:22.399660Z",
   "expiresAt": "2026-02-21T21:30:22.399660Z",
-  "date": "2026-02-21",
   "line": "RED",
   "destinationId": "40900",
   "nextStationId": "41220",
   "carNumber": "2435",
   "runNumber": "902" // Optional, but helps identify the train and track patterns over time
+}
+```
+
+### Smoking Report Page
+
+``` json
+{
+  "reports": [ /* Smoking Reports */ ],
+  "nextCursor": "c2FtcGxlLWN1cnNvcg" // null on the last page; treat as an opaque token
 }
 ```
 
@@ -146,8 +167,7 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/month/
 
 - **Timestamps**: ISO-8601 UTC (`Instant.toString()`)
 - **Dates**: `yyyy-MM-dd`
-- **Report IDs**: `epochMillis_UUID`
-- **Expiration**: Reports may include a TTL (`expiresAt`) for  automatic cleanup
+- **Expiration**: Reports expire at `expiresAt`, and expired reports are no longer returned
 - **Line**: Standard CTA identifiers (`RED`, `BLUE`, `BROWN`, etc.)
 - **Destination/Next Station IDs**: CTA's numeric codes for stations,
 found [here](https://data.cityofchicago.org/resource/8pix-ypme.json)

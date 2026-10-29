@@ -1,13 +1,14 @@
 package com.ctasmokers.common.exception;
 
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
+import com.ctasmokers.smoking.report.exception.InvalidCursorException;
+import com.ctasmokers.smoking.report.exception.InvalidStationIdException;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.exception.SmokingReportNotFoundException;
 import com.rollbar.notifier.Rollbar;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -19,9 +20,10 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import java.net.URI;
 
 @RestControllerAdvice
+@Slf4j
 @NullMarked
 public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final String BAD_REQUEST_TITLE = "Bad Request";
 
     private static final String NOT_FOUND_DETAIL = "The requested resource was not found.";
     private static final String NOT_FOUND_TITLE = "Not Found";
@@ -37,6 +39,32 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
     @Autowired
     public GlobalExceptionHandler(Rollbar rollbar) {
         this.rollbar = rollbar;
+    }
+
+    @ExceptionHandler(InvalidStationIdException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidStationIdException(
+        InvalidStationIdException exception,
+        HttpServletRequest request
+    ) {
+        String detail = exception.getMessage();
+
+        ProblemDetail problem = buildProblemDetail(HttpStatus.BAD_REQUEST, detail, BAD_REQUEST_TITLE, request);
+
+        return ResponseEntity.of(problem)
+                             .build();
+    }
+
+    @ExceptionHandler(InvalidCursorException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidCursorException(
+        InvalidCursorException exception,
+        HttpServletRequest request
+    ) {
+        String detail = exception.getMessage();
+
+        ProblemDetail problem = buildProblemDetail(HttpStatus.BAD_REQUEST, detail, BAD_REQUEST_TITLE, request);
+
+        return ResponseEntity.of(problem)
+                             .build();
     }
 
     @ExceptionHandler(SmokingReportNotFoundException.class)
@@ -76,7 +104,7 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
         Exception exception,
         HttpServletRequest request
     ) {
-        String message = "Unexpected error for %s".formatted(request.getRequestURI());
+        var message = "Unexpected error for %s".formatted(request.getRequestURI());
 
         log.error(message, exception);
         this.rollbar.error(exception, message);
@@ -85,8 +113,7 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
             HttpStatus.INTERNAL_SERVER_ERROR,
             INTERNAL_ERROR_DETAIL,
             INTERNAL_ERROR_TITLE,
-            request
-        );
+            request);
 
         return ResponseEntity.of(problem)
                              .build();
@@ -98,9 +125,9 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
         String title,
         HttpServletRequest request
     ) {
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
+        var problem = ProblemDetail.forStatusAndDetail(status, detail);
 
-        URI instance = URI.create(request.getRequestURI());
+        var instance = URI.create(request.getRequestURI());
 
         problem.setTitle(title);
         problem.setInstance(instance);

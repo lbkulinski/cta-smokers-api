@@ -1,13 +1,15 @@
 package com.ctasmokers.smoking.report.controller;
 
+import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
 import com.ctasmokers.smoking.report.dto.SmokingReportDto;
 import com.ctasmokers.smoking.report.dto.SmokingReportPageDto;
 import com.ctasmokers.smoking.report.dto.SubmitReportDto;
 import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.SmokingReportLimits;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
+import com.ctasmokers.smoking.report.model.SmokingReportSchema;
 import com.ctasmokers.smoking.report.service.SmokingReportService;
-import com.ctasmokers.smoking.report.validator.ValidReportId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -16,6 +18,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Pattern;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +36,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -40,7 +43,7 @@ import java.util.List;
 @Tag(name = "Smoking Reports", description = "Submit and retrieve smoking reports on CTA trains")
 @NullMarked
 public final class SmokingReportController {
-    private static final String LOCATION_HEADER_FORMAT = "%s/api/cta/reports/smoking/{date}/{reportId}";
+    private static final String LOCATION_HEADER_FORMAT = "%s/api/cta/reports/smoking/{carNumber}/{line}";
 
     private final SmokingReportService reportService;
 
@@ -73,7 +76,7 @@ public final class SmokingReportController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid request data",
+            description = "Invalid request data, such as an unknown station ID",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
@@ -90,27 +93,26 @@ public final class SmokingReportController {
     })
     public ResponseEntity<SmokingReportDto> submitReport(@Valid @RequestBody SubmitReportDto request) {
         SmokingReport report = this.reportService.submitReport(
+            request.carNumber(),
             request.line(),
             request.destinationId(),
             request.nextStationId(),
-            request.carNumber(),
-            request.runNumber()
-        );
+            request.runNumber());
 
-        SmokingReportDto reportDto = SmokingReportDto.from(report);
+        var reportDto = SmokingReportDto.from(report);
 
-        URI location = UriComponentsBuilder.fromUriString(LOCATION_HEADER_FORMAT.formatted(this.baseUrl))
-                                           .buildAndExpand(report.date(), report.reportId())
+        var location = UriComponentsBuilder.fromUriString(LOCATION_HEADER_FORMAT.formatted(this.baseUrl))
+                                           .buildAndExpand(report.carNumber(), report.line())
                                            .encode()
                                            .toUri();
 
         return ResponseEntity.created(location).body(reportDto);
     }
 
-    @GetMapping("/{date}")
+    @GetMapping("/active")
     @Operation(
-        summary = "Get smoking reports by date",
-        description = "Retrieve all smoking reports for a specific date"
+        summary = "Get active smoking reports",
+        description = "Retrieve a page of active smoking reports, newest first"
     )
     @ApiResponses({
         @ApiResponse(
@@ -123,41 +125,42 @@ public final class SmokingReportController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid request data",
+            description = "Invalid limit or cursor",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
             )
         )
     })
-    public ResponseEntity<SmokingReportPageDto> getReportsByDate(
-        @PathVariable
-        @Parameter(description = "Date to retrieve reports for (e.g. 2026-02-21)")
-        @Schema(type = "string", example = "2026-02-21")
-        LocalDate date,
+    public ResponseEntity<SmokingReportPageDto> getActiveReports(
+        @RequestParam(required = false)
+        @Min(1)
+        @Max(SmokingReportLimits.MAX_LIMIT)
+        @Parameter(description = "Maximum number of reports to return (defaults to 25)")
+        @Nullable
+        Integer limit,
 
         @RequestParam(required = false)
-        @ValidReportId
-        @Parameter(description = "Cursor for fetching the next page of results")
+        @Parameter(description = "The nextCursor value from the previous page, passed back unchanged")
         @Nullable
         String nextCursor
     ) {
-        SmokingReportPage page = this.reportService.getReportsByDate(date, nextCursor);
+        SmokingReportPage page = this.reportService.getActiveReports(limit, nextCursor);
 
         List<SmokingReportDto> reportsDtos = page.reports()
                                                  .stream()
                                                  .map(SmokingReportDto::from)
                                                  .toList();
 
-        SmokingReportPageDto pageDto = new SmokingReportPageDto(reportsDtos, page.nextCursor());
+        var pageDto = new SmokingReportPageDto(reportsDtos, page.nextCursor());
 
         return ResponseEntity.ok(pageDto);
     }
 
-    @GetMapping("/{date}/{reportId}")
+    @GetMapping("/{carNumber}/{line}")
     @Operation(
-        summary = "Get a smoking report by ID",
-        description = "Retrieve a specific smoking report by its ID and date"
+        summary = "Get the active smoking report for a car number and line",
+        description = "Retrieve the active smoking report for a car number and line"
     )
     @ApiResponses({
         @ApiResponse(
@@ -178,27 +181,28 @@ public final class SmokingReportController {
         ),
         @ApiResponse(
             responseCode = "404",
-            description = "Report not found",
+            description = "No active report found",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
             )
         )
     })
-    public ResponseEntity<SmokingReportDto> getReportById(
+    public ResponseEntity<SmokingReportDto> getReportByCarNumberLine(
         @PathVariable
-        @Parameter(description = "Date of the report to retrieve (e.g. 2026-02-21)")
-        @Schema(type = "string", example = "2026-02-21")
-        LocalDate date,
+        @Pattern(regexp = SmokingReportSchema.CAR_NUMBER_REGEX)
+        @Parameter(description = "Car number of the report to retrieve")
+        @Schema(type = "string", example = "2345")
+        String carNumber,
 
         @PathVariable
-        @ValidReportId
-        @Parameter(description = "Unique identifier of the report to retrieve")
-        String reportId
+        @Parameter(description = "CTA train line")
+        @Schema(type = "string", example = "RED")
+        TrainLine line
     ) {
-        SmokingReport report = this.reportService.getReportById(date, reportId);
+        SmokingReport report = this.reportService.getReportByCarNumberLine(carNumber, line);
 
-        SmokingReportDto reportDto = SmokingReportDto.from(report);
+        var reportDto = SmokingReportDto.from(report);
 
         return ResponseEntity.ok(reportDto);
     }

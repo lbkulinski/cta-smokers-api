@@ -1,10 +1,10 @@
 package com.ctasmokers.smoking.aggregate.service;
 
+import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.repository.SmokingReportAggregateRepository;
-import com.ctasmokers.smoking.common.model.TrainLine;
 import com.ctasmokers.smoking.common.model.YearWeek;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,6 @@ import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -49,7 +48,7 @@ class SmokingReportAggregateServiceTest {
         LocalDate day = LocalDate.of(2026, 5, 10);
         SmokingReportAggregate aggregate = aggregate(5);
 
-        when(repository.findByLineAndDay(LINE, day)).thenReturn(Optional.of(aggregate));
+        when(repository.findByLineAndDay(LINE, day)).thenReturn(aggregate);
 
         SmokingReportAggregate response = service.getDayAggregate(LINE, day);
 
@@ -60,7 +59,7 @@ class SmokingReportAggregateServiceTest {
     void getDayAggregate_notFound() {
         LocalDate day = LocalDate.of(2026, 5, 10);
 
-        when(repository.findByLineAndDay(LINE, day)).thenReturn(Optional.empty());
+        when(repository.findByLineAndDay(LINE, day)).thenReturn(null);
 
         assertThatThrownBy(() -> service.getDayAggregate(LINE, day))
             .isInstanceOf(SmokingReportAggregateNotFoundException.class);
@@ -71,7 +70,7 @@ class SmokingReportAggregateServiceTest {
         YearWeek yearWeek = new YearWeek(2026, 13);
         SmokingReportAggregate aggregate = aggregate(10);
 
-        when(repository.findByLineAndWeek(LINE, yearWeek)).thenReturn(Optional.of(aggregate));
+        when(repository.findByLineAndWeek(LINE, yearWeek)).thenReturn(aggregate);
 
         SmokingReportAggregate response = service.getWeekAggregate(LINE, yearWeek);
 
@@ -82,7 +81,7 @@ class SmokingReportAggregateServiceTest {
     void getWeekAggregate_notFound() {
         YearWeek yearWeek = new YearWeek(2026, 13);
 
-        when(repository.findByLineAndWeek(LINE, yearWeek)).thenReturn(Optional.empty());
+        when(repository.findByLineAndWeek(LINE, yearWeek)).thenReturn(null);
 
         assertThatThrownBy(() -> service.getWeekAggregate(LINE, yearWeek))
             .isInstanceOf(SmokingReportAggregateNotFoundException.class);
@@ -93,7 +92,7 @@ class SmokingReportAggregateServiceTest {
         YearMonth yearMonth = YearMonth.of(2026, 3);
         SmokingReportAggregate aggregate = aggregate(42);
 
-        when(repository.findByLineAndMonth(LINE, yearMonth)).thenReturn(Optional.of(aggregate));
+        when(repository.findByLineAndMonth(LINE, yearMonth)).thenReturn(aggregate);
 
         SmokingReportAggregate response = service.getMonthAggregate(LINE, yearMonth);
 
@@ -104,7 +103,7 @@ class SmokingReportAggregateServiceTest {
     void getMonthAggregate_notFound() {
         YearMonth yearMonth = YearMonth.of(2026, 3);
 
-        when(repository.findByLineAndMonth(LINE, yearMonth)).thenReturn(Optional.empty());
+        when(repository.findByLineAndMonth(LINE, yearMonth)).thenReturn(null);
 
         assertThatThrownBy(() -> service.getMonthAggregate(LINE, yearMonth))
             .isInstanceOf(SmokingReportAggregateNotFoundException.class);
@@ -115,7 +114,7 @@ class SmokingReportAggregateServiceTest {
         Year year = Year.of(2026);
         SmokingReportAggregate aggregate = aggregate(100);
 
-        when(repository.findByLineAndYear(LINE, year)).thenReturn(Optional.of(aggregate));
+        when(repository.findByLineAndYear(LINE, year)).thenReturn(aggregate);
 
         SmokingReportAggregate response = service.getYearAggregate(LINE, year);
 
@@ -126,7 +125,7 @@ class SmokingReportAggregateServiceTest {
     void getYearAggregate_notFound() {
         Year year = Year.of(2026);
 
-        when(repository.findByLineAndYear(LINE, year)).thenReturn(Optional.empty());
+        when(repository.findByLineAndYear(LINE, year)).thenReturn(null);
 
         assertThatThrownBy(() -> service.getYearAggregate(LINE, year))
             .isInstanceOf(SmokingReportAggregateNotFoundException.class);
@@ -136,7 +135,7 @@ class SmokingReportAggregateServiceTest {
     void getAllTimeAggregate_found() {
         SmokingReportAggregate aggregate = aggregate(999);
 
-        when(repository.findByLineAllTime(LINE)).thenReturn(Optional.of(aggregate));
+        when(repository.findByLineAllTime(LINE)).thenReturn(aggregate);
 
         SmokingReportAggregate response = service.getAllTimeAggregate(LINE);
 
@@ -145,7 +144,7 @@ class SmokingReportAggregateServiceTest {
 
     @Test
     void getAllTimeAggregate_notFound() {
-        when(repository.findByLineAllTime(LINE)).thenReturn(Optional.empty());
+        when(repository.findByLineAllTime(LINE)).thenReturn(null);
 
         assertThatThrownBy(() -> service.getAllTimeAggregate(LINE))
             .isInstanceOf(SmokingReportAggregateNotFoundException.class);

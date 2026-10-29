@@ -1,139 +1,149 @@
 package com.ctasmokers.smoking.report.repository;
 
-import com.ctasmokers.smoking.common.model.TrainLine;
+import com.cta4j.train.common.model.TrainLine;
+import com.ctasmokers.aws.config.DynamoDbProperties;
+import com.ctasmokers.smoking.report.cursor.ReportPageCursor;
+import com.ctasmokers.smoking.report.cursor.SmokingReportCursorCodec;
+import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
 import com.ctasmokers.smoking.report.model.SmokingReport;
+import com.ctasmokers.smoking.report.model.SmokingReportSchema;
+import com.ctasmokers.smoking.report.model.SmokingReportLimits;
 import com.ctasmokers.smoking.report.model.SmokingReportPage;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.Select;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 @Repository
 @NullMarked
 public final class SmokingReportRepository {
-    private static final int MIN_PAGE_SIZE = 1;
-    private static final int MAX_PAGE_SIZE = 100;
-    private static final String DATE_KEY = "date";
-    private static final String REPORT_ID_KEY = "reportId";
+    private static final String NOW_PLACEHOLDER = ":now";
+    private static final String NOT_EXISTS_OR_EXPIRED_EXPRESSION =
+        "attribute_not_exists(%s) OR expiresAt <= %s".formatted(
+            SmokingReportSchema.CAR_NUMBER_LINE_ATTRIBUTE,
+            NOW_PLACEHOLDER);
 
-    private final DynamoDbTable<SmokingReport> smokingReports;
+    private final DynamoDbTable<@Nullable SmokingReport> smokingReports;
+    private final SmokingReportCursorCodec cursorCodec;
 
     @Autowired
     public SmokingReportRepository(
         DynamoDbEnhancedClient dynamoDbClient,
-        @Value("${app.aws.dynamodb.tables.smoking-reports}") String tableName
+        SmokingReportCursorCodec cursorCodec,
+        DynamoDbProperties dynamoDbProperties
     ) {
-        TableSchema<SmokingReport> tableSchema = TableSchema.fromImmutableClass(SmokingReport.class);
+        String tableName = dynamoDbProperties.smokingReports();
+        var tableSchema = TableSchema.fromImmutableClass(SmokingReport.class);
 
         this.smokingReports = dynamoDbClient.table(tableName, tableSchema);
+        this.cursorCodec = cursorCodec;
     }
 
     public void save(SmokingReport report) {
         Objects.requireNonNull(report);
 
-        this.smokingReports.putItem(report);
+        long now = Instant.now().getEpochSecond();
+        var nowString = Long.toString(now);
+
+        var validExpression = Expression.builder()
+                                        .expression(NOT_EXISTS_OR_EXPIRED_EXPRESSION)
+                                        .expressionValues(Map.of(NOW_PLACEHOLDER, AttributeValue.fromN(nowString)))
+                                        .build();
+
+        var request = PutItemEnhancedRequest.builder(SmokingReport.class)
+                                            .item(report)
+                                            .conditionExpression(validExpression)
+                                            .build();
+
+        try {
+            this.smokingReports.putItem(request);
+        } catch (ConditionalCheckFailedException e) {
+            throw new SmokingReportAlreadyExistsException(report.carNumber(), report.line());
+        }
     }
 
-    public SmokingReportPage findPageByDate(LocalDate date, int pageSize, @Nullable String nextCursor) {
-        Objects.requireNonNull(date);
-
-        if (pageSize < MIN_PAGE_SIZE || pageSize > MAX_PAGE_SIZE) {
-            throw new IllegalArgumentException(
-                "pageSize must be a positive integer between %d and %d".formatted(MIN_PAGE_SIZE, MAX_PAGE_SIZE)
-            );
+    public SmokingReportPage findActivePage(int limit, @Nullable String nextCursor) {
+        if (limit <= 0 || limit > SmokingReportLimits.MAX_LIMIT) {
+            throw new IllegalArgumentException("limit must be between 1 and %d (inclusive)".formatted(
+                SmokingReportLimits.MAX_LIMIT));
         }
 
-        String dateString = date.toString();
+        long now = Instant.now().getEpochSecond();
 
-        Key key = Key.builder()
-                     .partitionValue(dateString)
+        var key = Key.builder()
+                     .partitionValue(SmokingReportSchema.GSI_PK_VALUE)
+                     .sortValue(now)
                      .build();
 
-        QueryConditional queryConditional = QueryConditional.keyEqualTo(key);
+        var queryConditional = QueryConditional.sortGreaterThan(key);
 
         Map<String, AttributeValue> exclusiveStartKey = null;
 
         if (nextCursor != null) {
-            exclusiveStartKey = Map.of(
-                DATE_KEY, AttributeValue.builder().s(dateString).build(),
-                REPORT_ID_KEY, AttributeValue.builder().s(nextCursor).build()
-            );
+            ReportPageCursor cursor = this.cursorCodec.decode(nextCursor);
+
+            if (cursor.expiresAt() <= now) {
+                return new SmokingReportPage(List.of(), null);
+            }
+
+            exclusiveStartKey = cursor.toKey();
         }
 
-        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
-                                                           .queryConditional(queryConditional)
-                                                           .limit(pageSize)
-                                                           .exclusiveStartKey(exclusiveStartKey)
-                                                           .scanIndexForward(false)
-                                                           .build();
+        var request = QueryEnhancedRequest.builder()
+                                          .queryConditional(queryConditional)
+                                          .limit(limit)
+                                          .exclusiveStartKey(exclusiveStartKey)
+                                          .scanIndexForward(false)
+                                          .build();
 
-        return this.smokingReports.query(request)
+        return this.smokingReports.index(SmokingReportSchema.GSI_PK_EXPIRES_AT_INDEX)
+                                  .query(request)
                                   .stream()
                                   .findFirst()
-                                  .map(page -> new SmokingReportPage(
-                                      page.items(),
-                                      page.lastEvaluatedKey() == null
-                                          ? null
-                                          : page.lastEvaluatedKey().get(REPORT_ID_KEY).s()
-                                  ))
+                                  .map(this::toPage)
                                   .orElseGet(() -> new SmokingReportPage(List.of(), null));
     }
 
-    public Optional<SmokingReport> findById(LocalDate date, String reportId) {
-        Objects.requireNonNull(date);
-        Objects.requireNonNull(reportId);
-
-        Key key = Key.builder()
-                     .partitionValue(date.toString())
-                     .sortValue(reportId)
-                     .build();
-
-        SmokingReport report = this.smokingReports.getItem(key);
-
-        return Optional.ofNullable(report);
-    }
-
-    public boolean existsActiveByCarNumberAndLine(String carNumber, TrainLine line) {
+    public @Nullable SmokingReport findByCarNumberLine(String carNumber, TrainLine line) {
         Objects.requireNonNull(carNumber);
         Objects.requireNonNull(line);
 
-        String carNumberLine = SmokingReport.carNumberLineOf(carNumber, line);
-        long now = Instant.now().getEpochSecond();
+        String partitionKey = SmokingReportSchema.carNumberLine(carNumber, line);
 
-        Key key = Key.builder()
-                     .partitionValue(carNumberLine)
-                     .sortValue(now)
+        var key = Key.builder()
+                     .partitionValue(partitionKey)
                      .build();
 
-        QueryConditional queryConditional = QueryConditional.sortGreaterThanOrEqualTo(key);
+        return this.smokingReports.getItem(key);
+    }
 
-        QueryEnhancedRequest request = QueryEnhancedRequest.builder()
-                                                           .select(Select.COUNT)
-                                                           .queryConditional(queryConditional)
-                                                           .limit(1)
-                                                           .build();
+    private SmokingReportPage toPage(Page<SmokingReport> page) {
+        List<SmokingReport> reports = List.copyOf(page.items());
 
-        return this.smokingReports.index(SmokingReport.CAR_NUMBER_LINE_EXPIRES_AT_INDEX)
-                                  .query(request)
-                                  .stream()
-                                  .mapToInt(Page::count)
-                                  .sum() > 0;
+        Map<String, AttributeValue> lastEvaluatedKey = page.lastEvaluatedKey();
+
+        if (lastEvaluatedKey == null) {
+            return new SmokingReportPage(reports, null);
+        }
+
+        String nextCursor = this.cursorCodec.encode(lastEvaluatedKey);
+
+        return new SmokingReportPage(reports, nextCursor);
     }
 }
