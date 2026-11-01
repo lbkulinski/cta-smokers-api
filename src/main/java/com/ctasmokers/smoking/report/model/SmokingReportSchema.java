@@ -20,16 +20,16 @@ public final class SmokingReportSchema {
 
     private static final String DELIMITER = "#";
 
-    private static final String CAR_NUMBER_STRING = "[0-9]{4}";
-    private static final String LINE_STRING = Arrays.stream(TrainLine.values())
-                                                    .map(Enum::name)
-                                                    .collect(Collectors.joining("|"));
+    private static final String CAR_NUMBER_FRAGMENT = "[0-9]{4}";
+    private static final String LINE_FRAGMENT = Arrays.stream(TrainLine.values())
+                                                      .map(Enum::name)
+                                                      .collect(Collectors.joining("|"));
 
-    public static final String CAR_NUMBER_REGEX = "^" + CAR_NUMBER_STRING + "$";
+    public static final String CAR_NUMBER_REGEX = "^" + CAR_NUMBER_FRAGMENT + "$";
     private static final String CAR_NUMBER_LINE_REGEX = "^%s%s(%s)$".formatted(
-        CAR_NUMBER_STRING,
+        CAR_NUMBER_FRAGMENT,
         DELIMITER,
-        LINE_STRING);
+        LINE_FRAGMENT);
 
     private static final Pattern CAR_NUMBER_PATTERN = Pattern.compile(CAR_NUMBER_REGEX);
     private static final Pattern CAR_NUMBER_LINE_PATTERN = Pattern.compile(CAR_NUMBER_LINE_REGEX);

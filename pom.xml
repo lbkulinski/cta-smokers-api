@@ -78,9 +78,14 @@
             <version>1.11.0</version>
         </dependency>
         <dependency>
+            <groupId>org.threeten</groupId>
+            <artifactId>threeten-extra</artifactId>
+            <version>1.11.0</version>
+        </dependency>
+        <dependency>
             <groupId>com.cta4j</groupId>
             <artifactId>cta4j-java-sdk</artifactId>
-            <version>8.0.0</version>
+            <version>8.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>

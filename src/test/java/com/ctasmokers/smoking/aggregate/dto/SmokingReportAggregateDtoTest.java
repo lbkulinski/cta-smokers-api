@@ -1,6 +1,5 @@
 package com.ctasmokers.smoking.aggregate.dto;
 
-import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,15 +14,9 @@ class SmokingReportAggregateDtoTest {
     }
 
     @Test
-    void from_mapsReportCountFromAggregate() {
-        SmokingReportAggregate aggregate = SmokingReportAggregate.builder()
-                                                                  .pk("LINE#RED")
-                                                                  .sk("ALL_TIME")
-                                                                  .reportCount(42)
-                                                                  .build();
+    void constructor_zeroReportCount_succeeds() {
+        var dto = new SmokingReportAggregateDto(0);
 
-        SmokingReportAggregateDto dto = SmokingReportAggregateDto.from(aggregate);
-
-        assertThat(dto.reportCount()).isEqualTo(42);
+        assertThat(dto.reportCount()).isZero();
     }
 }

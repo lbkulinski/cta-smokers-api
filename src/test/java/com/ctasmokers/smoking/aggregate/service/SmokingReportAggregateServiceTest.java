@@ -1,16 +1,15 @@
 package com.ctasmokers.smoking.aggregate.service;
 
 import com.cta4j.train.common.model.TrainLine;
-import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.repository.SmokingReportAggregateRepository;
-import com.ctasmokers.smoking.common.model.YearWeek;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.threeten.extra.YearWeek;
 
 import java.time.LocalDate;
 import java.time.Year;
@@ -46,108 +45,107 @@ class SmokingReportAggregateServiceTest {
     @Test
     void getDayAggregate_found() {
         LocalDate day = LocalDate.of(2026, 5, 10);
-        SmokingReportAggregate aggregate = aggregate(5);
 
-        when(repository.findByLineAndDay(LINE, day)).thenReturn(aggregate);
+        when(repository.findByLineAndDay(LINE, day)).thenReturn(aggregate(5));
 
-        SmokingReportAggregate response = service.getDayAggregate(LINE, day);
+        long reportCount = service.getDayAggregate(LINE, day);
 
-        assertThat(response.reportCount()).isEqualTo(5);
+        assertThat(reportCount).isEqualTo(5);
     }
 
     @Test
-    void getDayAggregate_notFound() {
+    void getDayAggregate_notFound_returnsZero() {
         LocalDate day = LocalDate.of(2026, 5, 10);
 
         when(repository.findByLineAndDay(LINE, day)).thenReturn(null);
 
-        assertThatThrownBy(() -> service.getDayAggregate(LINE, day))
-            .isInstanceOf(SmokingReportAggregateNotFoundException.class);
+        long reportCount = service.getDayAggregate(LINE, day);
+
+        assertThat(reportCount).isZero();
     }
 
     @Test
     void getWeekAggregate_found() {
-        YearWeek yearWeek = new YearWeek(2026, 13);
-        SmokingReportAggregate aggregate = aggregate(10);
+        YearWeek yearWeek = YearWeek.of(2026, 13);
 
-        when(repository.findByLineAndWeek(LINE, yearWeek)).thenReturn(aggregate);
+        when(repository.findByLineAndWeek(LINE, yearWeek)).thenReturn(aggregate(10));
 
-        SmokingReportAggregate response = service.getWeekAggregate(LINE, yearWeek);
+        long reportCount = service.getWeekAggregate(LINE, yearWeek);
 
-        assertThat(response.reportCount()).isEqualTo(10);
+        assertThat(reportCount).isEqualTo(10);
     }
 
     @Test
-    void getWeekAggregate_notFound() {
-        YearWeek yearWeek = new YearWeek(2026, 13);
+    void getWeekAggregate_notFound_returnsZero() {
+        YearWeek yearWeek = YearWeek.of(2026, 13);
 
         when(repository.findByLineAndWeek(LINE, yearWeek)).thenReturn(null);
 
-        assertThatThrownBy(() -> service.getWeekAggregate(LINE, yearWeek))
-            .isInstanceOf(SmokingReportAggregateNotFoundException.class);
+        long reportCount = service.getWeekAggregate(LINE, yearWeek);
+
+        assertThat(reportCount).isZero();
     }
 
     @Test
     void getMonthAggregate_found() {
         YearMonth yearMonth = YearMonth.of(2026, 3);
-        SmokingReportAggregate aggregate = aggregate(42);
 
-        when(repository.findByLineAndMonth(LINE, yearMonth)).thenReturn(aggregate);
+        when(repository.findByLineAndMonth(LINE, yearMonth)).thenReturn(aggregate(42));
 
-        SmokingReportAggregate response = service.getMonthAggregate(LINE, yearMonth);
+        long reportCount = service.getMonthAggregate(LINE, yearMonth);
 
-        assertThat(response.reportCount()).isEqualTo(42);
+        assertThat(reportCount).isEqualTo(42);
     }
 
     @Test
-    void getMonthAggregate_notFound() {
+    void getMonthAggregate_notFound_returnsZero() {
         YearMonth yearMonth = YearMonth.of(2026, 3);
 
         when(repository.findByLineAndMonth(LINE, yearMonth)).thenReturn(null);
 
-        assertThatThrownBy(() -> service.getMonthAggregate(LINE, yearMonth))
-            .isInstanceOf(SmokingReportAggregateNotFoundException.class);
+        long reportCount = service.getMonthAggregate(LINE, yearMonth);
+
+        assertThat(reportCount).isZero();
     }
 
     @Test
     void getYearAggregate_found() {
         Year year = Year.of(2026);
-        SmokingReportAggregate aggregate = aggregate(100);
 
-        when(repository.findByLineAndYear(LINE, year)).thenReturn(aggregate);
+        when(repository.findByLineAndYear(LINE, year)).thenReturn(aggregate(100));
 
-        SmokingReportAggregate response = service.getYearAggregate(LINE, year);
+        long reportCount = service.getYearAggregate(LINE, year);
 
-        assertThat(response.reportCount()).isEqualTo(100);
+        assertThat(reportCount).isEqualTo(100);
     }
 
     @Test
-    void getYearAggregate_notFound() {
+    void getYearAggregate_notFound_returnsZero() {
         Year year = Year.of(2026);
 
         when(repository.findByLineAndYear(LINE, year)).thenReturn(null);
 
-        assertThatThrownBy(() -> service.getYearAggregate(LINE, year))
-            .isInstanceOf(SmokingReportAggregateNotFoundException.class);
+        long reportCount = service.getYearAggregate(LINE, year);
+
+        assertThat(reportCount).isZero();
     }
 
     @Test
     void getAllTimeAggregate_found() {
-        SmokingReportAggregate aggregate = aggregate(999);
+        when(repository.findByLineAllTime(LINE)).thenReturn(aggregate(999));
 
-        when(repository.findByLineAllTime(LINE)).thenReturn(aggregate);
+        long reportCount = service.getAllTimeAggregate(LINE);
 
-        SmokingReportAggregate response = service.getAllTimeAggregate(LINE);
-
-        assertThat(response.reportCount()).isEqualTo(999);
+        assertThat(reportCount).isEqualTo(999);
     }
 
     @Test
-    void getAllTimeAggregate_notFound() {
+    void getAllTimeAggregate_notFound_returnsZero() {
         when(repository.findByLineAllTime(LINE)).thenReturn(null);
 
-        assertThatThrownBy(() -> service.getAllTimeAggregate(LINE))
-            .isInstanceOf(SmokingReportAggregateNotFoundException.class);
+        long reportCount = service.getAllTimeAggregate(LINE);
+
+        assertThat(reportCount).isZero();
     }
 
     @Test

@@ -4,12 +4,9 @@ import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.aws.client.SecretsClient;
 import com.ctasmokers.aws.dto.Secret;
 import com.ctasmokers.common.config.properties.CorsProperties;
-import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
-import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
+import com.ctasmokers.smoking.aggregate.converter.StringToYearWeekConverter;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.service.SmokingReportAggregateService;
-import com.ctasmokers.smoking.common.StringToYearWeekConverter;
-import com.ctasmokers.smoking.common.model.YearWeek;
 import com.rollbar.notifier.Rollbar;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -21,11 +18,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.format.FormatterRegistry;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.threeten.extra.YearWeek;
 
 import java.time.LocalDate;
 import java.time.Year;
@@ -35,7 +32,6 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -48,6 +44,7 @@ class SmokingReportAggregateControllerTest {
     private static final String BASE_PATH = "/api/cta/reports/smoking/aggregates";
     private static final TrainLine LINE = TrainLine.RED;
     private static final LocalDate DATE = LocalDate.of(2026, 5, 10);
+    private static final long REPORT_COUNT = 42L;
 
     @Autowired
     private MockMvc mockMvc;
@@ -86,17 +83,9 @@ class SmokingReportAggregateControllerTest {
             .header("X-Origin-Verify", ORIGIN_VERIFY);
     }
 
-    private SmokingReportAggregate sampleResponse() {
-        return SmokingReportAggregate.builder()
-                                     .pk("LINE#RED")
-                                     .sk("SK")
-                                     .reportCount(42L)
-                                     .build();
-    }
-
     @Test
     void getDayAggregate_found_returns200() throws Exception {
-        when(smokingReportAggregateService.getDayAggregate(LINE, DATE)).thenReturn(sampleResponse());
+        when(smokingReportAggregateService.getDayAggregate(LINE, DATE)).thenReturn(REPORT_COUNT);
 
         mockMvc.perform(withRequiredHeaders(get(BASE_PATH + "/{line}/day/{date}", LINE, DATE)))
                .andExpect(status().isOk())
@@ -104,25 +93,18 @@ class SmokingReportAggregateControllerTest {
     }
 
     @Test
-    void getDayAggregate_notFound_returns404WithProblemDetail() throws Exception {
-        when(smokingReportAggregateService.getDayAggregate(any(), any()))
-            .thenThrow(new SmokingReportAggregateNotFoundException(LINE, DATE));
-
-        String path = BASE_PATH + "/RED/day/2026-05-10";
+    void getDayAggregate_noReports_returns200WithZero() throws Exception {
+        when(smokingReportAggregateService.getDayAggregate(LINE, DATE)).thenReturn(0L);
 
         mockMvc.perform(withRequiredHeaders(get(BASE_PATH + "/{line}/day/{date}", LINE, DATE)))
-               .andExpect(status().isNotFound())
-               .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
-               .andExpect(jsonPath("$.status").value(404))
-               .andExpect(jsonPath("$.title").value("Not Found"))
-               .andExpect(jsonPath("$.detail").value("The requested resource was not found."))
-               .andExpect(jsonPath("$.instance").value(path));
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.reportCount").value(0));
     }
 
     @Test
     void getWeekAggregate_validFormat_returns200() throws Exception {
-        YearWeek yearWeek = new YearWeek(2026, 13);
-        when(smokingReportAggregateService.getWeekAggregate(LINE, yearWeek)).thenReturn(sampleResponse());
+        YearWeek yearWeek = YearWeek.of(2026, 13);
+        when(smokingReportAggregateService.getWeekAggregate(LINE, yearWeek)).thenReturn(REPORT_COUNT);
 
         mockMvc.perform(withRequiredHeaders(get(BASE_PATH + "/{line}/week/2026-W13", LINE)))
                .andExpect(status().isOk())
@@ -138,7 +120,7 @@ class SmokingReportAggregateControllerTest {
     @Test
     void getMonthAggregate_validFormat_returns200() throws Exception {
         YearMonth yearMonth = YearMonth.of(2026, 3);
-        when(smokingReportAggregateService.getMonthAggregate(LINE, yearMonth)).thenReturn(sampleResponse());
+        when(smokingReportAggregateService.getMonthAggregate(LINE, yearMonth)).thenReturn(REPORT_COUNT);
 
         mockMvc.perform(withRequiredHeaders(get(BASE_PATH + "/{line}/month/2026-03", LINE)))
                .andExpect(status().isOk())
@@ -148,7 +130,7 @@ class SmokingReportAggregateControllerTest {
     @Test
     void getYearAggregate_validFormat_returns200() throws Exception {
         Year year = Year.of(2026);
-        when(smokingReportAggregateService.getYearAggregate(LINE, year)).thenReturn(sampleResponse());
+        when(smokingReportAggregateService.getYearAggregate(LINE, year)).thenReturn(REPORT_COUNT);
 
         mockMvc.perform(withRequiredHeaders(get(BASE_PATH + "/{line}/year/2026", LINE)))
                .andExpect(status().isOk())
@@ -157,7 +139,7 @@ class SmokingReportAggregateControllerTest {
 
     @Test
     void getAllTimeAggregate_validLine_returns200() throws Exception {
-        when(smokingReportAggregateService.getAllTimeAggregate(LINE)).thenReturn(sampleResponse());
+        when(smokingReportAggregateService.getAllTimeAggregate(LINE)).thenReturn(REPORT_COUNT);
 
         mockMvc.perform(withRequiredHeaders(get(BASE_PATH + "/{line}/all-time", LINE)))
                .andExpect(status().isOk())

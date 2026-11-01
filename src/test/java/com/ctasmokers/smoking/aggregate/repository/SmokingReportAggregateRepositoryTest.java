@@ -3,13 +3,13 @@ package com.ctasmokers.smoking.aggregate.repository;
 import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.aws.config.DynamoDbProperties;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
-import com.ctasmokers.smoking.common.model.YearWeek;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.threeten.extra.YearWeek;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -96,7 +96,7 @@ class SmokingReportAggregateRepositoryTest {
 
     @Test
     void findByLineAndWeek_found() {
-        YearWeek yearWeek = new YearWeek(2026, 13);
+        YearWeek yearWeek = YearWeek.of(2026, 13);
         SmokingReportAggregate aggregate = SmokingReportAggregate.builder()
                                                                  .pk(EXPECTED_PK)
                                                                  .sk("WEEK#2026-W13")
@@ -119,7 +119,7 @@ class SmokingReportAggregateRepositoryTest {
     void findByLineAndWeek_notFound() {
         when(smokingReportAggregates.getItem(any(Key.class))).thenReturn(null);
 
-        SmokingReportAggregate result = repository.findByLineAndWeek(LINE, new YearWeek(2026, 13));
+        SmokingReportAggregate result = repository.findByLineAndWeek(LINE, YearWeek.of(2026, 13));
 
         assertThat(result).isNull();
     }

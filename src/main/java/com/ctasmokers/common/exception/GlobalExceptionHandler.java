@@ -1,6 +1,5 @@
 package com.ctasmokers.common.exception;
 
-import com.ctasmokers.smoking.aggregate.exception.SmokingReportAggregateNotFoundException;
 import com.ctasmokers.smoking.report.exception.InvalidCursorException;
 import com.ctasmokers.smoking.report.exception.InvalidStationIdException;
 import com.ctasmokers.smoking.report.exception.SmokingReportAlreadyExistsException;
@@ -86,14 +85,6 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
         this.rollbar.warning(message);
 
         ProblemDetail problem = buildProblemDetail(HttpStatus.CONFLICT, CONFLICT_DETAIL, CONFLICT_TITLE, request);
-
-        return ResponseEntity.of(problem)
-                             .build();
-    }
-
-    @ExceptionHandler(SmokingReportAggregateNotFoundException.class)
-    public ResponseEntity<ProblemDetail> handleAggregateNotFoundException(HttpServletRequest request) {
-        ProblemDetail problem = buildProblemDetail(HttpStatus.NOT_FOUND, NOT_FOUND_DETAIL, NOT_FOUND_TITLE, request);
 
         return ResponseEntity.of(problem)
                              .build();

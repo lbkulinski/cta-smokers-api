@@ -191,13 +191,11 @@ public final class SmokingReportController {
     public ResponseEntity<SmokingReportDto> getReportByCarNumberLine(
         @PathVariable
         @Pattern(regexp = SmokingReportSchema.CAR_NUMBER_REGEX)
-        @Parameter(description = "Car number of the report to retrieve")
-        @Schema(type = "string", example = "2345")
+        @Parameter(description = "Car number of the report to retrieve", example = "2435")
         String carNumber,
 
         @PathVariable
         @Parameter(description = "CTA train line")
-        @Schema(type = "string", example = "RED")
         TrainLine line
     ) {
         SmokingReport report = this.reportService.getReportByCarNumberLine(carNumber, line);

@@ -4,10 +4,8 @@ import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportAggregateDto;
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountDto;
 import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountsDto;
-import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
 import com.ctasmokers.smoking.aggregate.model.SmokingReportDailyCount;
 import com.ctasmokers.smoking.aggregate.service.SmokingReportAggregateService;
-import com.ctasmokers.smoking.common.model.YearWeek;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -24,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.threeten.extra.YearWeek;
 
 import java.time.LocalDate;
 import java.time.Year;
@@ -45,7 +44,7 @@ public final class SmokingReportAggregateController {
     @GetMapping("/{line}/day/{date}")
     @Operation(
         summary = "Get daily aggregate",
-        description = "Retrieve the smoking report aggregate for a train line on a specific day (e.g. 2026-02-21)"
+        description = "Retrieve the smoking report aggregate for a train line on a specific day"
     )
     @ApiResponses({
         @ApiResponse(
@@ -59,14 +58,6 @@ public final class SmokingReportAggregateController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid request data",
-            content = @Content(
-                schema = @Schema(implementation = ProblemDetail.class),
-                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
-            )
-        ),
-        @ApiResponse(
-            responseCode = "404",
-            description = "Aggregate not found",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
@@ -79,13 +70,12 @@ public final class SmokingReportAggregateController {
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "Day to retrieve the aggregate for")
-        @Schema(type = "string", example = "2026-02-21")
+        @Parameter(description = "Day to retrieve the aggregate for", example = "2026-02-21")
         LocalDate date
     ) {
-        SmokingReportAggregate aggregate = this.aggregateService.getDayAggregate(line, date);
+        long reportCount = this.aggregateService.getDayAggregate(line, date);
 
-        var aggregateDto = SmokingReportAggregateDto.from(aggregate);
+        var aggregateDto = new SmokingReportAggregateDto(reportCount);
 
         return ResponseEntity.ok(aggregateDto);
     }
@@ -93,7 +83,7 @@ public final class SmokingReportAggregateController {
     @GetMapping("/{line}/week/{yearWeek}")
     @Operation(
         summary = "Get weekly aggregate",
-        description = "Retrieve the smoking report aggregate for a train line in a specific ISO week (e.g. 2026-W13)"
+        description = "Retrieve the smoking report aggregate for a train line in a specific ISO week"
     )
     @ApiResponses({
         @ApiResponse(
@@ -107,14 +97,6 @@ public final class SmokingReportAggregateController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid request data",
-            content = @Content(
-                schema = @Schema(implementation = ProblemDetail.class),
-                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
-            )
-        ),
-        @ApiResponse(
-            responseCode = "404",
-            description = "Aggregate not found",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
@@ -127,13 +109,12 @@ public final class SmokingReportAggregateController {
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "ISO week to retrieve the aggregate for")
-        @Schema(type = "string", example = "2026-W13")
+        @Parameter(description = "ISO week to retrieve the aggregate for", example = "2026-W13")
         YearWeek yearWeek
     ) {
-        SmokingReportAggregate aggregate = this.aggregateService.getWeekAggregate(line, yearWeek);
+        long reportCount = this.aggregateService.getWeekAggregate(line, yearWeek);
 
-        var aggregateDto = SmokingReportAggregateDto.from(aggregate);
+        var aggregateDto = new SmokingReportAggregateDto(reportCount);
 
         return ResponseEntity.ok(aggregateDto);
     }
@@ -141,7 +122,7 @@ public final class SmokingReportAggregateController {
     @GetMapping("/{line}/month/{yearMonth}")
     @Operation(
         summary = "Get monthly aggregate",
-        description = "Retrieve the smoking report aggregate for a train line in a specific month (e.g. 2026-03)"
+        description = "Retrieve the smoking report aggregate for a train line in a specific month"
     )
     @ApiResponses({
         @ApiResponse(
@@ -155,14 +136,6 @@ public final class SmokingReportAggregateController {
         @ApiResponse(
             responseCode = "400",
             description = "Invalid request data",
-            content = @Content(
-                schema = @Schema(implementation = ProblemDetail.class),
-                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
-            )
-        ),
-        @ApiResponse(
-            responseCode = "404",
-            description = "Aggregate not found",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
@@ -175,13 +148,12 @@ public final class SmokingReportAggregateController {
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "Month to retrieve the aggregate for")
-        @Schema(type = "string", example = "2026-03")
+        @Parameter(description = "Month to retrieve the aggregate for", example = "2026-03")
         YearMonth yearMonth
     ) {
-        SmokingReportAggregate aggregate = this.aggregateService.getMonthAggregate(line, yearMonth);
+        long reportCount = this.aggregateService.getMonthAggregate(line, yearMonth);
 
-        var aggregateDto = SmokingReportAggregateDto.from(aggregate);
+        var aggregateDto = new SmokingReportAggregateDto(reportCount);
 
         return ResponseEntity.ok(aggregateDto);
     }
@@ -189,7 +161,7 @@ public final class SmokingReportAggregateController {
     @GetMapping("/{line}/year/{year}")
     @Operation(
         summary = "Get yearly aggregate",
-        description = "Retrieve the smoking report aggregate for a train line in a specific year (e.g. 2026)"
+        description = "Retrieve the smoking report aggregate for a train line in a specific year"
     )
     @ApiResponses({
         @ApiResponse(
@@ -207,14 +179,6 @@ public final class SmokingReportAggregateController {
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
             )
-        ),
-        @ApiResponse(
-            responseCode = "404",
-            description = "Aggregate not found",
-            content = @Content(
-                schema = @Schema(implementation = ProblemDetail.class),
-                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
-            )
         )
     })
     public ResponseEntity<SmokingReportAggregateDto> getYearAggregate(
@@ -223,13 +187,12 @@ public final class SmokingReportAggregateController {
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "Year to retrieve the aggregate for")
-        @Schema(type = "string", example = "2026")
+        @Parameter(description = "Year to retrieve the aggregate for", example = "2026")
         Year year
     ) {
-        SmokingReportAggregate aggregate = this.aggregateService.getYearAggregate(line, year);
+        long reportCount = this.aggregateService.getYearAggregate(line, year);
 
-        var aggregateDto = SmokingReportAggregateDto.from(aggregate);
+        var aggregateDto = new SmokingReportAggregateDto(reportCount);
 
         return ResponseEntity.ok(aggregateDto);
     }
@@ -255,14 +218,6 @@ public final class SmokingReportAggregateController {
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
             )
-        ),
-        @ApiResponse(
-            responseCode = "404",
-            description = "Aggregate not found",
-            content = @Content(
-                schema = @Schema(implementation = ProblemDetail.class),
-                mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
-            )
         )
     })
     public ResponseEntity<SmokingReportAggregateDto> getAllTimeAggregate(
@@ -270,9 +225,9 @@ public final class SmokingReportAggregateController {
         @Parameter(description = "CTA train line")
         TrainLine line
     ) {
-        SmokingReportAggregate aggregate = this.aggregateService.getAllTimeAggregate(line);
+        long reportCount = this.aggregateService.getAllTimeAggregate(line);
 
-        var aggregateDto = SmokingReportAggregateDto.from(aggregate);
+        var aggregateDto = new SmokingReportAggregateDto(reportCount);
 
         return ResponseEntity.ok(aggregateDto);
     }
@@ -280,7 +235,7 @@ public final class SmokingReportAggregateController {
     @GetMapping("/{line}/month/{yearMonth}/days")
     @Operation(
         summary = "Get daily count breakdown",
-        description = "Retrieve the daily smoking report counts for a train line in a specific month (e.g. 2026-03)"
+        description = "Retrieve the daily smoking report counts for a train line in a specific month"
     )
     @ApiResponses({
         @ApiResponse(
@@ -306,8 +261,7 @@ public final class SmokingReportAggregateController {
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "Month to retrieve daily counts for")
-        @Schema(type = "string", example = "2026-03")
+        @Parameter(description = "Month to retrieve daily counts for", example = "2026-03")
         YearMonth yearMonth
     ) {
         List<SmokingReportDailyCount> dailyCounts = this.aggregateService.getDailyCounts(line, yearMonth);

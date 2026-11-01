@@ -46,5 +46,9 @@ public record SmokingReport(
         Objects.requireNonNull(reportedAt);
         Objects.requireNonNull(destinationId);
         Objects.requireNonNull(nextStationId);
+
+        if (!SmokingReportSchema.isValidCarNumberLine(carNumberLine)) {
+            throw new IllegalArgumentException("%s is not a valid carNumberLine".formatted(carNumberLine));
+        }
     }
 }

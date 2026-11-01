@@ -20,9 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking:** `nextCursor` values are now opaque tokens, and cursors issued by earlier versions are rejected with `400 Bad Request`.
 - **Breaking:** the smoking reports table is now keyed on `carNumberLine` (partition key, no sort key) with a `gsiPk-expiresAt-index` global secondary index. This requires a new table, so `APP_AWS_DYNAMODB_TABLES_SMOKING_REPORTS` must point to it.
 - **Breaking:** a stations table is now required for station ID validation, so `APP_AWS_DYNAMODB_TABLES_STATIONS` must be set to its name.
+- **Breaking:** the day, week, month, year, and all-time aggregate endpoints now return `200 OK` with `reportCount` of `0` when no aggregate exists for the requested period, instead of `404 Not Found`.
 - Train lines now use the `TrainLine` type from `cta4j-java-sdk`.
 - Page size is no longer configurable through `app.cta.reports.page-size`; use the `limit` query parameter instead.
+- Week aggregate lookups now parse `{yearWeek}` with `YearWeek` from ThreeTen-Extra instead of a project type. Parsing follows `YearWeek.parse`, so a lowercase `w` is accepted and a week 53 in a year with 52 weeks rolls over to week 1 of the next year (`2025-W53` is read as `2026-W01`).
 - Add `com.cta4j:cta4j-java-sdk` `8.0.0`.
+- Add `org.threeten:threeten-extra` `1.11.0`.
 
 ### Removed
 
