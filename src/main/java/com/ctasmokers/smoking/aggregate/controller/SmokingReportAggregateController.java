@@ -31,7 +31,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/cta/reports/smoking/aggregates")
-@Tag(name = "Smoking Report Aggregates", description = "Retrieve smoking report aggregates for CTA train lines")
+@Tag(
+    name = "Smoking Report Aggregates",
+    description = """
+        Retrieve aggregate smoking report counts for CTA train lines. Days, months, and years use Chicago time \
+        (America/Chicago), and weeks are ISO weeks."""
+)
 @NullMarked
 public final class SmokingReportAggregateController {
     private final SmokingReportAggregateService aggregateService;
@@ -44,12 +49,12 @@ public final class SmokingReportAggregateController {
     @GetMapping("/{line}/day/{date}")
     @Operation(
         summary = "Get daily aggregate",
-        description = "Retrieve the smoking report aggregate for a train line on a specific day"
+        description = "Retrieve the aggregate smoking report count for a train line on a specific day"
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Aggregate retrieved successfully",
+            description = "Aggregate report count retrieved successfully; 0 if no reports were recorded",
             content = @Content(
                 schema = @Schema(implementation = SmokingReportAggregateDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
@@ -57,7 +62,7 @@ public final class SmokingReportAggregateController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid request data",
+            description = "Invalid line or date",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
@@ -83,12 +88,12 @@ public final class SmokingReportAggregateController {
     @GetMapping("/{line}/week/{yearWeek}")
     @Operation(
         summary = "Get weekly aggregate",
-        description = "Retrieve the smoking report aggregate for a train line in a specific ISO week"
+        description = "Retrieve the aggregate smoking report count for a train line in a specific ISO week"
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Aggregate retrieved successfully",
+            description = "Aggregate report count retrieved successfully; 0 if no reports were recorded",
             content = @Content(
                 schema = @Schema(implementation = SmokingReportAggregateDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
@@ -96,7 +101,7 @@ public final class SmokingReportAggregateController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid request data",
+            description = "Invalid line or week",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
@@ -122,12 +127,12 @@ public final class SmokingReportAggregateController {
     @GetMapping("/{line}/month/{yearMonth}")
     @Operation(
         summary = "Get monthly aggregate",
-        description = "Retrieve the smoking report aggregate for a train line in a specific month"
+        description = "Retrieve the aggregate smoking report count for a train line in a specific month"
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Aggregate retrieved successfully",
+            description = "Aggregate report count retrieved successfully; 0 if no reports were recorded",
             content = @Content(
                 schema = @Schema(implementation = SmokingReportAggregateDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
@@ -135,7 +140,7 @@ public final class SmokingReportAggregateController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid request data",
+            description = "Invalid line or month",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
@@ -161,12 +166,12 @@ public final class SmokingReportAggregateController {
     @GetMapping("/{line}/year/{year}")
     @Operation(
         summary = "Get yearly aggregate",
-        description = "Retrieve the smoking report aggregate for a train line in a specific year"
+        description = "Retrieve the aggregate smoking report count for a train line in a specific year"
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Aggregate retrieved successfully",
+            description = "Aggregate report count retrieved successfully; 0 if no reports were recorded",
             content = @Content(
                 schema = @Schema(implementation = SmokingReportAggregateDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
@@ -174,7 +179,7 @@ public final class SmokingReportAggregateController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid request data",
+            description = "Invalid line or year",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
@@ -200,12 +205,12 @@ public final class SmokingReportAggregateController {
     @GetMapping("/{line}/all-time")
     @Operation(
         summary = "Get all-time aggregate",
-        description = "Retrieve the all-time smoking report aggregate for a train line"
+        description = "Retrieve the all-time aggregate smoking report count for a train line"
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Aggregate retrieved successfully",
+            description = "Aggregate report count retrieved successfully; 0 if no reports were recorded",
             content = @Content(
                 schema = @Schema(implementation = SmokingReportAggregateDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
@@ -213,7 +218,7 @@ public final class SmokingReportAggregateController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid request data",
+            description = "Invalid line",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
@@ -240,7 +245,7 @@ public final class SmokingReportAggregateController {
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Counts retrieved successfully",
+            description = "Counts retrieved successfully; days is empty if no reports were recorded",
             content = @Content(
                 schema = @Schema(implementation = SmokingReportDailyCountsDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
@@ -248,7 +253,7 @@ public final class SmokingReportAggregateController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid request data",
+            description = "Invalid line or month",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE

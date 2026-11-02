@@ -7,7 +7,7 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public record SmokingReportAggregateDto(
     @Schema(
-        description = "Total number of smoking reports for the requested period",
+        description = "Total number of smoking reports for the requested period, or 0 if none were recorded",
         example = "42",
         requiredMode = Schema.RequiredMode.REQUIRED
     )

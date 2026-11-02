@@ -115,6 +115,8 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/month/
 - `GET /api/cta/reports/smoking/aggregates/{line}/year/{year}` — Yearly report count (e.g. `2026`).
 - `GET /api/cta/reports/smoking/aggregates/{line}/all-time` — All-time report count.
 
+Days, months, and years use Chicago time (`America/Chicago`), and weeks are ISO weeks. A period with no reports returns a `reportCount` of `0` (or an empty `days` list), not `404 Not Found`.
+
 ------------------------------------------------------------------------
 
 ## 🗂 Data Model
