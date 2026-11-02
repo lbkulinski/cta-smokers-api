@@ -12,6 +12,7 @@ import com.ctasmokers.smoking.report.model.SmokingReportSchema;
 import com.ctasmokers.smoking.report.service.SmokingReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -24,6 +25,7 @@ import jakarta.validation.constraints.Pattern;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -60,7 +62,7 @@ public final class SmokingReportController {
 
     @PostMapping
     @Operation(
-        summary = "Submit a new smoking report for a CTA train",
+        summary = "Submit a smoking report",
         description = """
             Create a new smoking report for the given car and line, rejecting duplicates while an active report \
             already exists for that car and line"""
@@ -69,6 +71,11 @@ public final class SmokingReportController {
         @ApiResponse(
             responseCode = "201",
             description = "Report created successfully",
+            headers = @Header(
+                name = HttpHeaders.LOCATION,
+                description = "URL of the created report",
+                schema = @Schema(type = "string", format = "uri")
+            ),
             content = @Content(
                 schema = @Schema(implementation = SmokingReportDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
@@ -84,7 +91,7 @@ public final class SmokingReportController {
         ),
         @ApiResponse(
             responseCode = "409",
-            description = "Report already exists",
+            description = "An active report already exists for this car and line",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
@@ -117,7 +124,7 @@ public final class SmokingReportController {
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Reports retrieved successfully",
+            description = "Page of active reports retrieved successfully; empty if there are none",
             content = @Content(
                 schema = @Schema(implementation = SmokingReportPageDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
@@ -136,7 +143,10 @@ public final class SmokingReportController {
         @RequestParam(required = false)
         @Min(1)
         @Max(SmokingReportLimits.MAX_LIMIT)
-        @Parameter(description = "Maximum number of reports to return (defaults to 25)")
+        @Parameter(
+            description = "Number of reports to return, from 1 to " + SmokingReportLimits.MAX_LIMIT
+                + " (defaults to " + SmokingReportLimits.DEFAULT_LIMIT + ")"
+        )
         @Nullable
         Integer limit,
 
@@ -147,20 +157,20 @@ public final class SmokingReportController {
     ) {
         SmokingReportPage page = this.reportService.getActiveReports(limit, nextCursor);
 
-        List<SmokingReportDto> reportsDtos = page.reports()
-                                                 .stream()
-                                                 .map(SmokingReportDto::from)
-                                                 .toList();
+        List<SmokingReportDto> reportDtos = page.reports()
+                                                .stream()
+                                                .map(SmokingReportDto::from)
+                                                .toList();
 
-        var pageDto = new SmokingReportPageDto(reportsDtos, page.nextCursor());
+        var pageDto = new SmokingReportPageDto(reportDtos, page.nextCursor());
 
         return ResponseEntity.ok(pageDto);
     }
 
     @GetMapping("/{carNumber}/{line}")
     @Operation(
-        summary = "Get the active smoking report for a car number and line",
-        description = "Retrieve the active smoking report for a car number and line"
+        summary = "Get the active report for a car and line",
+        description = "Retrieve the active smoking report for a car number and line; expired reports are not returned"
     )
     @ApiResponses({
         @ApiResponse(
@@ -173,7 +183,7 @@ public final class SmokingReportController {
         ),
         @ApiResponse(
             responseCode = "400",
-            description = "Invalid request data",
+            description = "Invalid car number or line",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE
@@ -181,7 +191,7 @@ public final class SmokingReportController {
         ),
         @ApiResponse(
             responseCode = "404",
-            description = "No active report found",
+            description = "No active report for this car and line, or it has expired",
             content = @Content(
                 schema = @Schema(implementation = ProblemDetail.class),
                 mediaType = MediaType.APPLICATION_PROBLEM_JSON_VALUE

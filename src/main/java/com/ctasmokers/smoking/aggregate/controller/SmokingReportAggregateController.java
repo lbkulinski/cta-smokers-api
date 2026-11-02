@@ -245,7 +245,7 @@ public final class SmokingReportAggregateController {
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Counts retrieved successfully; days is empty if no reports were recorded",
+            description = "Daily counts retrieved successfully; empty if no reports were recorded",
             content = @Content(
                 schema = @Schema(implementation = SmokingReportDailyCountsDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
