@@ -2,6 +2,9 @@ package com.ctasmokers.smoking.report.model;
 
 import com.cta4j.train.common.model.TrainLine;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Instant;
 
@@ -45,5 +48,33 @@ class SmokingReportTest {
         assertThatThrownBy(() -> validBuilder().reportedAt(null).build()).isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> validBuilder().destinationId(null).build()).isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> validBuilder().nextStationId(null).build()).isInstanceOf(NullPointerException.class);
+    }
+
+    @ParameterizedTest
+    @EnumSource(TrainLine.class)
+    void builder_everyTrainLineCarNumberLine_isAccepted(TrainLine line) {
+        String carNumberLine = SmokingReportSchema.carNumberLine("2435", line);
+
+        SmokingReport report = validBuilder().carNumberLine(carNumberLine)
+                                             .line(line)
+                                             .build();
+
+        assertThat(report.carNumberLine()).isEqualTo(carNumberLine);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "garbage", "2435", "243#RED", "2435#red", "2435#SILVER", "2435#RED\n"})
+    void builder_malformedCarNumberLine_throws(String carNumberLine) {
+        assertThatThrownBy(() -> validBuilder().carNumberLine(carNumberLine).build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("carNumberLine");
+    }
+
+    @Test
+    void builder_veryLongCarNumberLine_throws() {
+        String carNumberLine = "2435#" + "R".repeat(3000);
+
+        assertThatThrownBy(() -> validBuilder().carNumberLine(carNumberLine).build())
+            .isInstanceOf(IllegalArgumentException.class);
     }
 }
