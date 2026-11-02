@@ -48,7 +48,7 @@ public final class SmokingReportAggregateController {
 
     @GetMapping("/{line}/day/{date}")
     @Operation(
-        summary = "Get daily aggregate",
+        summary = "Get aggregate for a day",
         description = "Retrieve the aggregate smoking report count for a train line on a specific day"
     )
     @ApiResponses({
@@ -87,7 +87,7 @@ public final class SmokingReportAggregateController {
 
     @GetMapping("/{line}/week/{yearWeek}")
     @Operation(
-        summary = "Get weekly aggregate",
+        summary = "Get aggregate for an ISO week",
         description = "Retrieve the aggregate smoking report count for a train line in a specific ISO week"
     )
     @ApiResponses({
@@ -126,7 +126,7 @@ public final class SmokingReportAggregateController {
 
     @GetMapping("/{line}/month/{yearMonth}")
     @Operation(
-        summary = "Get monthly aggregate",
+        summary = "Get aggregate for a month",
         description = "Retrieve the aggregate smoking report count for a train line in a specific month"
     )
     @ApiResponses({
@@ -165,7 +165,7 @@ public final class SmokingReportAggregateController {
 
     @GetMapping("/{line}/year/{year}")
     @Operation(
-        summary = "Get yearly aggregate",
+        summary = "Get aggregate for a year",
         description = "Retrieve the aggregate smoking report count for a train line in a specific year"
     )
     @ApiResponses({
@@ -239,7 +239,7 @@ public final class SmokingReportAggregateController {
 
     @GetMapping("/{line}/month/{yearMonth}/days")
     @Operation(
-        summary = "Get daily count breakdown",
+        summary = "Get daily counts for a month",
         description = "Retrieve the daily smoking report counts for a train line in a specific month"
     )
     @ApiResponses({
