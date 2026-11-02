@@ -62,8 +62,8 @@ public final class SmokingReportController {
     @Operation(
         summary = "Submit a new smoking report for a CTA train",
         description = """
-        Create a new smoking report for the given car and line, rejecting duplicates while an active report already \
-        exists for that car and line"""
+            Create a new smoking report for the given car and line, rejecting duplicates while an active report \
+            already exists for that car and line"""
     )
     @ApiResponses({
         @ApiResponse(
