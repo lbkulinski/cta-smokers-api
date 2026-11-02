@@ -1,11 +1,11 @@
-package com.ctasmokers.smoking.aggregate.controller;
+package com.ctasmokers.smoking.count.controller;
 
 import com.cta4j.train.common.model.TrainLine;
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportAggregateDto;
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountDto;
-import com.ctasmokers.smoking.aggregate.dto.SmokingReportDailyCountsDto;
-import com.ctasmokers.smoking.aggregate.model.SmokingReportDailyCount;
-import com.ctasmokers.smoking.aggregate.service.SmokingReportAggregateService;
+import com.ctasmokers.smoking.count.dto.SmokingReportCountDto;
+import com.ctasmokers.smoking.count.dto.SmokingReportDailyCountDto;
+import com.ctasmokers.smoking.count.dto.SmokingReportDailyCountsDto;
+import com.ctasmokers.smoking.count.model.SmokingReportDailyCount;
+import com.ctasmokers.smoking.count.service.SmokingReportCountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,33 +30,33 @@ import java.time.YearMonth;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/cta/reports/smoking/aggregates")
+@RequestMapping("/api/cta/reports/smoking/counts")
 @Tag(
-    name = "Smoking Report Aggregates",
+    name = "Smoking Report Counts",
     description = """
-        Retrieve aggregate smoking report counts for CTA train lines. Days, months, and years use Chicago time \
+        Retrieve smoking report counts for CTA train lines. Days, months, and years use Chicago time \
         (America/Chicago), and weeks are ISO weeks."""
 )
 @NullMarked
-public final class SmokingReportAggregateController {
-    private final SmokingReportAggregateService aggregateService;
+public final class SmokingReportCountController {
+    private final SmokingReportCountService countService;
 
     @Autowired
-    public SmokingReportAggregateController(SmokingReportAggregateService aggregateService) {
-        this.aggregateService = aggregateService;
+    public SmokingReportCountController(SmokingReportCountService countService) {
+        this.countService = countService;
     }
 
     @GetMapping("/{line}/day/{date}")
     @Operation(
-        summary = "Get aggregate for a day",
-        description = "Retrieve the aggregate smoking report count for a train line on a specific day"
+        summary = "Get count for a day",
+        description = "Retrieve the smoking report count for a train line on a specific day"
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Aggregate report count retrieved successfully; 0 if no reports were recorded",
+            description = "Report count retrieved successfully; 0 if no reports were recorded",
             content = @Content(
-                schema = @Schema(implementation = SmokingReportAggregateDto.class),
+                schema = @Schema(implementation = SmokingReportCountDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
             )
         ),
@@ -69,33 +69,33 @@ public final class SmokingReportAggregateController {
             )
         )
     })
-    public ResponseEntity<SmokingReportAggregateDto> getDayAggregate(
+    public ResponseEntity<SmokingReportCountDto> getDayCount(
         @PathVariable
         @Parameter(description = "CTA train line")
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "Day to retrieve the aggregate for", example = "2026-02-21")
+        @Parameter(description = "Day to retrieve the count for", example = "2026-02-21")
         LocalDate date
     ) {
-        long reportCount = this.aggregateService.getDayAggregate(line, date);
+        long reportCount = this.countService.getDayCount(line, date);
 
-        var aggregateDto = new SmokingReportAggregateDto(reportCount);
+        var countDto = new SmokingReportCountDto(reportCount);
 
-        return ResponseEntity.ok(aggregateDto);
+        return ResponseEntity.ok(countDto);
     }
 
     @GetMapping("/{line}/week/{yearWeek}")
     @Operation(
-        summary = "Get aggregate for an ISO week",
-        description = "Retrieve the aggregate smoking report count for a train line in a specific ISO week"
+        summary = "Get count for an ISO week",
+        description = "Retrieve the smoking report count for a train line in a specific ISO week"
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Aggregate report count retrieved successfully; 0 if no reports were recorded",
+            description = "Report count retrieved successfully; 0 if no reports were recorded",
             content = @Content(
-                schema = @Schema(implementation = SmokingReportAggregateDto.class),
+                schema = @Schema(implementation = SmokingReportCountDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
             )
         ),
@@ -108,33 +108,33 @@ public final class SmokingReportAggregateController {
             )
         )
     })
-    public ResponseEntity<SmokingReportAggregateDto> getWeekAggregate(
+    public ResponseEntity<SmokingReportCountDto> getWeekCount(
         @PathVariable
         @Parameter(description = "CTA train line")
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "ISO week to retrieve the aggregate for", example = "2026-W13")
+        @Parameter(description = "ISO week to retrieve the count for", example = "2026-W13")
         YearWeek yearWeek
     ) {
-        long reportCount = this.aggregateService.getWeekAggregate(line, yearWeek);
+        long reportCount = this.countService.getWeekCount(line, yearWeek);
 
-        var aggregateDto = new SmokingReportAggregateDto(reportCount);
+        var countDto = new SmokingReportCountDto(reportCount);
 
-        return ResponseEntity.ok(aggregateDto);
+        return ResponseEntity.ok(countDto);
     }
 
     @GetMapping("/{line}/month/{yearMonth}")
     @Operation(
-        summary = "Get aggregate for a month",
-        description = "Retrieve the aggregate smoking report count for a train line in a specific month"
+        summary = "Get count for a month",
+        description = "Retrieve the smoking report count for a train line in a specific month"
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Aggregate report count retrieved successfully; 0 if no reports were recorded",
+            description = "Report count retrieved successfully; 0 if no reports were recorded",
             content = @Content(
-                schema = @Schema(implementation = SmokingReportAggregateDto.class),
+                schema = @Schema(implementation = SmokingReportCountDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
             )
         ),
@@ -147,33 +147,33 @@ public final class SmokingReportAggregateController {
             )
         )
     })
-    public ResponseEntity<SmokingReportAggregateDto> getMonthAggregate(
+    public ResponseEntity<SmokingReportCountDto> getMonthCount(
         @PathVariable
         @Parameter(description = "CTA train line")
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "Month to retrieve the aggregate for", example = "2026-03")
+        @Parameter(description = "Month to retrieve the count for", example = "2026-03")
         YearMonth yearMonth
     ) {
-        long reportCount = this.aggregateService.getMonthAggregate(line, yearMonth);
+        long reportCount = this.countService.getMonthCount(line, yearMonth);
 
-        var aggregateDto = new SmokingReportAggregateDto(reportCount);
+        var countDto = new SmokingReportCountDto(reportCount);
 
-        return ResponseEntity.ok(aggregateDto);
+        return ResponseEntity.ok(countDto);
     }
 
     @GetMapping("/{line}/year/{year}")
     @Operation(
-        summary = "Get aggregate for a year",
-        description = "Retrieve the aggregate smoking report count for a train line in a specific year"
+        summary = "Get count for a year",
+        description = "Retrieve the smoking report count for a train line in a specific year"
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Aggregate report count retrieved successfully; 0 if no reports were recorded",
+            description = "Report count retrieved successfully; 0 if no reports were recorded",
             content = @Content(
-                schema = @Schema(implementation = SmokingReportAggregateDto.class),
+                schema = @Schema(implementation = SmokingReportCountDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
             )
         ),
@@ -186,33 +186,33 @@ public final class SmokingReportAggregateController {
             )
         )
     })
-    public ResponseEntity<SmokingReportAggregateDto> getYearAggregate(
+    public ResponseEntity<SmokingReportCountDto> getYearCount(
         @PathVariable
         @Parameter(description = "CTA train line")
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "Year to retrieve the aggregate for", example = "2026")
+        @Parameter(description = "Year to retrieve the count for", example = "2026")
         Year year
     ) {
-        long reportCount = this.aggregateService.getYearAggregate(line, year);
+        long reportCount = this.countService.getYearCount(line, year);
 
-        var aggregateDto = new SmokingReportAggregateDto(reportCount);
+        var countDto = new SmokingReportCountDto(reportCount);
 
-        return ResponseEntity.ok(aggregateDto);
+        return ResponseEntity.ok(countDto);
     }
 
     @GetMapping("/{line}/all-time")
     @Operation(
-        summary = "Get all-time aggregate",
-        description = "Retrieve the all-time aggregate smoking report count for a train line"
+        summary = "Get all-time count",
+        description = "Retrieve the all-time smoking report count for a train line"
     )
     @ApiResponses({
         @ApiResponse(
             responseCode = "200",
-            description = "Aggregate report count retrieved successfully; 0 if no reports were recorded",
+            description = "Report count retrieved successfully; 0 if no reports were recorded",
             content = @Content(
-                schema = @Schema(implementation = SmokingReportAggregateDto.class),
+                schema = @Schema(implementation = SmokingReportCountDto.class),
                 mediaType = MediaType.APPLICATION_JSON_VALUE
             )
         ),
@@ -225,16 +225,16 @@ public final class SmokingReportAggregateController {
             )
         )
     })
-    public ResponseEntity<SmokingReportAggregateDto> getAllTimeAggregate(
+    public ResponseEntity<SmokingReportCountDto> getAllTimeCount(
         @PathVariable
         @Parameter(description = "CTA train line")
         TrainLine line
     ) {
-        long reportCount = this.aggregateService.getAllTimeAggregate(line);
+        long reportCount = this.countService.getAllTimeCount(line);
 
-        var aggregateDto = new SmokingReportAggregateDto(reportCount);
+        var countDto = new SmokingReportCountDto(reportCount);
 
-        return ResponseEntity.ok(aggregateDto);
+        return ResponseEntity.ok(countDto);
     }
 
     @GetMapping("/{line}/month/{yearMonth}/days")
@@ -269,7 +269,7 @@ public final class SmokingReportAggregateController {
         @Parameter(description = "Month to retrieve daily counts for", example = "2026-03")
         YearMonth yearMonth
     ) {
-        List<SmokingReportDailyCount> dailyCounts = this.aggregateService.getDailyCounts(line, yearMonth);
+        List<SmokingReportDailyCount> dailyCounts = this.countService.getDailyCounts(line, yearMonth);
 
         var days = dailyCounts.stream()
                               .map(SmokingReportDailyCountDto::from)

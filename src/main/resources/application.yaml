@@ -10,7 +10,7 @@ app:
       tables:
         stations: ${APP_AWS_DYNAMODB_TABLES_STATIONS}
         smoking-reports: ${APP_AWS_DYNAMODB_TABLES_SMOKING_REPORTS}
-        smoking-report-aggregates: ${APP_AWS_DYNAMODB_TABLES_SMOKING_REPORT_AGGREGATES}
+        smoking-report-counts: ${APP_AWS_DYNAMODB_TABLES_SMOKING_REPORT_COUNTS}
   rollbar:
     environment: ${APP_ROLLBAR_ENVIRONMENT}
   cors:

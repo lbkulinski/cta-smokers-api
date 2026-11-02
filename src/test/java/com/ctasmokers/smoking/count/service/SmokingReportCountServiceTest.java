@@ -1,9 +1,9 @@
-package com.ctasmokers.smoking.aggregate.service;
+package com.ctasmokers.smoking.count.service;
 
 import com.cta4j.train.common.model.TrainLine;
-import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
-import com.ctasmokers.smoking.aggregate.model.SmokingReportDailyCount;
-import com.ctasmokers.smoking.aggregate.repository.SmokingReportAggregateRepository;
+import com.ctasmokers.smoking.count.model.SmokingReportCount;
+import com.ctasmokers.smoking.count.model.SmokingReportDailyCount;
+import com.ctasmokers.smoking.count.repository.SmokingReportCountRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,129 +21,129 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class SmokingReportAggregateServiceTest {
+class SmokingReportCountServiceTest {
     private static final TrainLine LINE = TrainLine.RED;
 
     @Mock
-    private SmokingReportAggregateRepository repository;
+    private SmokingReportCountRepository repository;
 
-    private SmokingReportAggregateService service;
+    private SmokingReportCountService service;
 
     @BeforeEach
     void setUp() {
-        service = new SmokingReportAggregateService(repository);
+        service = new SmokingReportCountService(repository);
     }
 
-    private SmokingReportAggregate aggregate(long reportCount) {
-        return SmokingReportAggregate.builder()
-                                    .pk("LINE#RED")
-                                    .sk("SK")
-                                    .reportCount(reportCount)
-                                    .build();
+    private SmokingReportCount count(long reportCount) {
+        return SmokingReportCount.builder()
+                                 .pk("LINE#RED")
+                                 .sk("SK")
+                                 .reportCount(reportCount)
+                                 .build();
     }
 
     @Test
-    void getDayAggregate_found() {
+    void getDayCount_found() {
         LocalDate day = LocalDate.of(2026, 5, 10);
 
-        when(repository.findByLineAndDay(LINE, day)).thenReturn(aggregate(5));
+        when(repository.findByLineAndDay(LINE, day)).thenReturn(count(5));
 
-        long reportCount = service.getDayAggregate(LINE, day);
+        long reportCount = service.getDayCount(LINE, day);
 
         assertThat(reportCount).isEqualTo(5);
     }
 
     @Test
-    void getDayAggregate_notFound_returnsZero() {
+    void getDayCount_notFound_returnsZero() {
         LocalDate day = LocalDate.of(2026, 5, 10);
 
         when(repository.findByLineAndDay(LINE, day)).thenReturn(null);
 
-        long reportCount = service.getDayAggregate(LINE, day);
+        long reportCount = service.getDayCount(LINE, day);
 
         assertThat(reportCount).isZero();
     }
 
     @Test
-    void getWeekAggregate_found() {
+    void getWeekCount_found() {
         YearWeek yearWeek = YearWeek.of(2026, 13);
 
-        when(repository.findByLineAndWeek(LINE, yearWeek)).thenReturn(aggregate(10));
+        when(repository.findByLineAndWeek(LINE, yearWeek)).thenReturn(count(10));
 
-        long reportCount = service.getWeekAggregate(LINE, yearWeek);
+        long reportCount = service.getWeekCount(LINE, yearWeek);
 
         assertThat(reportCount).isEqualTo(10);
     }
 
     @Test
-    void getWeekAggregate_notFound_returnsZero() {
+    void getWeekCount_notFound_returnsZero() {
         YearWeek yearWeek = YearWeek.of(2026, 13);
 
         when(repository.findByLineAndWeek(LINE, yearWeek)).thenReturn(null);
 
-        long reportCount = service.getWeekAggregate(LINE, yearWeek);
+        long reportCount = service.getWeekCount(LINE, yearWeek);
 
         assertThat(reportCount).isZero();
     }
 
     @Test
-    void getMonthAggregate_found() {
+    void getMonthCount_found() {
         YearMonth yearMonth = YearMonth.of(2026, 3);
 
-        when(repository.findByLineAndMonth(LINE, yearMonth)).thenReturn(aggregate(42));
+        when(repository.findByLineAndMonth(LINE, yearMonth)).thenReturn(count(42));
 
-        long reportCount = service.getMonthAggregate(LINE, yearMonth);
+        long reportCount = service.getMonthCount(LINE, yearMonth);
 
         assertThat(reportCount).isEqualTo(42);
     }
 
     @Test
-    void getMonthAggregate_notFound_returnsZero() {
+    void getMonthCount_notFound_returnsZero() {
         YearMonth yearMonth = YearMonth.of(2026, 3);
 
         when(repository.findByLineAndMonth(LINE, yearMonth)).thenReturn(null);
 
-        long reportCount = service.getMonthAggregate(LINE, yearMonth);
+        long reportCount = service.getMonthCount(LINE, yearMonth);
 
         assertThat(reportCount).isZero();
     }
 
     @Test
-    void getYearAggregate_found() {
+    void getYearCount_found() {
         Year year = Year.of(2026);
 
-        when(repository.findByLineAndYear(LINE, year)).thenReturn(aggregate(100));
+        when(repository.findByLineAndYear(LINE, year)).thenReturn(count(100));
 
-        long reportCount = service.getYearAggregate(LINE, year);
+        long reportCount = service.getYearCount(LINE, year);
 
         assertThat(reportCount).isEqualTo(100);
     }
 
     @Test
-    void getYearAggregate_notFound_returnsZero() {
+    void getYearCount_notFound_returnsZero() {
         Year year = Year.of(2026);
 
         when(repository.findByLineAndYear(LINE, year)).thenReturn(null);
 
-        long reportCount = service.getYearAggregate(LINE, year);
+        long reportCount = service.getYearCount(LINE, year);
 
         assertThat(reportCount).isZero();
     }
 
     @Test
-    void getAllTimeAggregate_found() {
-        when(repository.findByLineAllTime(LINE)).thenReturn(aggregate(999));
+    void getAllTimeCount_found() {
+        when(repository.findByLineAllTime(LINE)).thenReturn(count(999));
 
-        long reportCount = service.getAllTimeAggregate(LINE);
+        long reportCount = service.getAllTimeCount(LINE);
 
         assertThat(reportCount).isEqualTo(999);
     }
 
     @Test
-    void getAllTimeAggregate_notFound_returnsZero() {
+    void getAllTimeCount_notFound_returnsZero() {
         when(repository.findByLineAllTime(LINE)).thenReturn(null);
 
-        long reportCount = service.getAllTimeAggregate(LINE);
+        long reportCount = service.getAllTimeCount(LINE);
 
         assertThat(reportCount).isZero();
     }
@@ -151,13 +151,13 @@ class SmokingReportAggregateServiceTest {
     @Test
     void getDailyCounts_returnsCounts() {
         YearMonth yearMonth = YearMonth.of(2026, 5);
-        SmokingReportAggregate aggregate = SmokingReportAggregate.builder()
-                                                                 .pk("LINE#RED")
-                                                                 .sk("DAY#2026-05-10")
-                                                                 .reportCount(7)
-                                                                 .build();
+        SmokingReportCount count = SmokingReportCount.builder()
+                                                     .pk("LINE#RED")
+                                                     .sk("DAY#2026-05-10")
+                                                     .reportCount(7)
+                                                     .build();
 
-        when(repository.findDayAggregatesByLineAndMonth(LINE, yearMonth)).thenReturn(List.of(aggregate));
+        when(repository.findDayCountsByLineAndMonth(LINE, yearMonth)).thenReturn(List.of(count));
 
         List<SmokingReportDailyCount> response = service.getDailyCounts(LINE, yearMonth);
 
@@ -176,7 +176,7 @@ class SmokingReportAggregateServiceTest {
     void getDailyCounts_empty() {
         YearMonth yearMonth = YearMonth.of(2026, 5);
 
-        when(repository.findDayAggregatesByLineAndMonth(LINE, yearMonth)).thenReturn(List.of());
+        when(repository.findDayCountsByLineAndMonth(LINE, yearMonth)).thenReturn(List.of());
 
         List<SmokingReportDailyCount> response = service.getDailyCounts(LINE, yearMonth);
 

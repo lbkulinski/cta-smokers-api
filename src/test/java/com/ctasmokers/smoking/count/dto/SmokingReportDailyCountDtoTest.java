@@ -1,6 +1,6 @@
-package com.ctasmokers.smoking.aggregate.dto;
+package com.ctasmokers.smoking.count.dto;
 
-import com.ctasmokers.smoking.aggregate.model.SmokingReportDailyCount;
+import com.ctasmokers.smoking.count.model.SmokingReportDailyCount;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;

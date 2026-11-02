@@ -1,4 +1,4 @@
-package com.ctasmokers.smoking.aggregate.model;
+package com.ctasmokers.smoking.count.model;
 
 import org.jspecify.annotations.NullMarked;
 

@@ -11,7 +11,7 @@ Spring Boot REST API for crowdsourced smoking reports on Chicago CTA trains. Bac
 - **Repositories** — DynamoDB access via the Enhanced Client (`DynamoDbEnhancedClient`)
 - **`@ConfigurationProperties` records** — one record per config namespace, validated with JSR-303
 
-Package layout: feature (`smoking.report`, `smoking.aggregate`) then layer (`controller`, `service`, `repository`, `dto`, `model`, `exception`, plus `config` and `cursor` where needed). Shared types live in `smoking.common`; cross-cutting config and `GlobalExceptionHandler` live in `common`.
+Package layout: feature (`smoking.report`, `smoking.count`) then layer (`controller`, `service`, `repository`, `dto`, `model`, `exception`, plus `config` and `cursor` where needed). Shared types live in `smoking.common`; cross-cutting config and `GlobalExceptionHandler` live in `common`.
 
 ## Annotation Ordering
 
@@ -62,7 +62,7 @@ Register each record in `@EnableConfigurationProperties` on `Application.java`.
 
 ## DynamoDB Conventions
 
-Table: `cta-smoking-reports`
+Reports table (configured as `app.aws.dynamodb.tables.smoking-reports`)
 - PK: `carNumberLine` (e.g. `2435#RED`, built with `SmokingReportSchema.carNumberLine`), no sort key
 - GSI `gsiPk-expiresAt-index`: PK `gsiPk` (constant `SmokingReportSchema.GSI_PK_VALUE`), SK `expiresAt` (epoch seconds), projection ALL
 - Attribute names, the index name, and key formats live in `SmokingReportSchema`; use them instead of string literals (the repository's condition expression is the one exception)
@@ -73,7 +73,7 @@ Table: `cta-smoking-reports`
 - Malformed cursors, including one whose `gsiPk` is not `GSI_PK_VALUE`, throw `InvalidCursorException` (400). A cursor whose `expiresAt` is at or before now returns an empty page without querying, because DynamoDB rejects a start key outside the query's `expiresAt` condition
 - `limit` is 1 to `SmokingReportLimits.MAX_LIMIT`; the controller validates it and the repository re-checks it
 
-Table: `cta-smoking-report-aggregates`
+Counts table (configured as `app.aws.dynamodb.tables.smoking-report-counts`)
 - PK: `LINE#<TrainLine>` (e.g. `LINE#RED`)
 - SK patterns:
   - `DAY#2026-05-10`
@@ -84,7 +84,7 @@ Table: `cta-smoking-report-aggregates`
 
 ## Stations
 
-Table: `cta-train-stations` (configured as `app.aws.dynamodb.tables.stations`)
+Stations table (configured as `app.aws.dynamodb.tables.stations`)
 - PK: `mapId`, SK: `stationId`
 - `StationRepository.existsByMapId` queries the `mapId` partition with a limit of 1 and checks the returned items, not the pages, since an empty result still comes back as a page
 - Results are cached in Caffeine (`stationMapIds`, `expireAfterWrite` 24 hours). Only `true` is cached (`unless = "!#result"`), so a station added later is found on the next request

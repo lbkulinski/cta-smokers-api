@@ -1,8 +1,8 @@
-package com.ctasmokers.smoking.aggregate.repository;
+package com.ctasmokers.smoking.count.repository;
 
 import com.cta4j.train.common.model.TrainLine;
 import com.ctasmokers.aws.config.DynamoDbProperties;
-import com.ctasmokers.smoking.aggregate.model.SmokingReportAggregate;
+import com.ctasmokers.smoking.count.model.SmokingReportCount;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ import java.util.Objects;
 
 @Repository
 @NullMarked
-public final class SmokingReportAggregateRepository {
+public final class SmokingReportCountRepository {
     private static final String PK_TEMPLATE = "LINE#%s";
     private static final String SK_DAY_PREFIX = "DAY#";
     private static final String SK_DAY_TEMPLATE = SK_DAY_PREFIX + "%s";
@@ -31,20 +31,20 @@ public final class SmokingReportAggregateRepository {
     private static final String SK_YEAR_TEMPLATE = "YEAR#%s";
     private static final String SK_ALL_TIME = "ALL_TIME";
 
-    private final DynamoDbTable<@Nullable SmokingReportAggregate> smokingReportAggregates;
+    private final DynamoDbTable<@Nullable SmokingReportCount> counts;
 
     @Autowired
-    public SmokingReportAggregateRepository(
+    public SmokingReportCountRepository(
         DynamoDbEnhancedClient dynamoDbClient,
         DynamoDbProperties tableProperties
     ) {
-        String tableName = tableProperties.smokingReportAggregates();
-        var tableSchema = TableSchema.fromImmutableClass(SmokingReportAggregate.class);
+        String tableName = tableProperties.smokingReportCounts();
+        var tableSchema = TableSchema.fromImmutableClass(SmokingReportCount.class);
 
-        this.smokingReportAggregates = dynamoDbClient.table(tableName, tableSchema);
+        this.counts = dynamoDbClient.table(tableName, tableSchema);
     }
 
-    public @Nullable SmokingReportAggregate findByLineAndDay(TrainLine line, LocalDate day) {
+    public @Nullable SmokingReportCount findByLineAndDay(TrainLine line, LocalDate day) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(day);
 
@@ -56,10 +56,10 @@ public final class SmokingReportAggregateRepository {
                      .sortValue(sk)
                      .build();
 
-        return this.smokingReportAggregates.getItem(key);
+        return this.counts.getItem(key);
     }
 
-    public @Nullable SmokingReportAggregate findByLineAndWeek(TrainLine line, YearWeek yearWeek) {
+    public @Nullable SmokingReportCount findByLineAndWeek(TrainLine line, YearWeek yearWeek) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(yearWeek);
 
@@ -71,10 +71,10 @@ public final class SmokingReportAggregateRepository {
                      .sortValue(sk)
                      .build();
 
-        return this.smokingReportAggregates.getItem(key);
+        return this.counts.getItem(key);
     }
 
-    public @Nullable SmokingReportAggregate findByLineAndMonth(TrainLine line, YearMonth yearMonth) {
+    public @Nullable SmokingReportCount findByLineAndMonth(TrainLine line, YearMonth yearMonth) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(yearMonth);
 
@@ -86,10 +86,10 @@ public final class SmokingReportAggregateRepository {
                      .sortValue(sk)
                      .build();
 
-        return this.smokingReportAggregates.getItem(key);
+        return this.counts.getItem(key);
     }
 
-    public @Nullable SmokingReportAggregate findByLineAndYear(TrainLine line, Year year) {
+    public @Nullable SmokingReportCount findByLineAndYear(TrainLine line, Year year) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(year);
 
@@ -101,10 +101,10 @@ public final class SmokingReportAggregateRepository {
                      .sortValue(sk)
                      .build();
 
-        return this.smokingReportAggregates.getItem(key);
+        return this.counts.getItem(key);
     }
 
-    public @Nullable SmokingReportAggregate findByLineAllTime(TrainLine line) {
+    public @Nullable SmokingReportCount findByLineAllTime(TrainLine line) {
         Objects.requireNonNull(line);
 
         var pk = PK_TEMPLATE.formatted(line);
@@ -114,10 +114,10 @@ public final class SmokingReportAggregateRepository {
                      .sortValue(SK_ALL_TIME)
                      .build();
 
-        return this.smokingReportAggregates.getItem(key);
+        return this.counts.getItem(key);
     }
 
-    public List<SmokingReportAggregate> findDayAggregatesByLineAndMonth(TrainLine line, YearMonth yearMonth) {
+    public List<SmokingReportCount> findDayCountsByLineAndMonth(TrainLine line, YearMonth yearMonth) {
         Objects.requireNonNull(line);
         Objects.requireNonNull(yearMonth);
 
@@ -131,10 +131,10 @@ public final class SmokingReportAggregateRepository {
 
         var queryConditional = QueryConditional.sortBeginsWith(key);
 
-        return this.smokingReportAggregates.query(queryConditional)
-                                           .items()
-                                           .stream()
-                                           .filter(Objects::nonNull)
-                                           .toList();
+        return this.counts.query(queryConditional)
+                          .items()
+                          .stream()
+                          .filter(Objects::nonNull)
+                          .toList();
     }
 }

@@ -10,7 +10,7 @@ app:
       tables:
         stations: cta-train-stations
         smoking-reports: cta-smoking-reports
-        smoking-report-aggregates: cta-smoking-report-aggregates
+        smoking-report-counts: cta-smoking-report-counts
   rollbar:
     environment: test
   cors:

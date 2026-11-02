@@ -87,13 +87,13 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/2435/RED | jq '.'
 ### Fetch the Red Line report count for a given week
 
 ``` bash
-curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/week/$(date +%G-W%V) | jq '.reportCount'
+curl -s https://api.ctasmokers.com/api/cta/reports/smoking/counts/RED/week/$(date +%G-W%V) | jq '.reportCount'
 ```
 
 ### Fetch daily Red Line report counts for the current month
 
 ``` bash
-curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/month/$(date +%Y-%m)/days | jq '.days'
+curl -s https://api.ctasmokers.com/api/cta/reports/smoking/counts/RED/month/$(date +%Y-%m)/days | jq '.days'
 ```
 
 ------------------------------------------------------------------------
@@ -106,14 +106,14 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/month/
 - `GET /api/cta/reports/smoking/active` — List active reports, newest first (`limit` 1 to 100, default 25, and `nextCursor`).
 - `GET /api/cta/reports/smoking/{carNumber}/{line}` — Retrieve the active report for a car number and line.
 
-### Smoking Report Aggregates
+### Smoking Report Counts
 
-- `GET /api/cta/reports/smoking/aggregates/{line}/day/{date}` — Daily report count (e.g. `2026-05-10`).
-- `GET /api/cta/reports/smoking/aggregates/{line}/week/{yearWeek}` — Weekly report count (e.g. `2026-W13`).
-- `GET /api/cta/reports/smoking/aggregates/{line}/month/{yearMonth}` — Monthly report count (e.g. `2026-03`).
-- `GET /api/cta/reports/smoking/aggregates/{line}/month/{yearMonth}/days` — Daily report counts for a month (e.g. `2026-05`).
-- `GET /api/cta/reports/smoking/aggregates/{line}/year/{year}` — Yearly report count (e.g. `2026`).
-- `GET /api/cta/reports/smoking/aggregates/{line}/all-time` — All-time report count.
+- `GET /api/cta/reports/smoking/counts/{line}/day/{date}` — Daily report count (e.g. `2026-05-10`).
+- `GET /api/cta/reports/smoking/counts/{line}/week/{yearWeek}` — Weekly report count (e.g. `2026-W13`).
+- `GET /api/cta/reports/smoking/counts/{line}/month/{yearMonth}` — Monthly report count (e.g. `2026-03`).
+- `GET /api/cta/reports/smoking/counts/{line}/month/{yearMonth}/days` — Daily report counts for a month (e.g. `2026-05`).
+- `GET /api/cta/reports/smoking/counts/{line}/year/{year}` — Yearly report count (e.g. `2026`).
+- `GET /api/cta/reports/smoking/counts/{line}/all-time` — All-time report count.
 
 Days, months, and years use Chicago time (`America/Chicago`), and weeks are ISO weeks. A period with no reports returns a `reportCount` of `0` (or an empty `days` list), not `404 Not Found`.
 
@@ -144,7 +144,7 @@ Days, months, and years use Chicago time (`America/Chicago`), and weeks are ISO 
 }
 ```
 
-### Smoking Report Aggregate
+### Smoking Report Count
 
 ``` json
 {

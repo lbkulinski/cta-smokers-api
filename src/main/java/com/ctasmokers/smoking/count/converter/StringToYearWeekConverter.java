@@ -1,4 +1,4 @@
-package com.ctasmokers.smoking.aggregate.converter;
+package com.ctasmokers.smoking.count.converter;
 
 import org.jspecify.annotations.NullMarked;
 import org.springframework.core.convert.converter.Converter;

@@ -1,4 +1,4 @@
-package com.ctasmokers.smoking.aggregate.converter;
+package com.ctasmokers.smoking.count.converter;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

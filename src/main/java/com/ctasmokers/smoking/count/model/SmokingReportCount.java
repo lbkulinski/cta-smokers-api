@@ -1,4 +1,4 @@
-package com.ctasmokers.smoking.aggregate.model;
+package com.ctasmokers.smoking.count.model;
 
 import lombok.Builder;
 import org.jspecify.annotations.NullMarked;
@@ -10,9 +10,9 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 import java.util.Objects;
 
 @Builder
-@DynamoDbImmutable(builder = SmokingReportAggregate.SmokingReportAggregateBuilder.class)
+@DynamoDbImmutable(builder = SmokingReportCount.SmokingReportCountBuilder.class)
 @NullMarked
-public record SmokingReportAggregate(
+public record SmokingReportCount(
     @DynamoDbPartitionKey
     @DynamoDbAttribute("PK")
     String pk,
@@ -23,7 +23,7 @@ public record SmokingReportAggregate(
 
     long reportCount
 ) {
-    public SmokingReportAggregate {
+    public SmokingReportCount {
         Objects.requireNonNull(pk);
         Objects.requireNonNull(sk);
     }

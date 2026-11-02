@@ -50,7 +50,7 @@ class StationRepositoryCachingTest {
 
         @Bean
         DynamoDbProperties dynamoDbProperties() {
-            return new DynamoDbProperties("stations", "smoking-reports", "smoking-report-aggregates");
+            return new DynamoDbProperties("stations", "smoking-reports", "smoking-report-counts");
         }
     }
 

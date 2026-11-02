@@ -1,4 +1,4 @@
-package com.ctasmokers.smoking.aggregate.dto;
+package com.ctasmokers.smoking.count.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.jspecify.annotations.NullMarked;
