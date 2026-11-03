@@ -68,6 +68,7 @@ Reports table (configured as `app.aws.dynamodb.tables.smoking-reports`)
 - Attribute names, the index name, and key formats live in `SmokingReportSchema`; use them instead of string literals (the repository's condition expression is the one exception)
 - Submit is a single conditional `putItem` (`attribute_not_exists` or expired), so a car and line has at most one item
 - Expired items can linger until TTL deletes them, so active reads use an `expiresAt` condition at query time, never TTL
+- `/active` is ordered by `expiresAt`, which equals submission order only while `expire-after-minutes` is constant. Changing it while reports are active briefly interleaves old and new reports. Ordering by `reportedAt` would force expiry into a filter expression, which applies after `limit` and can return short pages
 - Paging cursors are opaque base64url tokens: `SmokingReportCursorCodec` encodes a DynamoDB `lastEvaluatedKey` and decodes a token to a `ReportPageCursor`, and `ReportPageCursor.toKey()` builds the `exclusiveStartKey`
 - Cursors are not signed, so a well-formed cursor built by a client is accepted; it only picks a start position in already public data
 - Malformed cursors, including one whose `gsiPk` is not `GSI_PK_VALUE`, throw `InvalidCursorException` (400). A cursor whose `expiresAt` is at or before now returns an empty page without querying, because DynamoDB rejects a start key outside the query's `expiresAt` condition
