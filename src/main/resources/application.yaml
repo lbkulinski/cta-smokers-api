@@ -1,6 +1,10 @@
 spring:
   application:
     name: cta-smokers-api
+  web:
+    error:
+      whitelabel:
+        enabled: false
 app:
   aws:
     region: ${AWS_REGION}
