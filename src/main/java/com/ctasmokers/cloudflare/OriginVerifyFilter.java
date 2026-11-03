@@ -1,6 +1,6 @@
 package com.ctasmokers.cloudflare;
 
-import com.ctasmokers.aws.client.AwsSecretsClient;
+import com.ctasmokers.aws.client.SecretsClient;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,11 +26,11 @@ public final class OriginVerifyFilter extends OncePerRequestFilter {
     private final byte[] expectedOriginVerify;
 
     @Autowired
-    public OriginVerifyFilter(AwsSecretsClient awsSecretsClient) {
-        this.expectedOriginVerify = awsSecretsClient.getAppSecret()
-                                                    .cloudflare()
-                                                    .originVerify()
-                                                    .getBytes(StandardCharsets.UTF_8);
+    public OriginVerifyFilter(SecretsClient secretsClient) {
+        this.expectedOriginVerify = secretsClient.getAppSecret()
+                                                 .cloudflare()
+                                                 .originVerify()
+                                                 .getBytes(StandardCharsets.UTF_8);
     }
 
     @Override

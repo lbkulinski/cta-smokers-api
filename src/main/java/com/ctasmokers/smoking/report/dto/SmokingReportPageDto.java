@@ -7,18 +7,21 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-@Schema(description = "Response body for a list of smoking reports")
+@Schema(description = "Response body for a page of active smoking reports")
 @NullMarked
 public record SmokingReportPageDto(
-    @Schema(description = "List of smoking reports", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(
+        description = "Active smoking reports on this page, newest first",
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
     List<SmokingReportDto> reports,
 
-    @Nullable
     @Schema(
-        description = "Cursor for fetching the next page of results, or null if there are no more results",
-        example = "1771710202399_7a8dcb0d-aea9-4c37-89d6-fc79fe3ba77f",
+        description = "Opaque cursor for the next page, or null on the last page. May be set before a final empty page",
+        example = "c2FtcGxlLWN1cnNvcg",
         nullable = true
     )
+    @Nullable
     String nextCursor
 ) {
     public SmokingReportPageDto {

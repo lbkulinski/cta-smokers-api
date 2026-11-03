@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.0] - 2026-11-03
+
+### Added
+
+- `GET /api/cta/reports/smoking/active` — returns a page of active (unexpired) smoking reports, newest first. Accepts optional `limit` (1 to 100, default 25) and `cursor` query parameters. A `cursor` whose last report has since expired returns an empty page.
+- `400 Bad Request` response when submitting a report with a destination or next station ID that is not a known CTA station. A destination ID of `0` means the Loop and is accepted only for the Brown, Orange, Pink, and Purple lines.
+- `400 Bad Request` response when `cursor` cannot be decoded as a cursor.
+
+### Changed
+
+- **Breaking:** `GET /api/cta/reports/smoking/{carNumber}/{line}` replaces `GET /api/cta/reports/smoking/{date}/{reportId}` and returns the active report for a car number and line, or `404 Not Found` if it has expired. The `Location` header on `POST` points to this endpoint, and the lookup is a strongly consistent read so following it right after `POST` does not return `404 Not Found`.
+- **Breaking:** `date` and `reportId` are removed from report responses.
+- **Breaking:** `nextCursor` values are now opaque tokens, and cursors issued by earlier versions are rejected with `400 Bad Request`.
+- **Breaking:** the smoking reports table is now keyed on `carNumberLine` (partition key, no sort key) with a `gsiPk-expiresAt-index` global secondary index. This requires a new table, so `APP_AWS_DYNAMODB_TABLES_SMOKING_REPORTS` must point to it.
+- **Breaking:** the reports table stream changes for consumers. Report items no longer have a `date` attribute, so derive the Chicago date from `reportedAt`. Because there is now one item per car number and line, a new report submitted over an expired item that TTL has not deleted yet is a `MODIFY` event with a new `reportedAt`, not an `INSERT`. TTL deletions are `REMOVE` events. The stream view type must be `NEW_AND_OLD_IMAGES`.
+- **Breaking:** a stations table is now required for station ID validation, so `APP_AWS_DYNAMODB_TABLES_STATIONS` must be set to its name.
+- **Breaking:** the aggregate endpoints are renamed to count endpoints, moving from `/api/cta/reports/smoking/aggregates/...` to `/api/cta/reports/smoking/counts/...`. The OpenAPI tag is now `Smoking Report Counts`, and the table environment variable `APP_AWS_DYNAMODB_TABLES_SMOKING_REPORT_AGGREGATES` is now `APP_AWS_DYNAMODB_TABLES_SMOKING_REPORT_COUNTS`.
+- **Breaking:** the day, week, month, year, and all-time count endpoints now return `200 OK` with `reportCount` of `0` when no count exists for the requested period, instead of `404 Not Found`.
+- Station ID lookups are cached for 1 hour in a cache limited to 1,000 entries, including unknown IDs, so a newly added station can take up to an hour to be accepted.
+- Train lines now use the `TrainLine` type from `cta4j-java-sdk`.
+- Page size is no longer configurable through `app.cta.reports.page-size`; use the `limit` query parameter instead.
+- Week count lookups now parse `{yearWeek}` with `YearWeek` from ThreeTen-Extra instead of a project type. Parsing follows `YearWeek.parse`, so a lowercase `w` is accepted and a week 53 in a year with 52 weeks rolls over to week 1 of the next year (`2025-W53` is read as `2026-W01`).
+- Add `com.cta4j:cta4j-java-sdk` `8.0.1`.
+- Add `org.threeten:threeten-extra` `1.11.0`.
+
+### Removed
+
+- `GET /api/cta/reports/smoking/{date}` — use `GET /api/cta/reports/smoking/active`, or the count endpoints for history.
+- `GET /api/cta/reports/smoking/{date}/{reportId}`.
+
+### Fixed
+
+- Concurrent submissions for the same car number and line can no longer both succeed; the duplicate check is now a single conditional write.
+
 ## [4.0.0] - 2026-08-06
 
 ### Added
@@ -145,7 +179,8 @@ consistency.
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v4.0.0...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.0...HEAD
+[5.0.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v4.0.0...v5.0.0
 [4.0.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.4.0...v4.0.0
 [3.4.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.3.1...v3.4.0
 [3.3.1]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.3.0...v3.3.1

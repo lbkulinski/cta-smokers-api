@@ -1,11 +1,9 @@
 package com.ctasmokers.smoking.report.exception;
 
-import java.time.LocalDate;
-import org.jspecify.annotations.NullMarked;
+import com.cta4j.train.common.model.TrainLine;
 
-@NullMarked
 public final class SmokingReportNotFoundException extends RuntimeException {
-    public SmokingReportNotFoundException(LocalDate date, String reportId) {
-        super("Smoking report not found for date %s and report ID %s".formatted(date, reportId));
+    public SmokingReportNotFoundException(String carNumber, TrainLine line) {
+        super("Smoking report not found for car number %s and line %s".formatted(carNumber, line.name()));
     }
 }

@@ -15,7 +15,7 @@ The API provides structured access to community-submitted smoking
 reports:
 
 - Submit reports with line, car number, run number, and direction
-- Retrieve recent reports by date
+- Retrieve currently active reports, newest first
 - ISO-8601 timestamps and predictable JSON schema
 - Designed for dashboards, mobile apps, and data analysis
 
@@ -64,22 +64,36 @@ curl -X POST https://api.ctasmokers.com/api/cta/reports/smoking -H "Content-Type
 }'
 ```
 
-### Fetch today's reports
+### Fetch active reports
 
 ``` bash
-curl -s https://api.ctasmokers.com/api/cta/reports/smoking/$(date +%F) | jq '[.reports[] | {line, destinationId, carNumber, reportedAt}]'
+curl -s "https://api.ctasmokers.com/api/cta/reports/smoking/active?limit=10" | jq '[.reports[] | {line, destinationId, carNumber, reportedAt}]'
+```
+
+To get the next page, pass the `nextCursor` value from the response back unchanged as the `cursor` query parameter:
+
+``` bash
+curl -s "https://api.ctasmokers.com/api/cta/reports/smoking/active?limit=10&cursor=$CURSOR" | jq '.'
+```
+
+Keep requesting pages until `nextCursor` is `null`. When the last page holds exactly `limit` reports, `nextCursor` can still be non-null, and the next request returns an empty page with `nextCursor` set to `null`.
+
+### Fetch the active report for a car
+
+``` bash
+curl -s https://api.ctasmokers.com/api/cta/reports/smoking/2435/RED | jq '.'
 ```
 
 ### Fetch the Red Line report count for a given week
 
 ``` bash
-curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/week/$(date +%G-W%V) | jq '.reportCount'
+curl -s https://api.ctasmokers.com/api/cta/reports/smoking/counts/RED/week/$(date +%G-W%V) | jq '.reportCount'
 ```
 
 ### Fetch daily Red Line report counts for the current month
 
 ``` bash
-curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/month/$(date +%Y-%m)/days | jq '.days'
+curl -s https://api.ctasmokers.com/api/cta/reports/smoking/counts/RED/month/$(date +%Y-%m)/days | jq '.days'
 ```
 
 ------------------------------------------------------------------------
@@ -89,17 +103,19 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/month/
 ### Smoking Reports
 
 - `POST /api/cta/reports/smoking` — Submit a new smoking report.
-- `GET /api/cta/reports/smoking/{date}` — List reports by date.
-- `GET /api/cta/reports/smoking/{date}/{reportId}` — Retrieve a specific report.
+- `GET /api/cta/reports/smoking/active` — List active reports, newest first (`limit` 1 to 100, default 25, and `cursor`).
+- `GET /api/cta/reports/smoking/{carNumber}/{line}` — Retrieve the active report for a car number and line.
 
-### Smoking Report Aggregates
+### Smoking Report Counts
 
-- `GET /api/cta/reports/smoking/aggregates/{line}/day/{date}` — Daily report count (e.g. `2026-05-10`).
-- `GET /api/cta/reports/smoking/aggregates/{line}/week/{yearWeek}` — Weekly report count (e.g. `2026-W13`).
-- `GET /api/cta/reports/smoking/aggregates/{line}/month/{yearMonth}` — Monthly report count (e.g. `2026-03`).
-- `GET /api/cta/reports/smoking/aggregates/{line}/month/{yearMonth}/days` — Daily report counts for a month (e.g. `2026-05`).
-- `GET /api/cta/reports/smoking/aggregates/{line}/year/{year}` — Yearly report count (e.g. `2026`).
-- `GET /api/cta/reports/smoking/aggregates/{line}/all-time` — All-time report count.
+- `GET /api/cta/reports/smoking/counts/{line}/day/{date}` — Daily report count (e.g. `2026-05-10`).
+- `GET /api/cta/reports/smoking/counts/{line}/week/{yearWeek}` — Weekly report count (e.g. `2026-W13`).
+- `GET /api/cta/reports/smoking/counts/{line}/month/{yearMonth}` — Monthly report count (e.g. `2026-03`).
+- `GET /api/cta/reports/smoking/counts/{line}/month/{yearMonth}/days` — Daily report counts for a month (e.g. `2026-05`).
+- `GET /api/cta/reports/smoking/counts/{line}/year/{year}` — Yearly report count (e.g. `2026`).
+- `GET /api/cta/reports/smoking/counts/{line}/all-time` — All-time report count.
+
+Days, months, and years use Chicago time (`America/Chicago`), and weeks are ISO weeks. Week parsing is lenient because it follows `YearWeek.parse` from the ThreeTen-Extra library: a lowercase `w` is accepted, and week 53 of a year with only 52 weeks is read as week 1 of the next year (`2025-W53` is read as `2026-W01`). A period with no reports returns a `reportCount` of `0` (or an empty `days` list), not `404 Not Found`.
 
 ------------------------------------------------------------------------
 
@@ -109,10 +125,8 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/month/
 
 ``` json
 {
-  "reportId": "1771710202399_7a8dcb0d-aea9-4c37-89d6-fc79fe3ba77f",
   "reportedAt": "2026-02-21T21:00:22.399660Z",
   "expiresAt": "2026-02-21T21:30:22.399660Z",
-  "date": "2026-02-21",
   "line": "RED",
   "destinationId": "40900",
   "nextStationId": "41220",
@@ -121,7 +135,16 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/month/
 }
 ```
 
-### Smoking Report Aggregate
+### Smoking Report Page
+
+``` json
+{
+  "reports": [ /* Smoking Reports */ ],
+  "nextCursor": "c2FtcGxlLWN1cnNvcg" // null on the last page; treat as an opaque token
+}
+```
+
+### Smoking Report Count
 
 ``` json
 {
@@ -146,8 +169,7 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/aggregates/RED/month/
 
 - **Timestamps**: ISO-8601 UTC (`Instant.toString()`)
 - **Dates**: `yyyy-MM-dd`
-- **Report IDs**: `epochMillis_UUID`
-- **Expiration**: Reports may include a TTL (`expiresAt`) for  automatic cleanup
+- **Expiration**: Reports expire at `expiresAt`, and expired reports are no longer returned
 - **Line**: Standard CTA identifiers (`RED`, `BLUE`, `BROWN`, etc.)
 - **Destination/Next Station IDs**: CTA's numeric codes for stations,
 found [here](https://data.cityofchicago.org/resource/8pix-ypme.json)
