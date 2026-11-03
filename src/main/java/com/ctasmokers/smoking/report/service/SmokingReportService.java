@@ -60,11 +60,11 @@ public final class SmokingReportService {
         Objects.requireNonNull(nextStationId);
 
         if (!this.isValidDestination(destinationId, line)) {
-            throw new InvalidStationIdException("destinationId", destinationId);
+            throw new InvalidStationIdException("destinationId");
         }
 
         if (!this.stationRepository.existsByMapId(nextStationId)) {
-            throw new InvalidStationIdException("nextStationId", nextStationId);
+            throw new InvalidStationIdException("nextStationId");
         }
 
         String carNumberLine = SmokingReportSchema.carNumberLine(carNumber, line);
@@ -92,13 +92,13 @@ public final class SmokingReportService {
 
     public SmokingReportPage getActiveReports(
         @Nullable Integer limit,
-        @Nullable String nextCursor
+        @Nullable String cursor
     ) {
         int resolvedLimit = limit == null
             ? SmokingReportLimits.DEFAULT_LIMIT
             : limit;
 
-        return this.reportRepository.findActivePage(resolvedLimit, nextCursor);
+        return this.reportRepository.findActivePage(resolvedLimit, cursor);
     }
 
     public SmokingReport getReportByCarNumberLine(String carNumber, TrainLine line) {

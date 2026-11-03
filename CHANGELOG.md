@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `GET /api/cta/reports/smoking/active` — returns a page of active (unexpired) smoking reports, newest first. Accepts optional `limit` (1 to 100, default 25) and `nextCursor` query parameters. A `nextCursor` whose last report has since expired returns an empty page.
+- `GET /api/cta/reports/smoking/active` — returns a page of active (unexpired) smoking reports, newest first. Accepts optional `limit` (1 to 100, default 25) and `cursor` query parameters. A `cursor` whose last report has since expired returns an empty page.
 - `400 Bad Request` response when submitting a report with a destination or next station ID that is not a known CTA station. A destination ID of `0` means the Loop and is accepted only for the Brown, Orange, Pink, and Purple lines.
-- `400 Bad Request` response when `nextCursor` cannot be decoded as a cursor.
+- `400 Bad Request` response when `cursor` cannot be decoded as a cursor.
 
 ### Changed
 
@@ -22,10 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking:** a stations table is now required for station ID validation, so `APP_AWS_DYNAMODB_TABLES_STATIONS` must be set to its name.
 - **Breaking:** the aggregate endpoints are renamed to count endpoints, moving from `/api/cta/reports/smoking/aggregates/...` to `/api/cta/reports/smoking/counts/...`. The OpenAPI tag is now `Smoking Report Counts`, and the table environment variable `APP_AWS_DYNAMODB_TABLES_SMOKING_REPORT_AGGREGATES` is now `APP_AWS_DYNAMODB_TABLES_SMOKING_REPORT_COUNTS`.
 - **Breaking:** the day, week, month, year, and all-time count endpoints now return `200 OK` with `reportCount` of `0` when no count exists for the requested period, instead of `404 Not Found`.
+- Station ID lookups are cached for 1 hour in a cache limited to 1,000 entries, including unknown IDs, so a newly added station can take up to an hour to be accepted.
 - Train lines now use the `TrainLine` type from `cta4j-java-sdk`.
 - Page size is no longer configurable through `app.cta.reports.page-size`; use the `limit` query parameter instead.
 - Week count lookups now parse `{yearWeek}` with `YearWeek` from ThreeTen-Extra instead of a project type. Parsing follows `YearWeek.parse`, so a lowercase `w` is accepted and a week 53 in a year with 52 weeks rolls over to week 1 of the next year (`2025-W53` is read as `2026-W01`).
-- Add `com.cta4j:cta4j-java-sdk` `8.0.0`.
+- Add `com.cta4j:cta4j-java-sdk` `8.0.1`.
 - Add `org.threeten:threeten-extra` `1.11.0`.
 
 ### Removed
@@ -35,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `GET /api/cta/reports/smoking/{carNumber}/{line}` now uses a strongly consistent read, so following the `Location` header immediately after `POST` no longer returns `404 Not Found`.
 - Concurrent submissions for the same car number and line can no longer both succeed; the duplicate check is now a single conditional write.
 
 ## [4.0.0] - 2026-08-06

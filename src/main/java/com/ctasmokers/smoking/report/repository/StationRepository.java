@@ -1,6 +1,7 @@
 package com.ctasmokers.smoking.report.repository;
 
 import com.ctasmokers.aws.config.DynamoDbProperties;
+import com.ctasmokers.common.config.CacheConfig;
 import com.ctasmokers.smoking.report.model.Station;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -32,7 +33,7 @@ public class StationRepository {
         this.stations = dynamoDbClient.table(tableName, tableSchema);
     }
 
-    @Cacheable(value = "stationMapIds", unless = "!#result")
+    @Cacheable(CacheConfig.STATION_MAP_IDS_CACHE)
     public boolean existsByMapId(String mapId) {
         Objects.requireNonNull(mapId);
 

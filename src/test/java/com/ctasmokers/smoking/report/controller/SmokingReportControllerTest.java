@@ -162,7 +162,7 @@ class SmokingReportControllerTest {
     @Test
     void submitReport_unknownStation_returns400WithProblemDetail() throws Exception {
         when(smokingReportService.submitReport(any(), any(), any(), any(), any()))
-            .thenThrow(new InvalidStationIdException("destinationId", "40900"));
+            .thenThrow(new InvalidStationIdException("destinationId"));
 
         mockMvc.perform(withRequiredHeaders(post("/api/cta/reports/smoking"))
                    .contentType(MediaType.APPLICATION_JSON)
@@ -171,7 +171,7 @@ class SmokingReportControllerTest {
                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                .andExpect(jsonPath("$.status").value(400))
                .andExpect(jsonPath("$.title").value("Bad Request"))
-               .andExpect(jsonPath("$.detail").value("40900 is not a valid destinationId"))
+               .andExpect(jsonPath("$.detail").value("The specified destinationId is invalid."))
                .andExpect(jsonPath("$.instance").value("/api/cta/reports/smoking"));
     }
 
@@ -212,7 +212,7 @@ class SmokingReportControllerTest {
 
         mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/active"))
                    .param("limit", "10")
-                   .param("nextCursor", CURSOR))
+                   .param("cursor", CURSOR))
                .andExpect(status().isOk())
                .andExpect(jsonPath("$.reports").isEmpty());
 
@@ -266,11 +266,11 @@ class SmokingReportControllerTest {
             .thenThrow(new InvalidCursorException("not-a-valid-cursor"));
 
         mockMvc.perform(withRequiredHeaders(get("/api/cta/reports/smoking/active"))
-                   .param("nextCursor", "not-a-valid-cursor"))
+                   .param("cursor", "not-a-valid-cursor"))
                .andExpect(status().isBadRequest())
                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                .andExpect(jsonPath("$.status").value(400))
-               .andExpect(jsonPath("$.detail").value("not-a-valid-cursor is not a valid cursor"));
+               .andExpect(jsonPath("$.detail").value("The specified cursor is invalid."));
     }
 
     @Test

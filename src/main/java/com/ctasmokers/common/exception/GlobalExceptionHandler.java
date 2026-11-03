@@ -24,6 +24,8 @@ import java.net.URI;
 public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     private static final String BAD_REQUEST_TITLE = "Bad Request";
 
+    private static final String INVALID_CURSOR_DETAIL = "The specified cursor is invalid.";
+
     private static final String NOT_FOUND_DETAIL = "The requested resource was not found.";
     private static final String NOT_FOUND_TITLE = "Not Found";
 
@@ -47,20 +49,23 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
     ) {
         String detail = exception.getMessage();
 
-        ProblemDetail problem = buildProblemDetail(HttpStatus.BAD_REQUEST, detail, BAD_REQUEST_TITLE, request);
+        ProblemDetail problem = buildProblemDetail(
+            HttpStatus.BAD_REQUEST,
+            detail,
+            BAD_REQUEST_TITLE,
+            request);
 
         return ResponseEntity.of(problem)
                              .build();
     }
 
     @ExceptionHandler(InvalidCursorException.class)
-    public ResponseEntity<ProblemDetail> handleInvalidCursorException(
-        InvalidCursorException exception,
-        HttpServletRequest request
-    ) {
-        String detail = exception.getMessage();
-
-        ProblemDetail problem = buildProblemDetail(HttpStatus.BAD_REQUEST, detail, BAD_REQUEST_TITLE, request);
+    public ResponseEntity<ProblemDetail> handleInvalidCursorException(HttpServletRequest request) {
+        ProblemDetail problem = buildProblemDetail(
+            HttpStatus.BAD_REQUEST,
+            INVALID_CURSOR_DETAIL,
+            BAD_REQUEST_TITLE,
+            request);
 
         return ResponseEntity.of(problem)
                              .build();

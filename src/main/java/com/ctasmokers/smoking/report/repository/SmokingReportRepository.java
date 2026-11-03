@@ -18,6 +18,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
@@ -78,7 +79,7 @@ public final class SmokingReportRepository {
         }
     }
 
-    public SmokingReportPage findActivePage(int limit, @Nullable String nextCursor) {
+    public SmokingReportPage findActivePage(int limit, @Nullable String cursor) {
         if (limit <= 0 || limit > SmokingReportLimits.MAX_LIMIT) {
             throw new IllegalArgumentException("limit must be between 1 and %d (inclusive)".formatted(
                 SmokingReportLimits.MAX_LIMIT));
@@ -95,14 +96,14 @@ public final class SmokingReportRepository {
 
         Map<String, AttributeValue> exclusiveStartKey = null;
 
-        if (nextCursor != null) {
-            ReportPageCursor cursor = this.cursorCodec.decode(nextCursor);
+        if (cursor != null) {
+            ReportPageCursor pageCursor = this.cursorCodec.decode(cursor);
 
-            if (cursor.expiresAt() <= now) {
+            if (pageCursor.expiresAt() <= now) {
                 return new SmokingReportPage(List.of(), null);
             }
 
-            exclusiveStartKey = cursor.toKey();
+            exclusiveStartKey = pageCursor.toKey();
         }
 
         var request = QueryEnhancedRequest.builder()
@@ -130,7 +131,12 @@ public final class SmokingReportRepository {
                      .partitionValue(partitionKey)
                      .build();
 
-        return this.smokingReports.getItem(key);
+        var request = GetItemEnhancedRequest.builder()
+                                            .key(key)
+                                            .consistentRead(true)
+                                            .build();
+
+        return this.smokingReports.getItem(request);
     }
 
     private SmokingReportPage toPage(Page<SmokingReport> page) {

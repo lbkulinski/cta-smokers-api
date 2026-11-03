@@ -41,7 +41,9 @@ public final class SmokingReportCursorCodec {
 
         byte[] cursorBytes = cursorJson.getBytes(StandardCharsets.UTF_8);
 
-        return Base64.getUrlEncoder().encodeToString(cursorBytes);
+        return Base64.getUrlEncoder()
+                     .withoutPadding()
+                     .encodeToString(cursorBytes);
     }
 
     public ReportPageCursor decode(String cursor) {

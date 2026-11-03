@@ -153,9 +153,9 @@ public final class SmokingReportController {
         @RequestParam(required = false)
         @Parameter(description = "The nextCursor value from the previous page, passed back unchanged")
         @Nullable
-        String nextCursor
+        String cursor
     ) {
-        SmokingReportPage page = this.reportService.getActiveReports(limit, nextCursor);
+        SmokingReportPage page = this.reportService.getActiveReports(limit, cursor);
 
         List<SmokingReportDto> reportDtos = page.reports()
                                                 .stream()

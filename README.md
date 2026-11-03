@@ -70,10 +70,10 @@ curl -X POST https://api.ctasmokers.com/api/cta/reports/smoking -H "Content-Type
 curl -s "https://api.ctasmokers.com/api/cta/reports/smoking/active?limit=10" | jq '[.reports[] | {line, destinationId, carNumber, reportedAt}]'
 ```
 
-To get the next page, pass the `nextCursor` value from the response back unchanged:
+To get the next page, pass the `nextCursor` value from the response back unchanged as the `cursor` query parameter:
 
 ``` bash
-curl -s "https://api.ctasmokers.com/api/cta/reports/smoking/active?limit=10&nextCursor=$CURSOR" | jq '.'
+curl -s "https://api.ctasmokers.com/api/cta/reports/smoking/active?limit=10&cursor=$CURSOR" | jq '.'
 ```
 
 Keep requesting pages until `nextCursor` is `null`. When the last page holds exactly `limit` reports, `nextCursor` can still be non-null, and the next request returns an empty page with `nextCursor` set to `null`.
@@ -103,7 +103,7 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/counts/RED/month/$(da
 ### Smoking Reports
 
 - `POST /api/cta/reports/smoking` — Submit a new smoking report.
-- `GET /api/cta/reports/smoking/active` — List active reports, newest first (`limit` 1 to 100, default 25, and `nextCursor`).
+- `GET /api/cta/reports/smoking/active` — List active reports, newest first (`limit` 1 to 100, default 25, and `cursor`).
 - `GET /api/cta/reports/smoking/{carNumber}/{line}` — Retrieve the active report for a car number and line.
 
 ### Smoking Report Counts

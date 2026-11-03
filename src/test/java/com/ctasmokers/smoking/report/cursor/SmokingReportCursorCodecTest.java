@@ -56,12 +56,32 @@ class SmokingReportCursorCodecTest {
     void encode_producesUrlSafeBase64OfCursorJson() {
         String cursor = codec.encode(key());
 
-        assertThat(cursor).matches("[A-Za-z0-9_=-]+");
+        assertThat(cursor).matches("[A-Za-z0-9_-]+");
 
         var json = new String(Base64.getUrlDecoder().decode(cursor), StandardCharsets.UTF_8);
         assertThat(json).contains("\"carNumberLine\":\"2435#RED\"")
                         .contains("\"gsiPk\":\"REPORT\"")
                         .contains("\"expiresAt\":1771712002");
+    }
+
+    @Test
+    void encode_omitsPadding() {
+        String cursor = codec.encode(key());
+
+        byte[] jsonBytes = Base64.getUrlDecoder().decode(cursor);
+
+        assertThat(cursor).isEqualTo(Base64.getUrlEncoder().withoutPadding().encodeToString(jsonBytes));
+        assertThat(cursor).doesNotContain("=");
+    }
+
+    @Test
+    void decode_acceptsPaddedAndUnpaddedCursors() {
+        byte[] jsonBytes = Base64.getUrlDecoder().decode(codec.encode(key()));
+
+        String padded = Base64.getUrlEncoder().encodeToString(jsonBytes);
+        String unpadded = Base64.getUrlEncoder().withoutPadding().encodeToString(jsonBytes);
+
+        assertThat(codec.decode(padded)).isEqualTo(codec.decode(unpadded));
     }
 
     @Test

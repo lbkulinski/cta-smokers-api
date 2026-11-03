@@ -87,7 +87,7 @@ Counts table (configured as `app.aws.dynamodb.tables.smoking-report-counts`)
 Stations table (configured as `app.aws.dynamodb.tables.stations`)
 - PK: `mapId`, SK: `stationId`
 - `StationRepository.existsByMapId` queries the `mapId` partition with a limit of 1 and checks the returned items, not the pages, since an empty result still comes back as a page
-- Results are cached in Caffeine (`stationMapIds`, `expireAfterWrite` 24 hours). Only `true` is cached (`unless = "!#result"`), so a station added later is found on the next request
+- Results are cached in Caffeine (`stationMapIds`, `expireAfterWrite` 1 hour, `maximumSize` 1,000). Both `true` and `false` are cached, so a station added later can take up to an hour to be accepted, and unknown IDs cannot cause repeated queries or unbounded cache growth
 - Unknown destination or next-station IDs throw `InvalidStationIdException` (400)
 - Destination `0` is the Loop: it is accepted without a lookup on Brown, Orange, Pink, and Purple, and rejected on other lines. `nextStationId` is always looked up
 
@@ -95,7 +95,9 @@ Stations table (configured as `app.aws.dynamodb.tables.stations`)
 
 - `GlobalExceptionHandler` extends `ResponseEntityExceptionHandler`, so errors are `application/problem+json` (`ProblemDetail`)
 - Do not override Spring's inherited handlers (for example for `@Min`/`@Max` on request params); map only project exceptions
-- Custom handlers use the exception message as `detail`, which includes the offending value (for example the cursor or station ID)
+- 404, 409, and 500 handlers use fixed `detail` text, not the exception message
+- Use the exception message as `detail` only where it is written for the client, such as `InvalidStationIdException`, which names the invalid field ("The specified destinationId is invalid.") but never echoes the submitted value
+- The invalid-cursor handler also uses fixed text, since a cursor is opaque and can be long
 - Unexpected exceptions are reported to Rollbar and returned as 500; `409` conflicts are reported at warning level
 
 ## Testing

@@ -109,8 +109,7 @@ class SmokingReportServiceTest {
     void submitReport_unknownDestination_throwsAndDoesNotSave() {
         assertThatThrownBy(() -> service.submitReport("2435", TrainLine.RED, "40900", "41220", null))
             .isInstanceOf(InvalidStationIdException.class)
-            .hasMessageContaining("destinationId")
-            .hasMessageContaining("40900");
+            .hasMessage("The specified destinationId is invalid.");
 
         verify(stationRepository, never()).existsByMapId("41220");
         verify(repository, never()).save(any());
@@ -122,8 +121,7 @@ class SmokingReportServiceTest {
 
         assertThatThrownBy(() -> service.submitReport("2435", TrainLine.RED, "40900", "41220", null))
             .isInstanceOf(InvalidStationIdException.class)
-            .hasMessageContaining("nextStationId")
-            .hasMessageContaining("41220");
+            .hasMessage("The specified nextStationId is invalid.");
 
         verify(repository, never()).save(any());
     }
@@ -147,8 +145,7 @@ class SmokingReportServiceTest {
     void submitReport_loopDestinationOnNonLoopLine_throwsWithoutLookingUpDestination(TrainLine line) {
         assertThatThrownBy(() -> service.submitReport("2435", line, "0", "41220", null))
             .isInstanceOf(InvalidStationIdException.class)
-            .hasMessageContaining("destinationId")
-            .hasMessageContaining("0");
+            .hasMessage("The specified destinationId is invalid.");
 
         verify(stationRepository, never()).existsByMapId(any());
         verify(repository, never()).save(any());

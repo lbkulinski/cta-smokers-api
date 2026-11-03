@@ -92,23 +92,25 @@ class StationRepositoryCachingTest {
     }
 
     @Test
-    void existsByMapId_unknownStationCalledTwice_isNotCached() {
+    void existsByMapId_unknownStationCalledTwice_isCached() {
         stubQuery(List.of());
 
         assertThat(stationRepository.existsByMapId("99999")).isFalse();
         assertThat(stationRepository.existsByMapId("99999")).isFalse();
 
-        verify(stationsTable, times(2)).query(any(QueryEnhancedRequest.class));
+        verify(stationsTable, times(1)).query(any(QueryEnhancedRequest.class));
     }
 
     @Test
-    void existsByMapId_stationAddedAfterMiss_isFoundOnNextCall() {
+    void existsByMapId_stationAddedAfterMiss_isNotFoundUntilCacheEntryExpires() {
         stubQuery(List.of());
 
         assertThat(stationRepository.existsByMapId("40900")).isFalse();
 
         stubQuery(List.of(new Station("40900", "30174")));
 
-        assertThat(stationRepository.existsByMapId("40900")).isTrue();
+        assertThat(stationRepository.existsByMapId("40900")).isFalse();
+
+        verify(stationsTable, times(0)).query(any(QueryEnhancedRequest.class));
     }
 }

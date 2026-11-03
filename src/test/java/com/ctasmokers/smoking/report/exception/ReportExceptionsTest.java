@@ -7,10 +7,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ReportExceptionsTest {
     @Test
-    void invalidStationId_messageNamesFieldAndValue() {
-        var exception = new InvalidStationIdException("destinationId", "99999");
+    void invalidStationId_messageNamesField() {
+        var exception = new InvalidStationIdException("destinationId");
 
-        assertThat(exception.getMessage()).isEqualTo("99999 is not a valid destinationId");
+        assertThat(exception.getMessage()).isEqualTo("The specified destinationId is invalid.");
     }
 
     @Test

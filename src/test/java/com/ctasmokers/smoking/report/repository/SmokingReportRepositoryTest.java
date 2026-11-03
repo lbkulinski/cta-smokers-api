@@ -21,8 +21,8 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
@@ -152,21 +152,23 @@ class SmokingReportRepositoryTest {
     void findByCarNumberLine_found_usesCompositeKey() {
         SmokingReport report = report();
 
-        when(smokingReports.getItem(any(Key.class))).thenReturn(report);
+        when(smokingReports.getItem(any(GetItemEnhancedRequest.class))).thenReturn(report);
 
         SmokingReport result = repository.findByCarNumberLine("2435", TrainLine.RED);
 
         assertThat(result).isEqualTo(report);
 
-        ArgumentCaptor<Key> keyCaptor = ArgumentCaptor.forClass(Key.class);
-        verify(smokingReports).getItem(keyCaptor.capture());
-        assertThat(keyCaptor.getValue().partitionKeyValue().s()).isEqualTo("2435#RED");
-        assertThat(keyCaptor.getValue().sortKeyValue()).isEmpty();
+        ArgumentCaptor<GetItemEnhancedRequest> requestCaptor = ArgumentCaptor.forClass(GetItemEnhancedRequest.class);
+        verify(smokingReports).getItem(requestCaptor.capture());
+        GetItemEnhancedRequest request = requestCaptor.getValue();
+        assertThat(request.key().partitionKeyValue().s()).isEqualTo("2435#RED");
+        assertThat(request.key().sortKeyValue()).isEmpty();
+        assertThat(request.consistentRead()).isTrue();
     }
 
     @Test
     void findByCarNumberLine_notFound_returnsNull() {
-        when(smokingReports.getItem(any(Key.class))).thenReturn(null);
+        when(smokingReports.getItem(any(GetItemEnhancedRequest.class))).thenReturn(null);
 
         assertThat(repository.findByCarNumberLine("2435", TrainLine.RED)).isNull();
     }
