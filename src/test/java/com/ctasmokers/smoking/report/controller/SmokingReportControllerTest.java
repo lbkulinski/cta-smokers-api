@@ -189,8 +189,6 @@ class SmokingReportControllerTest {
                .andExpect(jsonPath("$.title").value("Conflict"))
                .andExpect(jsonPath("$.detail").value("The requested resource already exists."))
                .andExpect(jsonPath("$.instance").value("/api/cta/reports/smoking"));
-
-        verify(rollbar).warning(any(String.class));
     }
 
     @Test

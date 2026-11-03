@@ -87,7 +87,6 @@ public final class GlobalExceptionHandler extends ResponseEntityExceptionHandler
         String message = exception.getMessage();
 
         log.warn(message);
-        this.rollbar.warning(message);
 
         ProblemDetail problem = buildProblemDetail(HttpStatus.CONFLICT, CONFLICT_DETAIL, CONFLICT_TITLE, request);
 

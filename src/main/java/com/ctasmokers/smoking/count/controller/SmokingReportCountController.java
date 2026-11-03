@@ -114,7 +114,12 @@ public final class SmokingReportCountController {
         TrainLine line,
 
         @PathVariable
-        @Parameter(description = "ISO week to retrieve the count for", example = "2026-W13")
+        @Parameter(
+            description = """
+                ISO week to retrieve the count for. Parsed leniently: a lowercase w is accepted, and week 53 of a \
+                year with only 52 weeks is read as week 1 of the next year (2025-W53 is read as 2026-W01)""",
+            example = "2026-W13"
+        )
         YearWeek yearWeek
     ) {
         long reportCount = this.countService.getWeekCount(line, yearWeek);

@@ -98,7 +98,7 @@ Stations table (configured as `app.aws.dynamodb.tables.stations`)
 - 404, 409, and 500 handlers use fixed `detail` text, not the exception message
 - Use the exception message as `detail` only where it is written for the client, such as `InvalidStationIdException`, which names the invalid field ("The specified destinationId is invalid.") but never echoes the submitted value
 - The invalid-cursor handler also uses fixed text, since a cursor is opaque and can be long
-- Unexpected exceptions are reported to Rollbar and returned as 500; `409` conflicts are reported at warning level
+- Unexpected exceptions are reported to Rollbar and returned as 500
 
 ## Testing
 

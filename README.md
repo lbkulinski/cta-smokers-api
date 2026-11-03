@@ -115,7 +115,7 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/counts/RED/month/$(da
 - `GET /api/cta/reports/smoking/counts/{line}/year/{year}` — Yearly report count (e.g. `2026`).
 - `GET /api/cta/reports/smoking/counts/{line}/all-time` — All-time report count.
 
-Days, months, and years use Chicago time (`America/Chicago`), and weeks are ISO weeks. A period with no reports returns a `reportCount` of `0` (or an empty `days` list), not `404 Not Found`.
+Days, months, and years use Chicago time (`America/Chicago`), and weeks are ISO weeks. Week parsing is lenient because it follows `YearWeek.parse` from the ThreeTen-Extra library: a lowercase `w` is accepted, and week 53 of a year with only 52 weeks is read as week 1 of the next year (`2025-W53` is read as `2026-W01`). A period with no reports returns a `reportCount` of `0` (or an empty `days` list), not `404 Not Found`.
 
 ------------------------------------------------------------------------
 
