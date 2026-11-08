@@ -13,10 +13,10 @@ import java.util.Objects;
 @NullMarked
 public record Station(
     @DynamoDbPartitionKey String mapId,
-    @DynamoDbSortKey String stationId
+    @DynamoDbSortKey String stopId
 ) {
     public Station {
         Objects.requireNonNull(mapId);
-        Objects.requireNonNull(stationId);
+        Objects.requireNonNull(stopId);
     }
 }

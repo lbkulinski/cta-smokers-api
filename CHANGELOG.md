@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.1] - 2026-11-08
+
+### Fixed
+
+- Station ID validation failed for known stations because the model expected the stations table's sort key to be named `stationId`; it is `stopId`.
+
 ## [5.0.0] - 2026-11-03
 
 ### Added
@@ -179,7 +185,8 @@ consistency.
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.0...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.1...HEAD
+[5.0.1]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.0...v5.0.1
 [5.0.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v4.0.0...v5.0.0
 [4.0.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.4.0...v4.0.0
 [3.4.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.3.1...v3.4.0
