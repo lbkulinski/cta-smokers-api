@@ -1,6 +1,6 @@
 package com.ctasmokers;
 
-import com.ctasmokers.aws.config.DynamoDbTableProperties;
+import com.ctasmokers.aws.config.DynamoDbProperties;
 import com.ctasmokers.common.config.properties.CorsProperties;
 import com.ctasmokers.common.config.properties.OpenAPIProperties;
 import com.ctasmokers.smoking.report.config.CtaReportProperties;
@@ -12,7 +12,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @EnableConfigurationProperties({
     CorsProperties.class,
     OpenAPIProperties.class,
-    DynamoDbTableProperties.class,
+    DynamoDbProperties.class,
     CtaReportProperties.class
 })
 public class Application {
