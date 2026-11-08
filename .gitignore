@@ -34,3 +34,4 @@ build/
 
 ### Misc ###
 .env
+docs/
