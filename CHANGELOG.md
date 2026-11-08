@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Station lookups expected the stations table's sort key to be named `stationId`; it is `stopId`.
+- Station ID validation failed for known stations because the model expected the stations table's sort key to be named `stationId`; it is `stopId`.
 
 ## [5.0.0] - 2026-11-03
 
