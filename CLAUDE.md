@@ -86,7 +86,7 @@ Counts table (configured as `app.aws.dynamodb.tables.smoking-report-counts`)
 ## Stations
 
 Stations table (configured as `app.aws.dynamodb.tables.stations`)
-- PK: `mapId`, SK: `stationId`
+- PK: `mapId`, SK: `stopId`
 - `StationRepository.existsByMapId` queries the `mapId` partition with a limit of 1 and checks the returned items, not the pages, since an empty result still comes back as a page
 - Results are cached in Caffeine (`stationMapIds`, `expireAfterWrite` 1 hour, `maximumSize` 1,000). Both `true` and `false` are cached, so a station added later can take up to an hour to be accepted, and unknown IDs cannot cause repeated queries or unbounded cache growth
 - Unknown destination or next-station IDs throw `InvalidStationIdException` (400)
