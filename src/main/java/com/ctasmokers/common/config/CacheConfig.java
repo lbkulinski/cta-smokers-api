@@ -25,10 +25,10 @@ public class CacheConfig {
     }
 
     @Bean
-    public CacheManager cacheManager(@Qualifier("stationsCache") Cache<Object, Object> caffeine) {
+    public CacheManager cacheManager(@Qualifier("stationsCache") Cache<Object, Object> cache) {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
 
-        cacheManager.registerCustomCache(STATION_MAP_IDS_CACHE, caffeine);
+        cacheManager.registerCustomCache(STATION_MAP_IDS_CACHE, cache);
 
         return cacheManager;
     }
