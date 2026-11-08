@@ -6,11 +6,9 @@ on:
 
 concurrency:
   group: deploy-${{ github.ref_name }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
-permissions:
-  id-token: write
-  contents: write
+permissions: {}
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
@@ -21,6 +19,10 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      id-token: write
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,15 +35,28 @@ jobs:
         with:
           distribution: corretto
           java-version: '25'
+          cache: maven
 
       - name: Read project version from pom.xml
         id: ver
         run: |
-          VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:3.5.0:exec)
+          VERSION=$(mvn -q -B help:evaluate -Dexpression=project.version -DforceStdout)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Verify tag matches pom.xml version
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [ "$TAG" != "v$VERSION" ]; then
+            echo "::error::Tag $TAG does not match pom.xml version v$VERSION"
+            exit 1
+          fi
+
       - name: Set JAR_FILE
-        run: echo "JAR_FILE=target/cta-smokers-api-${{ steps.ver.outputs.version }}.jar" >> "$GITHUB_ENV"
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: echo "JAR_FILE=target/cta-smokers-api-${VERSION}.jar" >> "$GITHUB_ENV"
 
       - name: Build with Maven
         run: mvn -B clean package
@@ -58,23 +73,23 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build, tag, and push image to Amazon ECR
-        id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.ref_name }}
         run: |
+          IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY"
           docker build \
             --build-arg JAR_FILE="$JAR_FILE" \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+            -t "$IMAGE:$IMAGE_TAG" .
+          docker tag "$IMAGE:$IMAGE_TAG" "$IMAGE:latest"
+          docker push "$IMAGE:$IMAGE_TAG"
+          docker push "$IMAGE:latest"
 
       - name: Extract release notes from CHANGELOG.md
         id: notes
+        env:
+          VER: ${{ steps.ver.outputs.version }}
         run: |
-          VER="${{ steps.ver.outputs.version }}"
           awk -v ver="$VER" 'BEGIN { regex="^##[[:space:]]+\\[?" ver "\\]?(\\s*-.*)?$" } $0 ~ regex {flag=1; next} flag && /^##[[:space:]]/ {flag=0} flag' CHANGELOG.md > RELEASE_NOTES.md || true
           if [ ! -s RELEASE_NOTES.md ]; then
             echo "No changelog section found for ${VER}." > RELEASE_NOTES.md
