@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.2] - 2026-11-17
+
+### Security
+
+- Mitigate CVE-2026-114938 ("Java4Shell"), a memory-corruption flaw in the HotSpot x86-64 Base64 decoder intrinsic, by starting the JVM with `-XX:-UseBASE64Intrinsics`. Rebuild the image on a patched Corretto 25 release (25.0.5.1.2 or later) and then consider removing the flag.
+
+### Changed
+
+- Update the Docker base image from `amazoncorretto:25-alpine3.19` to `amazoncorretto:25-alpine3.24`, since Alpine 3.19 is no longer supported.
+
 ## [5.0.1] - 2026-11-08
 
 ### Fixed
@@ -185,7 +195,8 @@ consistency.
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.1...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.2...HEAD
+[5.0.2]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.1...v5.0.2
 [5.0.1]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.0...v5.0.1
 [5.0.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v4.0.0...v5.0.0
 [4.0.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v3.4.0...v4.0.0
