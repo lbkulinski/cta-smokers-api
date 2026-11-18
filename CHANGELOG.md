@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.3] - 2026-11-17
+
+### Security
+
+- The base image `amazoncorretto:25-alpine3.24` now ships Corretto 25.0.5.1.2, which fixes CVE-2026-114938 ("Java4Shell") and the other CVEs in the [November 2026 OpenJDK advisory](https://openjdk.org/groups/vulnerability/advisories/2026-11-17).
+
+### Changed
+
+- Bump `software.amazon.awssdk:bom` from `2.57.9` to `2.57.13`
+
+### Removed
+
+- The `-XX:-UseBASE64Intrinsics` JVM flag added in 5.0.2, since the patched JDK makes it unnecessary.
+
 ## [5.0.2] - 2026-11-17
 
 ### Security
@@ -195,7 +209,8 @@ consistency.
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.2...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.3...HEAD
+[5.0.3]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.2...v5.0.3
 [5.0.2]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.1...v5.0.2
 [5.0.1]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.0...v5.0.1
 [5.0.0]: https://github.com/lbkulinski/cta-smokers-api/compare/v4.0.0...v5.0.0
