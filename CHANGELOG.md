@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.5] - 2026-11-23
+
+### Changed
+
+- Bump `spring-boot-starter-parent` from `4.1.2` to `4.2.0`
+- Bump `software.amazon.awssdk:bom` from `2.57.13` to `2.59.3`
+- Bump `com.amazonaws.secretsmanager:aws-secretsmanager-caching-java` from `2.2.0` to `2.2.1`
+- Bump Apache Maven in the Maven wrapper from `3.10.0` to `3.10.1`
+
 ## [5.0.4] - 2026-11-20
 
 ### Changed
@@ -215,7 +224,8 @@ consistency.
 
 - Initial release of API.
 
-[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.4...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.5...HEAD
+[5.0.5]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.4...v5.0.5
 [5.0.4]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.3...v5.0.4
 [5.0.3]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.2...v5.0.3
 [5.0.2]: https://github.com/lbkulinski/cta-smokers-api/compare/v5.0.1...v5.0.2
