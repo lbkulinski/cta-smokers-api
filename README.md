@@ -1,11 +1,25 @@
 # 🚭 CTA Smokers API
 
+> [!IMPORTANT]
+> **This API is no longer active.** As of November 2026,
+> https://ctasmokers.com is not taking any more reports. To report an
+> issue on the CTA, use
+> [NITA Ride Safe](https://nita.illinois.gov/safety/app), the new
+> reporting app.
+>
+> https://ctasmokers.com still shows an archive of the report counts and
+> includes a link to download them as a zip file.
+>
+> `api.ctasmokers.com` no longer works. The documentation below is kept
+> for reference.
+
 Crowdsourced smoking reports on Chicago CTA trains --- simple,
 transparent, and public.
 
-The **CTA Smokers API** powers https://ctasmokers.com and provides a
+The **CTA Smokers API** powered https://ctasmokers.com and provided a
 clean REST interface for reporting and retrieving smoking incidents on
-CTA trains. Built to help riders make informed decisions in real time.
+CTA trains. It was built to help riders make informed decisions in real
+time.
 
 ------------------------------------------------------------------------
 
@@ -21,83 +35,6 @@ reports:
 
 ------------------------------------------------------------------------
 
-## 🌐 Base URL
-
-    https://api.ctasmokers.com
-
-> All responses are JSON.\
-> No authentication required for read endpoints.\
-> Write endpoints are rate-limited to prevent abuse.
-
-------------------------------------------------------------------------
-
-## 📄 OpenAPI Specification
-
-The full OpenAPI spec is available for developers who want to generate clients or explore endpoints interactively.
-
-**Available formats:**
-
-* `GET /v3/api-docs` — JSON format (OpenAPI 3.1)
-* [Swagger UI](https://api.ctasmokers.com/swagger-ui/index.html) — Interactive visual spec
-
-You can view or import it directly in tools like [Swagger Editor](https://editor.swagger.io/) or [Postman](https://www.postman.com/).
-
-Example:
-
-``` bash
-curl -s https://api.ctasmokers.com/v3/api-docs | jq '.'
-```
-
-------------------------------------------------------------------------
-
-## 🧩 Example Usage
-
-### Submit a smoking report
-
-``` bash
-curl -X POST https://api.ctasmokers.com/api/cta/reports/smoking -H "Content-Type: application/json" -d '{
-    "line": "RED",
-    "destinationId": "40900",
-    "nextStationId": "41220",
-    "carNumber": "2435",
-    "runNumber": "902" // Optional, but helps identify the train and track patterns over time
-}'
-```
-
-### Fetch active reports
-
-``` bash
-curl -s "https://api.ctasmokers.com/api/cta/reports/smoking/active?limit=10" | jq '[.reports[] | {line, destinationId, carNumber, reportedAt}]'
-```
-
-To get the next page, pass the `nextCursor` value from the response back unchanged as the `cursor` query parameter:
-
-``` bash
-curl -s "https://api.ctasmokers.com/api/cta/reports/smoking/active?limit=10&cursor=$CURSOR" | jq '.'
-```
-
-Keep requesting pages until `nextCursor` is `null`. When the last page holds exactly `limit` reports, `nextCursor` can still be non-null, and the next request returns an empty page with `nextCursor` set to `null`.
-
-### Fetch the active report for a car
-
-``` bash
-curl -s https://api.ctasmokers.com/api/cta/reports/smoking/2435/RED | jq '.'
-```
-
-### Fetch the Red Line report count for a given week
-
-``` bash
-curl -s https://api.ctasmokers.com/api/cta/reports/smoking/counts/RED/week/$(date +%G-W%V) | jq '.reportCount'
-```
-
-### Fetch daily Red Line report counts for the current month
-
-``` bash
-curl -s https://api.ctasmokers.com/api/cta/reports/smoking/counts/RED/month/$(date +%Y-%m)/days | jq '.days'
-```
-
-------------------------------------------------------------------------
-
 ## 📚 Endpoints
 
 ### Smoking Reports
@@ -105,6 +42,8 @@ curl -s https://api.ctasmokers.com/api/cta/reports/smoking/counts/RED/month/$(da
 - `POST /api/cta/reports/smoking` — Submit a new smoking report.
 - `GET /api/cta/reports/smoking/active` — List active reports, newest first (`limit` 1 to 100, default 25, and `cursor`).
 - `GET /api/cta/reports/smoking/{carNumber}/{line}` — Retrieve the active report for a car number and line.
+
+To get the next page of active reports, pass the `nextCursor` value from the response back unchanged as the `cursor` query parameter, until `nextCursor` is `null`. When the last page holds exactly `limit` reports, `nextCursor` can still be non-null, and the next request returns an empty page with `nextCursor` set to `null`.
 
 ### Smoking Report Counts
 
@@ -199,17 +138,9 @@ found [here](https://data.cityofchicago.org/resource/8pix-ypme.json)
 
 ## ⚠️ Disclaimer
 
-This project is not affiliated with the Chicago Transit Authority.\
+This project is not affiliated with the Chicago Transit Authority or
+NITA.\
 All data is user-submitted and provided as-is.
-
-------------------------------------------------------------------------
-
-## 🛠️ Planned Improvements
-
-* Expand to support additional **report types** (e.g., loud music, cleanliness)
-* Improve **data caching** and **error granularity**
-
-Have an idea or feature request? Open an issue — contributions are welcome!
 
 ------------------------------------------------------------------------
 
