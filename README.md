@@ -1,11 +1,20 @@
 # 🚭 CTA Smokers API
 
+> [!IMPORTANT]
+> **This API is no longer active.** https://ctasmokers.com is not taking
+> any more reports. To report an issue on the CTA, use
+> [NITA Ride Safe](https://nita.illinois.gov/safety/app), the new
+> reporting app.
+>
+> The documentation below is kept for reference.
+
 Crowdsourced smoking reports on Chicago CTA trains --- simple,
 transparent, and public.
 
-The **CTA Smokers API** powers https://ctasmokers.com and provides a
+The **CTA Smokers API** powered https://ctasmokers.com and provided a
 clean REST interface for reporting and retrieving smoking incidents on
-CTA trains. Built to help riders make informed decisions in real time.
+CTA trains. It was built to help riders make informed decisions in real
+time.
 
 ------------------------------------------------------------------------
 
